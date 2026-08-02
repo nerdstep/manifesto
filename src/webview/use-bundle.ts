@@ -158,20 +158,24 @@ export function useBundle() {
     [commit, cancelPending, send],
   )
 
-  const drop = useCallback(
-    async (file: File) => {
+  /**
+   * Start a session from a Source Mark, however it arrived.
+   *
+   * Dropping a file and choosing one from the native dialog differ only in where the text
+   * came from. Keeping one implementation is what stops the keyboard route becoming a
+   * second-class path that quietly diverges from the one everybody tests.
+   */
+  const begin = useCallback(
+    async (sourceSvg: string, filename: string) => {
       cancelPending()
-      setStatus({ kind: 'working', filename: file.name })
+      setStatus({ kind: 'working', filename })
 
-      // The webview has no filesystem access. SVG is text, so reading it here and sending
-      // a string is all that is needed.
-      const sourceSvg = await file.text()
       ticket.current += 1
       const mine = ticket.current
 
       const result = await bun().request.generate({
         sourceSvg,
-        filename: file.name,
+        filename,
         darkSvg: null,
         settings: null,
         bundleName: null,
@@ -189,7 +193,7 @@ export function useBundle() {
       }
 
       commit({
-        filename: file.name,
+        filename,
         sourceSvg,
         darkSvg: null,
         darkFilename: null,
@@ -200,6 +204,29 @@ export function useBundle() {
     },
     [cancelPending, commit],
   )
+
+  /**
+   * A dropped file. The webview has no filesystem access, but SVG is text, so reading it
+   * here and sending a string is all that is needed.
+   */
+  const drop = useCallback(
+    async (file: File) => {
+      await begin(await file.text(), file.name)
+    },
+    [begin],
+  )
+
+  /**
+   * The native file picker — the keyboard route in.
+   *
+   * The Bun side reads the file, because it is the only side that can. A cancel comes back
+   * as `null` and leaves everything exactly as it was.
+   */
+  const open = useCallback(async () => {
+    const picked = await bun().request.chooseSourceSvg()
+    if (picked === null) return
+    await begin(picked.sourceSvg, picked.filename)
+  }, [begin])
 
   /** Change one or more settings. Debounced, because this is what typing calls. */
   const patch = useCallback(
@@ -254,6 +281,7 @@ export function useBundle() {
     session,
     pending,
     drop,
+    open,
     patch,
     rename,
     attachDarkMark,

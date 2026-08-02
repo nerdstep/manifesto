@@ -20,6 +20,18 @@ export const BUNDLE_FILENAMES = [
   'site.webmanifest',
 ] as const
 
+/** `site.webmanifest` — the one file in a Bundle that is not an image. */
+export const MANIFEST_FILENAME = 'site.webmanifest'
+
+/**
+ * The image files in an Asset Bundle: everything except `site.webmanifest`.
+ *
+ * Derived rather than counted by hand. The drop zone tells the user how many files they
+ * are about to get, and that sentence was wrong — it said seven, which is the *total*
+ * including the manifest — for as long as the number was typed out in prose.
+ */
+export const ICON_FILENAMES = BUNDLE_FILENAMES.filter((name) => name !== MANIFEST_FILENAME)
+
 /**
  * The bookkeeping file written beside every Bundle.
  *
@@ -55,3 +67,6 @@ export const HEAD_SNIPPET = `<link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">`
+
+/** How many tags `HEAD_SNIPPET` contains, for copy that quotes the number. */
+export const HEAD_SNIPPET_TAG_COUNT = HEAD_SNIPPET.split('\n').length

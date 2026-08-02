@@ -14,6 +14,7 @@
 import type { ComponentChildren } from 'preact'
 
 import type { Settings } from '../../pipeline/index.ts'
+import { ICON_FILENAMES } from '../../shared/bundle.ts'
 import { ColorField, CommittedField, DarkMarkField, Field, INPUT } from './fields.tsx'
 type Props = {
   settings: Settings
@@ -74,7 +75,7 @@ export function SettingsPanel({
       */}
       <Group
         title="Affects the icons"
-        note="Changing either of these redraws all seven image files."
+        note={`Changing either of these redraws all ${ICON_FILENAMES.length} image files.`}
       >
         <ColorField
           label="Icon background"

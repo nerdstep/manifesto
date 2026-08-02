@@ -23,7 +23,7 @@ const BUTTON =
 
 export function App() {
   const [outputRoot, setOutputRoot] = useState('—')
-  const { status, session, pending, drop, patch, rename, attachDarkMark, clearDarkMark } =
+  const { status, session, pending, drop, open, patch, rename, attachDarkMark, clearDarkMark } =
     useBundle()
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export function App() {
     <main class="mx-auto max-w-5xl p-7">
       <h1 class="mb-4 text-xs font-semibold tracking-[0.12em] text-muted uppercase">Manifesto</h1>
 
-      <DropZone onFile={drop} busy={status.kind === 'working'} />
+      <DropZone onFile={drop} onChoose={open} busy={status.kind === 'working'} />
 
       <div class="mt-4 flex flex-wrap items-center gap-2.5">
         <button type="button" class={BUTTON} onClick={() => void chooseRoot()}>

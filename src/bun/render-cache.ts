@@ -3,7 +3,7 @@
  *
  * The panel regenerates on a 150 ms debounce, and `render()` costs ~60 ms while
  * `withManifest()` costs 0.007 ms. Typing in the Name field must not spend 40% of the
- * budget re-rasterizing seven images that are already correct — and, just as importantly,
+ * budget re-rendering images that are already correct — and, just as importantly,
  * must not produce *different* bytes for them, which is what makes the incremental
  * property testable at all.
  *

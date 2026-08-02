@@ -21,7 +21,7 @@ import type { ManifestoRPC } from '../shared/rpc.ts'
 import { firstExisting, readWasmBytes } from '../shared/wasm.ts'
 import { loadState, saveState, stateFilePath, windowFrame } from './app-state.ts'
 import type { AppState } from './app-state.ts'
-import { nextAvailableName } from './bundle-writer.ts'
+import { chooseOutputRoot, chooseSourceSvg, resolveCollision } from './dialogs.ts'
 import { createGenerate } from './generate.ts'
 import { createRenderCache } from './render-cache.ts'
 import { enablePerMonitorDpi } from './windows-dpi.ts'
@@ -56,8 +56,8 @@ const pipeline: Pipeline = await createPipeline(
 )
 
 /**
- * Every render in the app goes through here, so a metadata keystroke reuses the seven
- * PNGs it already has instead of spending 60 ms producing identical bytes.
+ * Every render in the app goes through here, so a metadata keystroke reuses the image
+ * files it already has instead of spending 60 ms producing identical bytes.
  */
 const renderCached = createRenderCache((sourceSvg, darkSvg, settings) =>
   pipeline.render(sourceSvg, darkSvg, settings),
@@ -72,38 +72,6 @@ console.log('[manifesto] state:', STATE_PATH)
 console.log('[manifesto] output root:', state.outputRoot)
 
 // --- helpers ---------------------------------------------------------------
-
-/**
- * Resolve a folder-name collision by asking, natively and modally.
- *
- * Modal is right here: the choice is destructive and there is no sensible way to carry
- * on without an answer. Returns the Bundle Name to use, or `null` to cancel.
- */
-async function resolveCollision(
-  root: string,
-  bundleName: string,
-  detail: string,
-): Promise<string | null> {
-  const keepBoth = nextAvailableName(root, bundleName)
-
-  const { response } = await Utils.showMessageBox({
-    type: 'question',
-    title: 'That folder already has files in it',
-    message: `"${bundleName}" already exists in your output folder.`,
-    // The second sentence matters as much as the first. "Overwrite" sounds like it empties
-    // the folder, and it does not — `writeBundle` only ever writes the files it authored
-    // and never deletes anything. Saying so is the difference between an informed choice
-    // and a guess about how destructive this is.
-    detail: `${detail}\n\nOverwriting replaces the icon files with the new ones. Anything else in that folder is left alone.`,
-    buttons: [`Save as "${keepBoth}"`, 'Overwrite', 'Cancel'],
-    defaultId: 0,
-    cancelId: 2,
-  })
-
-  if (response === 0) return keepBoth
-  if (response === 1) return bundleName
-  return null
-}
 
 /**
  * The whole drop→disk operation, with the native modal wired in as its collision prompt.
@@ -126,19 +94,14 @@ const rpc = BrowserView.defineRPC<ManifestoRPC>({
     requests: {
       generate,
 
+      chooseSourceSvg: () => chooseSourceSvg(state.outputRoot),
+
       getOutputRoot: () => ({ path: state.outputRoot }),
 
       chooseOutputRoot: async () => {
-        const picked = await Utils.openFileDialog({
-          startingFolder: state.outputRoot,
-          canChooseFiles: false,
-          canChooseDirectory: true,
-          allowsMultipleSelection: false,
-        })
-
-        const chosen = picked[0]
-        // Cancelling yields an empty result; keep what we had rather than clearing it.
-        if (chosen !== undefined && chosen.length > 0) {
+        const chosen = await chooseOutputRoot(state.outputRoot)
+        // Cancelling keeps what we had rather than clearing it.
+        if (chosen !== null) {
           state.outputRoot = chosen
           saveState(STATE_PATH, state)
         }

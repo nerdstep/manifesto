@@ -223,7 +223,7 @@ function buildBundle(sourceSvg: string, darkSvg: string | null, settings: Settin
  * `buildBundle` is the external interface. The rest is this module's **internal seam** —
  * private to the implementation, exposed so the module's own tests can measure geometry
  * and Safe Zone compliance directly. Those tests caught the `inset: 0.2` Safe Zone bug;
- * routing them through `buildBundle` would have hidden it behind seven PNGs.
+ * routing them through `buildBundle` would have hidden it behind six image files.
  */
 export type Pipeline = {
   /** The one-shot form: `withManifest(render(...), ...)`. */

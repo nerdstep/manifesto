@@ -5,7 +5,7 @@ import { bun } from '../rpc.ts'
 /**
  * The one part of the last mile that stays manual.
  *
- * Six `<link>` tags cannot be written to disk usefully — they go inside an existing
+ * The `<link>` tags cannot be written to disk usefully — they go inside an existing
  * `<head>`. The app deliberately never parses or rewrites the user's HTML.
  */
 export function HeadSnippet({ snippet }: { snippet: string }) {
