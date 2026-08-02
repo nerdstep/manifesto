@@ -1,0 +1,5 @@
+<!-- resvg renders <text> blank without font buffers. Since text is ALL this mark
+     contains, it paints nothing at all => EmptyMarkError, not an advisory. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">
+  <text x="6" y="46" font-family="Arial, sans-serif" font-size="48" fill="#111111">M</text>
+</svg>

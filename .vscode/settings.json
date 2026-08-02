@@ -1,0 +1,33 @@
+{
+  "editor.rulers": [100],
+  "editor.wordWrapColumn": 100,
+
+  // oxlint and oxfmt configs are JSONC — they carry the reasoning for each rule,
+  // and the reasoning is the point. Without this the editor reports every comment
+  // as a parse error.
+  "files.associations": {
+    ".oxlintrc.json": "jsonc",
+    ".oxfmtrc.json": "jsonc"
+  },
+
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": true,
+
+  "[jsonc]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  "[markdown]": {
+    // Markdown is excluded from oxfmt on purpose: it reflows tables into diff
+    // churn and rewrites embedded code samples. The Head Snippet in DESIGN.md
+    // must stay byte-identical to HEAD_SNIPPET in src/pipeline/assemble.ts.
+    "editor.formatOnSave": false
+  },
+
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/build": true
+  }
+}

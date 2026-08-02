@@ -1,0 +1,5 @@
+<!-- Two paint colours: recolouring has no single answer, so no Dark Mark auto-derive. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">
+  <path d="M0 0 H40 V20 H20 V40 H60 V60 H0 Z" fill="#2E5BFF"/>
+  <circle cx="48" cy="12" r="8" fill="#FF8A3D"/>
+</svg>

@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"],
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    // Preact, not React: 13 kB against React's 181 kB minified, with the same hooks
+    // API. Only the webview uses JSX.
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "allowJs": true,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "skipLibCheck": true,
+    "noEmit": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+
+    "types": ["bun"]
+  },
+  "include": ["src", "test", "scripts", "docs/reference"]
+}

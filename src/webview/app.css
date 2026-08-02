@@ -1,0 +1,96 @@
+@import 'tailwindcss';
+
+/*
+ * Sources to scan for class names. Explicit rather than relying on auto-detection, so
+ * moving a component does not silently drop its styles from the build.
+ */
+@source './';
+
+/*
+ * The design tokens, as Tailwind theme variables.
+ *
+ * Declaring them here generates the utilities — `bg-panel`, `text-muted`,
+ * `border-line` — so the palette has one definition rather than one per usage.
+ */
+@theme {
+  --color-bg: #fafaf9;
+  --color-panel: #ffffff;
+  --color-line: #e7e5e4;
+  --color-ink: #1c1917;
+  --color-muted: #78716c;
+  --color-accent: #2e5bff;
+  --color-bad: #dc2626;
+  --color-warn: #b45309;
+  --color-ok: #047857;
+
+  --font-mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+}
+
+/*
+ * Dark mode by overriding the same variables rather than writing `dark:` on every
+ * element. The utilities resolve through `var(--color-…)`, so one override here re-skins
+ * everything and no component needs to know a theme exists.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #12141a;
+    --color-panel: #191c23;
+    --color-line: #2b303b;
+    --color-ink: #e7e5e4;
+    --color-muted: #8b93a1;
+    --color-accent: #7b95ff;
+    --color-bad: #f87171;
+    --color-warn: #fbbf24;
+    --color-ok: #4ade80;
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  /*
+   * Reserve the scrollbar gutter unconditionally, and draw the scrollbar ourselves.
+   *
+   * `overflow-y: scroll` alone was not enough. Edge — and so WebView2 — ships *fluent
+   * overlay scrollbars* by default: they occupy no space and stay invisible until you
+   * scroll or hover the edge, so a page that has plenty to scroll looks like it has none.
+   *
+   * Styling `::-webkit-scrollbar` opts the whole document out of overlay behaviour and
+   * back into a classic, always-present scrollbar. That is the actual fix; `scroll` just
+   * keeps the gutter from appearing and disappearing as content crosses the fold.
+   */
+  html {
+    scrollbar-gutter: stable;
+    overflow-y: scroll;
+  }
+
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border: 3px solid var(--color-bg);
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-muted);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: var(--color-bg);
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+  }
+}

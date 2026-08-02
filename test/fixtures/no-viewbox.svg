@@ -1,0 +1,4 @@
+<!-- width/height only. Normalization must not assume a viewBox exists. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60">
+  <path d="M0 0 H40 V20 H20 V40 H60 V60 H0 Z" fill="#2E5BFF"/>
+</svg>

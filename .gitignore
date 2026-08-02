@@ -1,0 +1,53 @@
+# dependencies (bun install)
+node_modules
+
+# output
+.nitro
+.output
+.wrangler
+build
+out
+dist
+*.tgz
+
+# Electrobun packaging output (Phase 8). The dev bundle alone is ~128 MB.
+artifacts
+
+# Local Output Root, if pointed inside the repo while developing.
+.manifesto-out
+
+# code coverage
+coverage
+*.lcov
+
+# Playwright
+test-results/
+playwright-report/
+
+# logs
+logs
+_.log
+report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+
+# dotenv environment variable files
+.dev.vars
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
+.tanstack
+
+# IntelliJ based IDEs
+.idea
+
+# Finder (MacOS) folder config
+.DS_Store
+
+# Generated CSS (bun run css)
+.tailwind

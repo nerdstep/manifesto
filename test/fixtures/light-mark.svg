@@ -1,0 +1,5 @@
+<!-- Near-white mark: Icon Background inference must pick a DARK background, or the
+     apple-touch and maskable Renditions are a white mark on white. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">
+  <path d="M0 0 H40 V20 H20 V40 H60 V60 H0 Z" fill="#F4F6F8"/>
+</svg>

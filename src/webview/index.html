@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Manifesto</title>
+    <link rel="stylesheet" href="views://mainview/app.css" />
+    <style>
+      /* Only what must exist before Tailwind loads: the crash box. */
+      #crash {
+        display: none;
+        margin: 18px;
+        padding: 12px 14px;
+        border: 1px solid #dc2626;
+        border-radius: 10px;
+        color: #dc2626;
+        font:
+          12px/1.5 ui-monospace,
+          Consolas,
+          monospace;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="crash"></div>
+
+    <!--
+      Bootstrap safety net, inline and before the module.
+
+      Two jobs the module cannot do for itself:
+
+      1. Report its own failure to load. An error handler declared inside the bundle is
+         never registered if the bundle throws while loading — which is exactly what
+         happened twice in Phase 5, once from a stray value import pulling node:crypto in,
+         once from top-level await in what is served as a classic script. Both presented
+         as "drag and drop doesn't work".
+
+      2. Cancel the webview's default file-drop behaviour immediately. Without this, a
+         window whose module is broken opens dropped files instead of showing the error,
+         hiding the real fault behind a confusing one.
+    -->
+    <script>
+      ;(function () {
+        var crash = document.getElementById('crash')
+        function show(text) {
+          crash.style.display = 'block'
+          crash.textContent += text + '\n'
+        }
+        window.addEventListener('error', function (e) {
+          show((e.message || 'Script error') + '  @ ' + (e.filename || '?') + ':' + (e.lineno || 0))
+        })
+        window.addEventListener('unhandledrejection', function (e) {
+          show('Unhandled rejection: ' + String(e.reason))
+        })
+        ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function (type) {
+          document.addEventListener(
+            type,
+            function (e) {
+              e.preventDefault()
+            },
+            true,
+          )
+          window.addEventListener(
+            type,
+            function (e) {
+              e.preventDefault()
+            },
+            true,
+          )
+        })
+      })()
+    </script>
+
+    <div id="root"></div>
+
+    <script src="views://mainview/index.js"></script>
+  </body>
+</html>

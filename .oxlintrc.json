@@ -1,0 +1,106 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+
+  "plugins": ["typescript", "unicorn", "oxc", "import", "promise", "node"],
+
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error",
+    "pedantic": "warn"
+  },
+
+  "env": {
+    "builtin": true,
+    "es2024": true,
+    "node": true
+  },
+
+  "rules": {
+    // ON, deliberately. `!` asserts something the compiler cannot check, which
+    // is the exact thing `noUncheckedIndexedAccess` exists to prevent — using
+    // one to silence the other cancels out the setting.
+    //
+    // For indexed reads into pixel buffers, write `buf[i] ?? 0`. The fallback is
+    // unreachable when the index is in range by construction, but it is CHECKED
+    // rather than asserted, and for an alpha probe `?? 0` also happens to mean
+    // exactly the right thing: no pixel is not painted.
+    "typescript/no-non-null-assertion": "error",
+
+    // Stage modules carry unused params until their phase lands.
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "typescript/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+    ],
+
+    // `null` is meaningful here: a Dark Mark is absent (null), not merely
+    // unset, and `background: null` means "transparent" in the Treatment table.
+    "unicorn/no-null": "off",
+
+    // An Asset Bundle that comes out empty because an error was swallowed is
+    // the exact failure this app must never have.
+    "no-empty": ["error", { "allowEmptyCatch": false }],
+
+    "no-console": "off",
+
+    // --- pedantic rules switched off, with reasons -----------------------
+    // `TODO(phase-N)` markers are how PLAN.md's phasing is expressed in code.
+    // Flagging them fights the plan.
+    "no-warning-comments": "off",
+
+    // EmptyMarkError and InvalidSvgError are two spellings of "this mark can't
+    // become an icon". Splitting them across files would hide that.
+    "max-classes-per-file": "off",
+
+    // `describe()` blocks are functions, so this rule reads every test suite as
+    // one oversized function. Meaningless here.
+    "max-lines-per-function": "off",
+
+    // Sequential awaits are correct when the work is ordered or when the
+    // underlying call is synchronous anyway, which is true of rasterization.
+    "no-await-in-loop": "off",
+
+    // Both fight readable code rather than protect anything.
+    "no-inline-comments": "off",
+    "sort-vars": "off",
+
+    // Guards against `var`'s function scoping, which TypeScript + this config make
+    // unreachable. Every hit here is a `const` in a `for…of` closed over safely, so
+    // the rule has no true positives available in this codebase.
+    "no-loop-func": "off",
+
+    "no-plusplus": "error",
+
+    // `getElementById` is the precise tool for an id and is what the one DOM lookup
+    // helper uses. Preferring `querySelector` everywhere would trade precision for
+    // uniformity.
+    "unicorn/prefer-query-selector": "off",
+
+    // --- type-aware -------------------------------------------------------
+    // Wants `readonly` on every array/object parameter, including `Uint8Array`
+    // pixel buffers where it isn't expressible. typescript-eslint ships this
+    // rule off by default for the same reason.
+    "typescript/prefer-readonly-parameter-types": "off"
+  },
+
+  "overrides": [
+    {
+      "files": ["src/webview/**/*.ts"],
+      "rules": {
+        // Electrobun serves the view bundle with a plain `<script src>`, so it is a
+        // classic script, not a module. Top-level await is a SYNTAX ERROR there — and a
+        // syntax error takes the drop guards down with it, which presents as "drag and
+        // drop doesn't work". Following this rule here actively broke the app once.
+        "unicorn/prefer-top-level-await": "off"
+      }
+    }
+  ],
+
+  // `docs/reference/` is not linted. It holds preserved Phase 0 spike code whose
+  // value is being *the code that produced the measurements* in
+  // docs/phase-0-findings.md — rewriting it to production standards would
+  // destroy that. It stays inside tsconfig's `include`, so it must still
+  // compile: "still valid" is enforced, "maintained to standard" is not.
+  "ignorePatterns": ["build/**", "node_modules/**", "test/fixtures/**", "docs/reference/**"]
+}
