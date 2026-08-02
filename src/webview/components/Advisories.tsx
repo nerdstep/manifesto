@@ -17,7 +17,7 @@ export function Advisories({ advisories }: { advisories: Advisory[] }) {
       {advisories.map((advisory) => (
         <div
           key={advisory.kind}
-          class="rounded-r-lg border-l-[3px] border-warn bg-panel px-3 py-2 text-[13px]"
+          class="rounded-lg border border-warn/40 bg-warn/8 px-3 py-2.5 text-[13px]"
         >
           {describeAdvisory(advisory)}
         </div>

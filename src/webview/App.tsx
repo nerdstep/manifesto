@@ -78,7 +78,7 @@ export function App() {
       <StatusLine status={status} pending={pending} />
 
       {status.kind === 'failed' && (
-        <div class="mt-4 rounded-r-lg border-l-[3px] border-bad bg-panel px-3 py-2 text-[13px]">
+        <div class="mt-4 rounded-lg border border-bad/50 bg-bad/8 px-3 py-2.5 text-[13px]">
           {status.error}
         </div>
       )}

@@ -1,0 +1,350 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-02T00:00:00.000Z",
+  "title": "Design System: Manifesto",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1c1917",
+        "darkValue": "#e7e5e4",
+        "note": "All primary text. 16.7:1 on Ground in light, 14.7:1 in dark.",
+        "tonalRamp": [
+          "#0c0b0a",
+          "#1c1917",
+          "#332e2b",
+          "#4d4642",
+          "#6b625d",
+          "#948a84",
+          "#c2b9b3",
+          "#f0ebe8"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Stone",
+        "canonical": "#78716c",
+        "darkValue": "#8b93a1",
+        "note": "Labels, notes, secondary readouts. 4.59:1 on Ground at 11px — may be darkened, never lightened.",
+        "tonalRamp": [
+          "#26221f",
+          "#3b3532",
+          "#524a46",
+          "#6a615c",
+          "#78716c",
+          "#9c948f",
+          "#c6bfba",
+          "#eee9e6"
+        ]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Ground",
+        "canonical": "#fafaf9",
+        "darkValue": "#12141a",
+        "note": "The page beneath every panel.",
+        "tonalRamp": [
+          "#141312",
+          "#2a2725",
+          "#43403d",
+          "#5f5b57",
+          "#8a8580",
+          "#b8b2ac",
+          "#e2ded9",
+          "#fafaf9"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "canonical": "#ffffff",
+        "darkValue": "#191c23",
+        "note": "Every raised surface: panels, groups, inputs, buttons. The second and final surface level.",
+        "tonalRamp": [
+          "#15171c",
+          "#191c23",
+          "#2b303b",
+          "#414857",
+          "#6b7385",
+          "#9aa1b0",
+          "#cdd2da",
+          "#ffffff"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "#e7e5e4",
+        "darkValue": "#2b303b",
+        "note": "Every border in the app, always 1px. The only thing separating the two surfaces.",
+        "tonalRamp": [
+          "#1a1918",
+          "#2b303b",
+          "#4a4744",
+          "#6d6a66",
+          "#95918d",
+          "#bdb9b6",
+          "#e7e5e4",
+          "#f7f6f5"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Signal Blue",
+        "canonical": "#2e5bff",
+        "darkValue": "#7b95ff",
+        "note": "The only saturated colour in the interface. Focus rings, active drag state, checked controls, the Safe Zone ring. Never decoration.",
+        "tonalRamp": [
+          "#0a1440",
+          "#122266",
+          "#1b338f",
+          "#2446bf",
+          "#2e5bff",
+          "#6484ff",
+          "#9db1ff",
+          "#d6dfff"
+        ]
+      },
+      "ok": {
+        "role": "tertiary",
+        "displayName": "Confirmed Green",
+        "canonical": "#047857",
+        "darkValue": "#4ade80",
+        "note": "A write succeeded. Status line and the pixel-identical verdict.",
+        "tonalRamp": [
+          "#012118",
+          "#023a2a",
+          "#03563e",
+          "#047857",
+          "#079b72",
+          "#2fc79b",
+          "#7ee0c1",
+          "#d3f6ea"
+        ]
+      },
+      "warn": {
+        "role": "tertiary",
+        "displayName": "Caution Amber",
+        "canonical": "#b45309",
+        "darkValue": "#fbbf24",
+        "note": "An advisory. Worth knowing, never blocking; the user decides.",
+        "tonalRamp": [
+          "#2e1502",
+          "#4d2404",
+          "#7a3906",
+          "#b45309",
+          "#e2740f",
+          "#f59e34",
+          "#fbc470",
+          "#fde8c4"
+        ]
+      },
+      "bad": {
+        "role": "tertiary",
+        "displayName": "Refusal Red",
+        "canonical": "#dc2626",
+        "darkValue": "#f87171",
+        "note": "Generation failed, or nothing was written.",
+        "tonalRamp": [
+          "#360808",
+          "#571010",
+          "#8a1a1a",
+          "#b81f1f",
+          "#dc2626",
+          "#ec5f5f",
+          "#f79a9a",
+          "#fcdcdc"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Title",
+        "purpose": "The drop zone's primary line, and the largest text in the app at 13px."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Controls, advisories, table rows. The default."
+      },
+      "label": {
+        "displayName": "Micro-Label",
+        "purpose": "Group titles, panel titles, field labels. Uppercase and uniform — the only structural separator in a system with no shadows and no display type."
+      },
+      "note": {
+        "displayName": "Note",
+        "purpose": "The explanatory line under a label or a preview. Muted Stone."
+      },
+      "code": {
+        "displayName": "Literal",
+        "purpose": "Marks a string the user could copy, type, or find on disk: paths, filenames, hex values, the head snippet. Never emphasis."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "state-transition",
+        "value": "transition-colors, ~150ms",
+        "purpose": "Border and background colour changes on hover, focus and drag-over. The only motion in the app's chrome."
+      },
+      {
+        "name": "regeneration-debounce",
+        "value": "150ms trailing",
+        "purpose": "Not a transition — the interval between a settings edit and the regeneration it triggers. Chosen against a ~60ms render so work never queues faster than it completes."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px",
+        "purpose": "Settings groups go from one column to two."
+      },
+      {
+        "name": "lg",
+        "value": "1024px",
+        "purpose": "Preview panels go from one column to two."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "The only button style in the app. No primary/secondary split, because no screen has competing actions.",
+      "html": "<button class=\"ds-btn\">Choose output folder…</button>",
+      "css": ".ds-btn { background: var(--color-panel, #fff); color: var(--color-ink, #1c1917); border: 1px solid var(--color-line, #e7e5e4); border-radius: 8px; padding: 6px 12px; font: 400 13px/1.4 ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: border-color 150ms ease-out; } .ds-btn:hover { border-color: var(--color-muted, #78716c); } .ds-btn:focus-visible { outline: none; border-color: var(--color-accent, #2e5bff); box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent, #2e5bff) 40%, transparent); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Panel background, hairline border, focus shifts the border to Signal Blue. No glow, no size change.",
+      "html": "<input class=\"ds-input\" type=\"text\" value=\"Northwind Trading\" />",
+      "css": ".ds-input { width: 100%; background: var(--color-panel, #fff); color: var(--color-ink, #1c1917); border: 1px solid var(--color-line, #e7e5e4); border-radius: 8px; padding: 6px 10px; font: 400 13px/1.4 ui-sans-serif, system-ui, sans-serif; outline: none; transition: border-color 150ms ease-out; } .ds-input:focus { border-color: var(--color-accent, #2e5bff); }"
+    },
+    {
+      "name": "Micro-Label",
+      "kind": "custom",
+      "refersTo": "label",
+      "description": "The structural layer. Uniform by rule: a second label treatment would read as a second kind of structure.",
+      "html": "<span class=\"ds-label\">Theme color</span>",
+      "css": ".ds-label { display: block; margin-bottom: 6px; font: 600 11px/1.4 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted, #78716c); }"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "The only container. 12px radius, hairline border, flat — one step softer than the controls inside it. Never nested.",
+      "html": "<div class=\"ds-panel\"><span class=\"ds-panel-title\">Browser tab</span><p class=\"ds-panel-note\">favicon.svg at its true size, 16px.</p></div>",
+      "css": ".ds-panel { background: var(--color-panel, #fff); border: 1px solid var(--color-line, #e7e5e4); border-radius: 12px; padding: 14px; } .ds-panel-title { display: block; margin-bottom: 12px; font: 600 11px/1.4 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted, #78716c); } .ds-panel-note { margin: 12px 0 0; font: 400 11px/1.5 ui-sans-serif, system-ui, sans-serif; color: var(--color-muted, #78716c); }"
+    },
+    {
+      "name": "Drop Zone",
+      "kind": "custom",
+      "refersTo": "drop-zone",
+      "description": "The app's entry point and largest element. The only dashed border and the only 2px border in the system. Activatable by Enter, Space or click — the sole keyboard route into the app.",
+      "html": "<div class=\"ds-drop\" role=\"button\" tabindex=\"0\" aria-label=\"Drop an SVG logo here, or activate to choose one\"><strong class=\"ds-drop-title\">Drop your logo here, or click to choose one</strong><small class=\"ds-drop-note\">One SVG becomes 6 icon files, a web app manifest, and the 4 &lt;head&gt; tags that point at them.</small></div>",
+      "css": ".ds-drop { border: 2px dashed var(--color-line, #e7e5e4); border-radius: 12px; padding: 52px 24px; text-align: center; color: var(--color-muted, #78716c); cursor: pointer; outline: none; transition: border-color 150ms ease-out, background-color 150ms ease-out; } .ds-drop:hover { border-color: var(--color-muted, #78716c); } .ds-drop:focus-visible { border-color: var(--color-accent, #2e5bff); box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent, #2e5bff) 40%, transparent); } .ds-drop-title { display: block; font: 600 13px/1.4 ui-sans-serif, system-ui, sans-serif; color: var(--color-ink, #1c1917); } .ds-drop-note { display: block; margin-top: 6px; font: 400 12px/1.5 ui-sans-serif, system-ui, sans-serif; }"
+    },
+    {
+      "name": "Advisory",
+      "kind": "custom",
+      "refersTo": "advisory",
+      "description": "Worth knowing, never blocking. A tinted surface rather than a stripe: the colour means this is a different kind of thing, not a decorated panel.",
+      "html": "<div class=\"ds-advisory\">This logo is 3.2:1 — far wider than it is tall. Icons are square, so it has to shrink to fit and will be hard to read at 16px.</div>",
+      "css": ".ds-advisory { background: color-mix(in srgb, var(--color-warn, #b45309) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-warn, #b45309) 40%, transparent); border-radius: 8px; padding: 10px 12px; font: 400 13px/1.5 ui-sans-serif, system-ui, sans-serif; color: var(--color-ink, #1c1917); }"
+    },
+    {
+      "name": "Failure Notice",
+      "kind": "custom",
+      "refersTo": "advisory",
+      "description": "Same surface treatment as an advisory, in Refusal Red. Generation failed and nothing was written.",
+      "html": "<div class=\"ds-failure\">There's nothing to draw in this SVG. If your logo is live text, it renders blank without its font — convert the text to outlines and export it again.</div>",
+      "css": ".ds-failure { background: color-mix(in srgb, var(--color-bad, #dc2626) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-bad, #dc2626) 50%, transparent); border-radius: 8px; padding: 10px 12px; font: 400 13px/1.5 ui-sans-serif, system-ui, sans-serif; color: var(--color-ink, #1c1917); }"
+    },
+    {
+      "name": "Status Line",
+      "kind": "custom",
+      "refersTo": "note",
+      "description": "The only confirmation that anything reached disk. A polite live region, so it is announced without stealing focus mid-edit.",
+      "html": "<p class=\"ds-status\" role=\"status\" aria-live=\"polite\"><span class=\"ds-status-ok\">Saved 7 files</span> to <span class=\"ds-status-path\">C:\\Users\\me\\Downloads\\manifesto\\acme-logo</span></p>",
+      "css": ".ds-status { margin: 14px 0 0; min-height: 16px; font: 400 12px/1.5 ui-sans-serif, system-ui, sans-serif; color: var(--color-muted, #78716c); } .ds-status-ok { color: var(--color-ok, #047857); } .ds-status-path { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Contact Sheet",
+    "overview": "A photographer's contact sheet is a grid of frames printed at the size they were shot, unretouched and unlabelled, laid out so a human eye can pick the good one. It does not argue. It does not crop for effect. Its entire value is that what you see is what the negative holds.\n\nManifesto is that sheet for icons. The interface exists to put six generated files in front of someone at the size the platform will actually draw them — 16px in a tab, 60pt on a home screen, 512 under a launcher mask — and then get out of the way. Every preview renders the bytes that were just written to disk, never a recomputed approximation, because a Safe Zone breach looks perfectly fine in a preview that recalculated it. The chrome around those frames is deliberately almost nothing: hairline borders, one flat surface lifted off another, type small enough to recede.\n\nWhat this rejects: the tool that performs competence. No hero metric, no gradient, no oversized headline announcing what the app does. The app is opened, used for ninety seconds and closed; anything that asks to be admired on the way past is taking time from the task. Confidence here comes from accuracy — the ring drawn at the true Safe Zone diameter, the byte delta, the path the files went to — never from tone.",
+    "keyCharacteristics": [
+      "No display type. The largest text in the app is 13px. The h1 is 12px uppercase.",
+      "Flat. No shadow anywhere in the app's own chrome. Depth is two surfaces and a hairline.",
+      "Monochrome until something is true. Colour appears only to report a state.",
+      "True size by default. Nothing is scaled up to look impressive.",
+      "Dark mode is a variable swap, not a second design."
+    ],
+    "rules": [
+      {
+        "name": "The Reporting Rule",
+        "body": "Colour is never applied for emphasis, hierarchy, or decoration. A coloured pixel in this interface means the app is reporting a fact: focused, active, succeeded, worth checking, failed. If you want something to stand out and it is not one of those five things, use weight or position.",
+        "section": "colors"
+      },
+      {
+        "name": "The 4.59 Rule",
+        "body": "Muted Stone on Ground measures 4.59:1 — it clears WCAG AA with 0.09 to spare, and it is used at 11px. It may be darkened. It may never be lightened. Every token pair in both themes has been measured and passes AA; that is a property to preserve, not a coincidence to rely on.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Swap Rule",
+        "body": "Dark mode overrides the nine --color-* variables and nothing else. No component may carry a dark: variant. If a surface needs per-theme treatment beyond a variable, the token set is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Display Rule",
+        "body": "There is no type role above 13px, and adding one is a change to the product's posture, not a styling choice. An app used for ninety seconds does not get a hero. If a section seems to need a bigger heading, it more likely needs to be shorter.",
+        "section": "typography"
+      },
+      {
+        "name": "The Micro-Label Rule",
+        "body": "Structural labels are 11px / 600 / 0.08em / uppercase / Muted Stone — every group title, panel title and field label, without exception. Uppercase micro-labels are load-bearing here rather than decorative: they are the only thing separating one region from the next in a system with no shadows and no display type. Because they are the mechanism, they must stay uniform; a second label treatment would read as a second kind of structure.",
+        "section": "typography"
+      },
+      {
+        "name": "The Literal Rule",
+        "body": "Monospace marks a string the user could act on — a path, a filename, a hex value, a folder name. Never use it for emphasis or for numbers that are merely numeric.",
+        "section": "typography"
+      },
+      {
+        "name": "The Two-Surface Rule",
+        "body": "Panel on Ground, divided by a 1px Line. A third surface level, a nested panel, or a panel inside a panel means the layout is wrong. Group related controls by spacing and a shared label instead.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Simulation Exception",
+        "body": "A preview may use any treatment required to look like the platform it depicts — iOS corner radii, launcher masks, a browser tab's chrome, a drop shadow under a home-screen icon. Those pixels are content, not interface. They must never leak outward into the app's own surfaces.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do report state with colour and nothing else. Five meanings only: focused, active, succeeded, worth checking, failed.",
+      "Do keep every border 1px and every surface flat. Depth is Panel over Ground.",
+      "Do render previews from the bytes on disk, at or below the size the platform uses.",
+      "Do put structural labels in 11px / 600 / 0.08em / uppercase / Muted Stone, uniformly.",
+      "Do use monospace for anything the user could copy, type, or find on disk.",
+      "Do keep dark mode to the nine-variable swap.",
+      "Do put focus rings on focus-visible so keyboard users get them and mouse users see no change."
+    ],
+    "donts": [
+      "Don't use a border-left or border-right above 1px as a coloured accent. The advisories used to and were rewritten as tinted surfaces.",
+      "Don't add a shadow to any app surface. The one in the codebase is depicting iOS.",
+      "Don't introduce a type role above 13px, or a second label treatment.",
+      "Don't nest a panel inside a panel.",
+      "Don't lighten Muted Stone. It has 0.09 of headroom over AA at 11px.",
+      "Don't write marketing-speak into the interface — \"Effortlessly generate stunning icons!\" No exclamation marks, no adjectives doing work that facts should do.",
+      "Don't write enterprise / compliance tone — \"The operation could not be completed.\" Passive voice with no cause, no next step, nobody accountable.",
+      "Don't write over-friendly / cutesy copy — \"Oops! Something went wrong 😅\". No emoji, no apologies, no jokes where an explanation belongs.",
+      "Don't let raw developer output reach the screen — \"EmptyMarkError: alpha scan returned null\". Library names, internal type names and stack-trace vocabulary stop at src/host/failures.ts.",
+      "Don't add a component dependency to the view bundle. react-aria-components measures +170 kB against a 38 kB budget; the drop zone is role=\"button\" and 40 lines instead.",
+      "Don't scale a preview up to make it look impressive. If it is small on screen, that is the point."
+    ]
+  }
+}
