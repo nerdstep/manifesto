@@ -72,6 +72,8 @@
 
     "no-plusplus": "error",
 
+    "unicorn/no-array-reduce": "error",
+
     // `getElementById` is the precise tool for an id and is what the one DOM lookup
     // helper uses. Preferring `querySelector` everywhere would trade precision for
     // uniformity.
