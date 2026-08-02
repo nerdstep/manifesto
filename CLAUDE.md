@@ -35,9 +35,15 @@ host code, it belongs in `src/host/`.
 **The webview is served as a classic script**, not a module. Top-level await is a syntax
 error there. Use an async IIFE.
 
-**`src/pipeline/` must stay pure** — no `fs`, no Bun, no Electrobun. The caller supplies the
-WASM bytes. This is what lets the golden hashes run headless, and they are the only thing
-standing between a 4px Safe Zone error and someone's clipped logo.
+**`src/pipeline/` must stay pure** — no `node:fs`, no `node:path`, no Electrobun, and
+nothing from `src/bun/`. The caller supplies the WASM bytes. `test/pipeline-purity.test.ts`
+enforces exactly that list. This is what lets the golden hashes run headless, and they are
+the only thing standing between a 4px Safe Zone error and someone's clipped logo.
+
+`node:crypto` is allowed and used, for `hashSource`. `Bun.CryptoHasher` is ~18% faster and
+would also pass the test, but it pins the pipeline to one runtime to save 0.06 ms once per
+generate. Prefer `node:` builtins here; prefer `Bun.*` freely in `src/bun/`, `src/cli/`,
+`scripts/`, and tests.
 
 **Never regenerate golden hashes to make a red suite green.** `bun run goldens` is for when
 you have decided the output *should* change.
