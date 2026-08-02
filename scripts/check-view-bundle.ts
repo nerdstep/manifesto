@@ -8,8 +8,14 @@
  *   2. Top-level await — a syntax error, because Electrobun serves the view with a plain
  *      `<script src>`, which is a classic script and not a module.
  *
- * Neither is visible in the source or catchable by `bun test`; both are obvious in the
- * built artifact. So look at the artifact.
+ * ## What this file is now responsible for
+ *
+ * **Bug 1 is no longer caught here.** `no-restricted-imports` in `.oxlintrc.json` rejects
+ * it at the import, in the editor, naming the line. That is a better place for it.
+ *
+ * What is left is what lint cannot see: **the artifact, including its dependencies.** The
+ * lint rule reads our source. If `preact` — or anything it pulls — reaches for a Node
+ * builtin, or a dependency quietly grows by a megabyte, only the built file shows it.
  *
  * Run: `bun run check:bundle` (after `electrobun build`).
  */
@@ -31,16 +37,42 @@ const BUNDLE = join(
 )
 
 /**
- * Above this, something that does not belong in a browser has been bundled.
+ * A canary, not a performance budget.
  *
- * The size limit does the heavy lifting for library leakage. Matching library *names* is
- * useless — `"svgo-pixel-drift"` is a legitimate Advisory kind in the webview, and the
- * naive version of this check flagged it. The 1.88 MB incident, by contrast, is
- * unmissable by size.
+ * There is no network here and no user-facing cost to a large bundle: the view loads from
+ * local disk and 200 kB of JS parses in about a millisecond. The number exists only to
+ * notice something arriving that nobody meant to add.
+ *
+ * Measured, so the threshold is not guesswork. Anything the view could plausibly pull in
+ * by accident is far above it, and everything legitimate is far below:
+ *
+ * | the shared modules the view actually uses |     1 kB |
+ * | the whole view bundle today               |    38 kB |
+ * | `react-aria-components` via preact/compat |   170 kB |
+ * | `svgo/browser` alone                      |   541 kB |
+ * | the pipeline barrel (the 1.88 MB bug)     |  1061 kB |
+ *
+ * The gap between 38 and 170 is where this sits. Note what the table also says: a limit
+ * this far above the current size gives no *early* warning, so if the view ever grows
+ * past ~100 kB legitimately, this number needs revisiting rather than raising.
+ *
+ * Matching library *names* instead was tried and abandoned — `"svgo-pixel-drift"` is a
+ * legitimate Advisory kind in the webview, and the naive version flagged it.
  */
 const SIZE_LIMIT_KB = 200
 
-/** Node builtins, matched in import position rather than as bare substrings. */
+/**
+ * Node builtins, matched in import position rather than as bare substrings.
+ *
+ * Weaker than it looks, and worth knowing why. Bundling the pipeline for a browser target
+ * produces 1.1 MB containing `createHash` and `sha256` and **zero `node:` import
+ * statements** — Bun resolves the builtin into a shim rather than leaving an import to
+ * match. So this would not have fired on the bug it was written for.
+ *
+ * It stays because it covers the one case nothing else does: a *dependency* that reaches
+ * for a builtin and is left external. Our own source is covered by lint, and the size
+ * limit covers bulk. This covers neither, which is precisely why all three are here.
+ */
 const NODE_BUILTIN = /(?:require\(|import\(|from\s*)["'`]node:(\w+)/gu
 
 if (!existsSync(BUNDLE)) {

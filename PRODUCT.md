@@ -56,6 +56,29 @@ interface should prefer the words the user already has.
   library names, and stack-trace vocabulary must not reach the interface. The user did not
   choose resvg and should not have to know it exists.
 
+## Constraints
+
+**Host code must never reach the view bundle.** It has happened twice, and both times the
+symptom was "drag and drop doesn't work" — the module died on load and took the drop
+handlers with it, which reads exactly like a framework limitation.
+
+Three directories, three meanings:
+
+| `src/webview/` | may import values from `src/webview/`, `src/shared/`, `preact` |
+| `src/shared/`  | may import values from `src/shared/` only — so it stays reachable |
+| `src/host/`    | Bun shell + CLI. May import anything. Never reachable from the view |
+
+Enforced by `no-restricted-imports` in `.oxlintrc.json`, per file, with `allowTypeImports`
+so type-only imports across the seam stay legal. It is per-file but adds up to the
+transitive property, because `src/shared/` is closed under the same restriction — that is
+the whole reason `src/host/` exists as a separate layer.
+
+**The view bundle also has a 200 kB cap**, which is a canary and not a performance budget:
+the view loads from local disk and there is no user-facing cost to size. Measured
+context — the view is 38 kB, `react-aria-components` via `preact/compat` is +170 kB,
+`svgo/browser` alone is 541 kB. Prefer platform primitives and native dialogs over adding
+a dependency to the view.
+
 ## Design Principles
 
 1. **Say what happened to their files.** This app writes to disk on every edit. Every write,
@@ -80,8 +103,11 @@ interface should prefer the words the user already has.
 ## Accessibility & Inclusion
 
 - **Full keyboard operation.** Every control reachable and operable without a mouse. The
-  drop zone specifically needs a keyboard path to choosing a file — dropping is currently
-  the only way in, which makes the app's entry point mouse-only.
+  drop zone is itself the button: Enter or Space opens the native file picker, so the entry
+  point is not mouse-only. Prefer this shape over adding a second visible control — the
+  screen does one thing, and a "Choose a file" button beside a screen-sized target is noise.
+  A visible focus ring is required wherever this pattern is used; `focus-visible` keeps it
+  off the mouse path.
 - **Screen reader support.** Real labels on every control, a live region announcing
   generation results ("Wrote 7 files to …"), and preview alt text that describes what the
   preview demonstrates rather than restating the filename.

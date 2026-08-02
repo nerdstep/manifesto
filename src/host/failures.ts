@@ -4,9 +4,18 @@
  * Shared by the app and the CLI for the same reason as the advisory copy: two
  * descriptions of one failure drift apart until they contradict each other.
  *
- * **Host-side only.** Unlike `bundle.ts` and `color.ts`, this needs the error classes as
- * values for `instanceof`, so it must never be imported from `src/webview/`. The webview
- * receives the finished string over RPC and has no reason to reach for this.
+ * **`src/host/` is the layer the Bun shell and the CLI share.** It exists as its own
+ * directory rather than living in `src/shared/` because this module needs the error
+ * classes as *values*, for `instanceof`.
+ *
+ * In `src/shared/` that would have been a hole in the rule that keeps the view bundle
+ * clean. The rule is per-file — "the webview may only import from `src/webview/`,
+ * `src/shared/`, and `preact`" — and it is only airtight because `src/shared/` is closed
+ * under that same restriction. One module in there reaching into the pipeline would let a
+ * webview file satisfy every check while still dragging the pipeline into the browser.
+ *
+ * So the two directories mean different things, and `.oxlintrc.json` says so:
+ * `src/shared/` is safe for the webview, `src/host/` never is.
  *
  * The governing rule here is that internal vocabulary stops at this boundary. The user did
  * not choose resvg, did not ask for an alpha scan, and should never see either word — the

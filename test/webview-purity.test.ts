@@ -4,13 +4,23 @@
  * This exists because it already happened. `import { HEAD_SNIPPET } from
  * '../pipeline/index.ts'` looked harmless — one string constant — but it dragged in
  * `svgo`, `ico-endec` and `node:crypto`, producing a 1.88 MB bundle that failed to load
- * in the webview.
+ * in the webview. The failure was silent and misleading: with the module dead, no drop
+ * handler was ever registered, so dropping a file just opened it.
  *
- * The failure was silent and misleading: with the module dead, no drop handler was ever
- * registered, so dropping a file just opened it. It reads exactly like "the framework
- * doesn't support drag and drop" — which is where the previous hour went in Phase 0.
+ * ## What enforces this, and where
  *
- * Type-only imports are fine; they erase.
+ * The import rule itself is now **`no-restricted-imports` in `.oxlintrc.json`**, not a
+ * test. It is strictly better at that job: it runs in the editor, points at the exact
+ * line, and — via `allowTypeImports` — distinguishes a value import from a type import,
+ * which a regex over source text cannot do without reimplementing the distinction.
+ *
+ * It is also airtight rather than approximate, because it is paired with the same
+ * restriction on `src/shared/**`. Per-file rules compose into the transitive property:
+ * anything the webview can reach is itself unable to reach the host.
+ *
+ * What remains here is the part lint cannot express: facts that must agree across the
+ * webview/pipeline seam, where the whole point is that the two sides cannot import each
+ * other. A test can import both. The lint rule cannot.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -20,15 +30,7 @@ import { join } from 'node:path'
 import { SAFE_ZONE_DIAMETER } from '../src/pipeline/index.ts'
 import { SAFE_ZONE } from '../src/webview/components/preview-parts.tsx'
 
-const WEBVIEW_DIR = join(import.meta.dir, '..', 'src', 'webview')
-
-function webviewSources(): string[] {
-  // Recursive and including .tsx — the components live in a subdirectory, and a guard
-  // that silently stops covering half the webview is worse than none.
-  return readdirSync(WEBVIEW_DIR, { recursive: true, encoding: 'utf8' })
-    .filter((f) => f.endsWith('.ts') || f.endsWith('.tsx'))
-    .map((f) => join(WEBVIEW_DIR, f))
-}
+const SHARED_DIR = join(import.meta.dir, '..', 'src', 'shared')
 
 /** Strip comments so prose about `node:crypto` doesn't trip the guard. */
 function code(source: string): string {
@@ -36,78 +38,37 @@ function code(source: string): string {
 }
 
 describe('webview purity', () => {
-  const files = webviewSources()
-
-  test('finds the webview sources', () => {
-    expect(files.length).toBeGreaterThan(0)
-  })
-
-  for (const file of files) {
-    const name = file.slice(WEBVIEW_DIR.length + 1)
-
-    test(`${name} imports no runtime value from the pipeline`, () => {
-      const lines = code(readFileSync(file, 'utf8')).split('\n')
-
-      for (const line of lines) {
-        const importsFromPipeline = /^\s*import\b[^\n]*['"][^'"]*\/pipeline\//u.test(line)
-        if (!importsFromPipeline) continue
-
-        expect(
-          /^\s*import\s+type\b/u.test(line),
-          `${name} imports a value from the pipeline — that pulls svgo, ico-endec and ` +
-            `node:crypto into the browser bundle:\n    ${line.trim()}`,
-        ).toBe(true)
-      }
-    })
-
-    test(`${name} imports no node builtins`, () => {
-      const lines = code(readFileSync(file, 'utf8')).split('\n')
-
-      for (const line of lines) {
-        expect(
-          /['"]node:/u.test(line),
-          `${name} imports a node builtin, which cannot resolve in a webview:\n    ${line.trim()}`,
-        ).toBe(false)
-      }
-    })
-  }
-
   test('the maskable preview draws the Safe Zone the pipeline actually fits to', () => {
     // The preview cannot import `SAFE_ZONE_DIAMETER` — that is a value import from the
-    // pipeline, which is the 1.88 MB failure this whole file exists to prevent. So it
-    // holds its own copy, and this is what keeps the copy honest. A ring drawn at the
-    // wrong diameter is worse than no ring: it would certify marks that get clipped.
+    // pipeline, which the lint rule now rejects outright. So it holds its own copy, and
+    // this is what keeps the copy honest. A ring drawn at the wrong diameter is worse
+    // than no ring: it would certify marks that actually get clipped.
     expect(SAFE_ZONE).toBe(SAFE_ZONE_DIAMETER)
   })
 
-  // These are shared precisely so the webview can have them without the pipeline. The
-  // moment one grows a VALUE import, that stops being true. `import type` is fine: it
-  // erases, so it cannot pull anything into the bundle — which is how `advisories.ts`
-  // names the `Advisory` union without depending on the module that defines it.
-  //
-  // `src/shared/failures.ts` is deliberately NOT in this list. It needs the error classes
-  // as values for `instanceof`, so it is host-side only; the test below keeps the webview
-  // away from it.
-  for (const name of ['bundle.ts', 'color.ts', 'advisories.ts']) {
-    test(`src/shared/${name} has no value imports of its own`, () => {
-      const source = code(readFileSync(join(import.meta.dir, '..', 'src', 'shared', name), 'utf8'))
-      const valueImport = source
-        .split('\n')
-        .find((line) => /^\s*import\b/u.test(line) && !/^\s*import\s+type\b/u.test(line))
+  test('every module in src/shared is reachable from the webview', () => {
+    // `src/shared/` only means anything if the whole directory obeys the webview's
+    // restrictions — one module reaching into the host turns the per-file lint rule into
+    // a rule that misses the case it exists for.
+    //
+    // The lint config enforces this for the paths it knows about. This catches the other
+    // way in: a NEW top-level directory that nobody thought to add to the pattern list.
+    // `src/host/` exists precisely because two modules failed this and had to move.
+    const allowed = /^(?:\.\/|\.\.\/)?(?!.*\/(?:pipeline|bun|cli|host|webview)\/)/u
 
-      expect(valueImport, `${name} must not import values: ${valueImport ?? ''}`).toBeUndefined()
-    })
-  }
+    for (const name of readdirSync(SHARED_DIR)) {
+      const source = code(readFileSync(join(SHARED_DIR, name), 'utf8'))
 
-  test('the webview does not import the host-side failure copy', () => {
-    // `failures.ts` imports EmptyMarkError and InvalidSvgError as values. Harmless on the
-    // Bun side, a pipeline import in the browser.
-    for (const file of files) {
-      const source = code(readFileSync(file, 'utf8'))
-      expect(
-        source.includes('shared/failures'),
-        `${file.slice(WEBVIEW_DIR.length + 1)} imports shared/failures.ts, which is host-side only`,
-      ).toBe(false)
+      for (const line of source.split('\n')) {
+        const match = /^\s*import\s+(?!type\b)[^\n]*?from\s*['"]([^'"]+)['"]/u.exec(line)
+        const specifier = match?.[1]
+        if (specifier === undefined) continue
+
+        expect(
+          !specifier.startsWith('node:') && allowed.test(specifier),
+          `src/shared/${name} value-imports "${specifier}", which the webview cannot resolve`,
+        ).toBe(true)
+      }
     }
   })
 })

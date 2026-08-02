@@ -13,9 +13,9 @@
 
 import { join } from 'node:path'
 
+import { describeFailure, failureDetail } from '../host/failures.ts'
 import { hashSource } from '../pipeline/index.ts'
 import type { Pipeline, Settings } from '../pipeline/index.ts'
-import { describeFailure, failureDetail } from '../shared/failures.ts'
 import type { BundleWire, GenerateRequest, GenerateResult, GenerateTrigger } from '../shared/rpc.ts'
 import { inspectTarget, recallSettings, slugify, writeBundle } from './bundle-writer.ts'
 import type { TargetState } from './bundle-writer.ts'

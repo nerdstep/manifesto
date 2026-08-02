@@ -15,10 +15,10 @@ import { join } from 'node:path'
 
 import { BrowserView, BrowserWindow, Utils } from 'electrobun/bun'
 
+import { firstExisting, readWasmBytes } from '../host/wasm.ts'
 import { createPipeline } from '../pipeline/index.ts'
 import type { Pipeline } from '../pipeline/index.ts'
 import type { ManifestoRPC } from '../shared/rpc.ts'
-import { firstExisting, readWasmBytes } from '../shared/wasm.ts'
 import { loadState, saveState, stateFilePath, windowFrame } from './app-state.ts'
 import type { AppState } from './app-state.ts'
 import { chooseOutputRoot, chooseSourceSvg, resolveCollision } from './dialogs.ts'

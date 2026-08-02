@@ -12,10 +12,10 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, extname, join, resolve } from 'node:path'
 
+import { describeFailure, failureDetail } from '../host/failures.ts'
 import { BUNDLE_FILENAMES, createPipeline, HEAD_SNIPPET } from '../pipeline/index.ts'
 import type { Hex, Settings } from '../pipeline/index.ts'
 import { describeAdvisory } from '../shared/advisories.ts'
-import { describeFailure, failureDetail } from '../shared/failures.ts'
 
 const USAGE = `
 manifesto — drop an SVG, get every icon asset a website needs

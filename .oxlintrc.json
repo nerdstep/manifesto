@@ -88,13 +88,80 @@
 
   "overrides": [
     {
-      "files": ["src/webview/**/*.ts"],
+      // `src/webview/**`, not `src/webview/**/*.ts` — the previous glob silently excluded
+      // every `.tsx` file, which is all of the components.
+      "files": ["src/webview/**"],
       "rules": {
         // Electrobun serves the view bundle with a plain `<script src>`, so it is a
         // classic script, not a module. Top-level await is a SYNTAX ERROR there — and a
         // syntax error takes the drop guards down with it, which presents as "drag and
         // drop doesn't work". Following this rule here actively broke the app once.
-        "unicorn/prefer-top-level-await": "off"
+        "unicorn/prefer-top-level-await": "off",
+
+        // The guard that keeps host code out of the browser bundle.
+        //
+        // A value import from the pipeline once pulled `svgo`, `ico-endec` and
+        // `node:crypto` into the view: 1.88 MB that failed to load, taking the drop
+        // handlers with it. The symptom was "drag and drop doesn't work", which is two
+        // steps from the cause and reads exactly like a framework limitation.
+        //
+        // `allowTypeImports` is what makes this expressible: the webview names pipeline
+        // types constantly (`Settings`, `Advisory`, `Hex`) and those erase at compile
+        // time. Verified — with it off, 5 legitimate type imports are flagged; with it
+        // on, none, while a real value import still is.
+        //
+        // This is per-file, but it enforces the transitive property, because
+        // `src/shared/**` below is closed under the same restriction. Anything the
+        // webview can reach is itself unable to reach the host.
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/pipeline/**", "**/bun/**", "**/cli/**", "**/host/**"],
+                "allowTypeImports": true,
+                "message": "The webview may only import values from src/webview, src/shared, and preact. Host code in the view bundle fails to load at runtime — move the value into src/shared, or import it as `import type`."
+              },
+              {
+                "group": ["node:*"],
+                "message": "Node builtins cannot resolve in a webview."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // `src/shared/` is the code the webview and the host both use, so it has to obey the
+      // webview's restrictions or it becomes the hole in them. This override is what makes
+      // the per-file rule above add up to a transitive guarantee.
+      //
+      // Host-side shared code lives in `src/host/` instead — see `src/host/failures.ts`,
+      // which needs the error classes as values and therefore cannot live here.
+      "files": ["src/shared/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/pipeline/**",
+                  "**/bun/**",
+                  "**/cli/**",
+                  "**/host/**",
+                  "**/webview/**"
+                ],
+                "allowTypeImports": true,
+                "message": "src/shared must stay importable by the webview, so it may not import values from the host or the pipeline. Put host-only code in src/host instead."
+              },
+              {
+                "group": ["node:*"],
+                "message": "src/shared is imported by the webview, where Node builtins cannot resolve."
+              }
+            ]
+          }
+        ]
       }
     }
   ],
