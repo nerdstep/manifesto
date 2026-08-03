@@ -4,26 +4,20 @@
 
 ![hero](./hero.png)
 
-A desktop app for Windows. Drop one SVG and it writes six icon files, a web app manifest,
-and the four `<head>` tags that point at them — then shows you each one at the size the
-platform will actually draw it.
+A Windows desktop app for generating website icons. Drop in an SVG and Manifesto creates
+six icon files, a web app manifest, and the four `<head>` tags that reference them. It also
+previews each icon at the size used by the target platform.
 
 ## Why
 
-The platform requirements are unobvious, unforgiving, and fail silently:
+Website icons have a few easy-to-miss requirements.
 
-- **iOS composites transparency onto black.** A transparent `apple-touch-icon` becomes a
-  logo on a black square on someone's home screen.
-- **Android's maskable Safe Zone is a *circle*.** A square inset cannot express it: a mark
-  that paints into its own bounding-box corners escapes a 0.6-side box, because the
-  half-diagonal is 0.424 against a safe radius of 0.4. Its corners get cropped by the
-  launcher.
-- **A 16px favicon downsampled from a 512px master turns to grey mush.** Every rendition
-  here is rasterized from its own document at final size. Nothing is ever resampled.
+- iOS places transparent touch icons on a black background.
+- Android clips maskable icons to a circular safe zone.
+- Small favicons lose detail when they are resized from a large raster image.
 
-None of these look wrong until they are on somebody else's phone. Manifesto's previews
-render the bytes that were just written to disk — never a recomputed approximation — because
-a Safe Zone breach looks perfectly fine in a preview that recalculated it.
+Manifesto handles these differences when it generates the files. Its previews use the same
+bytes written to disk, so they match the final output.
 
 ## What you get
 
@@ -39,28 +33,28 @@ acme-logo/
 └── manifesto.json         the settings used, so re-dropping restores them
 ```
 
-Plus the snippet to paste into your `<head>` — the one step the app deliberately will not
-do for you, because it never parses or rewrites your HTML.
+Manifesto also provides the snippet to paste into your `<head>`. It never reads or changes
+your HTML.
 
-## Running it
+## Install and run
 
 ```sh
 bun install
-bun run dev          # build + launch
+bun run dev
 ```
 
 | Command | What it does |
 | --- | --- |
-| `bun run dev` | build, check the view bundle, launch |
-| `bun run dev:watch` | Electrobun's watcher — skips the bundle check |
-| `bun run dist` | packaged, unsigned Windows installer |
-| `bun run check` | format, lint, typecheck, test — the gate |
-| `bun run check:package` | inspect the packaged payload after `dist` |
+| `bun run dev` | Builds, checks, and launches the app |
+| `bun run dev:watch` | Launches the Electrobun watcher without the bundle check |
+| `bun run dist` | Creates an unsigned Windows installer |
+| `bun run check` | Runs formatting, linting, type checking, and tests |
+| `bun run check:package` | Inspects the packaged payload after `dist` |
 
 ## CLI
 
-The same pipeline, headless. Every default is what the app's panel would open with, so the
-CLI and a drop produce identical output from the same file.
+The CLI runs the same pipeline without opening the app. It uses the same defaults as the
+desktop interface, so both produce identical output from the same file.
 
 ```sh
 bun run cli acme-logo.svg ./public
@@ -68,66 +62,35 @@ bun run cli acme-logo.svg --dark acme-dark.svg --bg '#111111'
 bun run cli --snippet
 ```
 
-The CLI writes the same seven Bundle files and `manifesto.json` Sidecar as the app. It
-refuses to replace authored files already present in the output directory; pass `--force`
-when replacing an existing Bundle is intentional. Unrelated files in that directory are
-preserved.
+The CLI writes the same seven Bundle files and `manifesto.json` Sidecar as the app. It does
+not replace existing Bundle files unless you pass `--force`. Other files in the output
+directory are left alone.
 
 ```text
 --dark <file.svg>     dark-mode logo, used on dark backgrounds and in favicon.svg
---name <string>       manifest name              (default: inferred from the filename)
---short <string>      manifest short_name        (default: inferred, or --name)
---theme <#rrggbb>     theme_color                (default: inferred from the artwork)
---bg <#rrggbb>        icon background            (default: inferred by contrast)
---splash <#rrggbb>    manifest background_color  (default: same as --bg)
+--name <string>       manifest name              (default is inferred from the filename)
+--short <string>      manifest short_name        (default is inferred or uses --name)
+--theme <#rrggbb>     theme_color                (default is inferred from the artwork)
+--bg <#rrggbb>        icon background            (default is inferred by contrast)
+--splash <#rrggbb>    manifest background_color  (default is the same as --bg)
 --no-optimize         skip SVGO
 --force               replace existing Bundle files in the output directory
 --snippet             print the <head> snippet and exit
 ```
 
-Defaults are **inferred from pixels, never from markup** — `fill="currentColor"`, CSS
-variables, `<use>` into a symbol, and gradients are all invisible to a parser and obvious in
-a raster.
-
-## How it is built
-
-Electrobun: a Bun process owning the window and every filesystem touch, and a Preact +
-Tailwind webview that has no filesystem access at all. Rendering is `@resvg/resvg-wasm`.
-
-```text
-src/
-├── pipeline/   pure. No fs, no Bun, no Electrobun. Rasterizes, composes, assembles.
-├── bun/        the Electrobun shell: window, dialogs, and RPC
-├── cli/        headless entry point
-├── host/       shared filesystem and failure handling for bun + cli. May import anything.
-├── shared/     shared by the host and the webview. Must stay webview-safe.
-└── webview/    Preact UI. May import values only from webview, shared, and preact.
-```
-
-That last boundary is enforced, not conventional. A value import from the pipeline once
-pulled `svgo`, `ico-endec` and `node:crypto` into the view — 1.88 MB that failed to load,
-taking the drop handlers with it, so the symptom was "drag and drop doesn't work".
-`no-restricted-imports` in `.oxlintrc.json` now rejects it at the import, with
-`allowTypeImports` so type-only imports across the seam stay legal.
-
-The pipeline stays pure because this app's output is pixels: a 4px Safe Zone error looks
-fine in a preview while clipping someone's logo on a Pixel. Fourteen fixtures, plus a
-committed hash for every file they produce, catch that — but only if the pipeline runs
-headless.
-
-**Never regenerate the goldens to make a red suite green.** `bun run goldens` is for when
-you have decided the output *should* change.
+Defaults are inferred from rendered pixels rather than SVG markup. This works with
+`fill="currentColor"`, CSS variables, symbols, and gradients.
 
 ## Docs
 
 | Document | Covers |
 | --- | --- |
-| [CONTEXT.md](./CONTEXT.md) | domain vocabulary — Source Mark, Rendition, Safe Zone, Asset Bundle. Use these terms in code and commits. |
-| [PRODUCT.md](./PRODUCT.md) | who it is for, the voice, the anti-references, the accessibility line |
-| [DESIGN.md](./DESIGN.md) | the visual system: tokens, type scale, named rules |
+| [CONTEXT.md](./CONTEXT.md) | Domain vocabulary used in code and commits |
+| [PRODUCT.md](./PRODUCT.md) | Audience, product voice, references, and accessibility |
+| [DESIGN.md](./DESIGN.md) | Visual tokens, type scale, and design rules |
 
 ## Status
 
-Feature-complete through the packaged build. Windows only — Electrobun supports macOS and
-Linux, but nothing here has been run on either, and `src/bun/windows-dpi.ts` is explicitly
-a no-op off Windows.
+Manifesto is feature-complete through the packaged build. Windows is the only tested
+platform. Electrobun supports macOS and Linux, but this project has not been tested on
+either one. The DPI integration is disabled outside Windows.
