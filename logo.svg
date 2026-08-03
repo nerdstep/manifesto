@@ -1,0 +1,64 @@
+<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!--
+      One ramp in user space, so the frame and the mark are lit by the same light:
+      the M samples the middle of the gradient the hexagon spans end to end.
+    -->
+    <linearGradient id="mark" gradientUnits="userSpaceOnUse" x1="0" y1="12" x2="0" y2="244">
+      <stop offset="0" stop-color="#2ce9ff" />
+      <stop offset="0.28" stop-color="#1fdafd" />
+      <stop offset="0.6" stop-color="#0479fd" />
+      <stop offset="1" stop-color="#0154ee" />
+    </linearGradient>
+  </defs>
+
+  <!--
+    Mitred, not round. `stroke-linejoin="round"` was inherited from the prototype and was
+    never a chosen radius — it rounds at half the stroke width, and only on the *outer*
+    side of each join, so the frame came out round outside and pointed inside. Mitring
+    settles that and makes the frame's 120° vertices match the M's peaks, which are the
+    same angle. Softening the M instead was tried and rejected: the only cheap way to do
+    it is a self-stroke, which grows the mark by half its width, blunting the 60° feet
+    and closing up the slot.
+  -->
+  <path
+    d="M128 12 234 73v110l-106 61L22 183V73z"
+    fill="none"
+    stroke="url(#mark)"
+    stroke-width="10"
+    stroke-linejoin="miter"
+  />
+
+  <!--
+    An isometric cube. The three faces are separated by a Y of gaps, the top face has a
+    diamond punched out of it, and what is left reads as an M. Both readings are load
+    bearing, so check the mark and its negative space when changing anything here.
+
+    Every edge is either vertical or at 61/106 — the hexagon's own slope — so the mark and
+    the frame share exactly two diagonal directions between them. That is what lets them
+    nest: the silhouette is a hexagon parallel to the frame, inset 17, which is 12 clear of
+    the 10-wide stroke on all six sides. The peaks sit ON the upper diagonals and the feet
+    ON the lower ones, making each a 120° vertex — the frame's own corner angle.
+
+    One stroke width, 40, for all six strokes: the two bridges, the chevron, the Y's two
+    arms and its stem. Diagonals are set by vertical thickness 40/cos(29.92°) = 46.15, so
+    they measure 40 perpendicular like the verticals do.
+
+    Two things that will bite anyone tightening this further:
+
+    - Peak height and notch depth are one parameter, not two. Both the chamfer and the
+      notch run at the shared slope, so the drop from chamfer-end to notch apex is pinned
+      at 61/106 × 88 ≈ 50.6 wherever the peak goes. x=68 is where they land closest to the
+      proportions of the mark this was drawn from.
+    - The faces are not strokes, and must not be measured as if they were. Each leg is 40
+      where it bridges past the chevron and 68 below, and that step IS the Y's arms — the
+      arm's outward reach equals it exactly. Forcing the leg to one width retracts the arms
+      to nothing and the negative space collapses from a Y to a diamond and an arrow, which
+      takes the cube reading with it. Solving for both at once wants a 263-wide stroke in a
+      176-wide mark, so it is not a near miss; it is the same quantity counted twice.
+  -->
+  <path
+    d="M68 66.14 128 100.67 188 66.14 216 82.25 216 173.75 148 212.88 148 181.46 176 165.34 176 119.19 128 146.82 80 119.19 80 165.34 108 181.46 108 212.88 40 173.75 40 82.25Z"
+    fill="url(#mark)"
+  />
+</svg>
