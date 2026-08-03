@@ -9,11 +9,17 @@
  * genuinely useful on its own and there is no reason to delete it later.
  */
 
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { basename, extname, join, resolve } from 'node:path'
 
-import { describeFailure, failureDetail } from '../host/failures.ts'
-import { BUNDLE_FILENAMES, createPipeline, HEAD_SNIPPET } from '../pipeline/index.ts'
+import { SIDECAR_FILENAME, writeBundle } from '../host/bundle-writer.ts'
+import {
+  BundleCollisionError,
+  BundleWriteError,
+  describeFailure,
+  failureDetail,
+} from '../host/failures.ts'
+import { BUNDLE_FILENAMES, createPipeline, hashSource, HEAD_SNIPPET } from '../pipeline/index.ts'
 import type { Hex, Settings } from '../pipeline/index.ts'
 import { describeAdvisory } from '../shared/advisories.ts'
 
@@ -30,6 +36,7 @@ Options
   --bg <#rrggbb>        Icon Background            (default: inferred)
   --splash <#rrggbb>    Manifest background_color  (default: same as --bg)
   --no-optimize         Skip SVGO
+  --force               Replace existing Bundle files in the output directory
   --snippet             Print the <head> snippet and exit
   -h, --help
 
@@ -41,16 +48,26 @@ the same Asset Bundle from the same mark.
 function parseArgs(argv: string[]) {
   const positional: string[] = []
   const flags = new Map<string, string | true>()
+  const valueFlags = new Set(['dark', 'name', 'short', 'theme', 'bg', 'splash'])
+  const booleanFlags = new Set(['help', 'h', 'no-optimize', 'force', 'snippet'])
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i] ?? ''
-    if (!arg.startsWith('--') && arg !== '-h') {
+    if (!arg.startsWith('-')) {
       positional.push(arg)
       continue
     }
-    const key = arg.replace(/^--?/u, '')
+
+    const key = arg === '-h' ? 'h' : arg.replace(/^--/u, '')
+    if (!valueFlags.has(key) && !booleanFlags.has(key)) {
+      throw new Error(`Unknown option "${arg}". Run with --help to see the available options.`)
+    }
+
     const next = argv[i + 1]
-    if (next !== undefined && !next.startsWith('-')) {
+    if (valueFlags.has(key)) {
+      if (next === undefined || next.startsWith('-')) {
+        throw new Error(`--${key} needs a value.`)
+      }
       flags.set(key, next)
       i += 1
     } else {
@@ -86,7 +103,7 @@ function resvgWasmBytes(): ArrayBuffer {
   return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
 }
 
-async function main(argv: string[]): Promise<number> {
+export async function main(argv: string[]): Promise<number> {
   const { positional, flags } = parseArgs(argv)
 
   if (flags.has('help') || flags.has('h')) {
@@ -134,21 +151,38 @@ async function main(argv: string[]): Promise<number> {
     settings,
   )
 
-  mkdirSync(outDir, { recursive: true })
+  const force = flags.has('force')
+  const authoredFiles = [...BUNDLE_FILENAMES, SIDECAR_FILENAME]
+  const existing = authoredFiles.filter((filename) => existsSync(join(outDir, filename)))
+  if (existing.length > 0 && !force) {
+    throw new BundleCollisionError(existing)
+  }
+
+  const bundleName = basename(outDir) || basename(input, extname(input)) || 'icons'
+  let written: { written: string[] }
+  try {
+    written = writeBundle(outDir, result, {
+      sourceHash: hashSource(sourceSvg),
+      bundleName,
+      settings,
+    })
+  } catch (error) {
+    throw new BundleWriteError(error)
+  }
 
   // Write in the documented order so the listing reads the way the docs do.
   const ordered = [...BUNDLE_FILENAMES].filter((f) => result.files.has(f))
   for (const filename of ordered) {
     const bytes = result.files.get(filename)
     if (bytes === undefined) continue
-    writeFileSync(join(outDir, filename), bytes)
     console.log(`  ${filename.padEnd(24)} ${String(bytes.length).padStart(7)} bytes`)
   }
+  console.log(`  ${SIDECAR_FILENAME.padEnd(24)} recorded settings`)
 
-  const missing = [...BUNDLE_FILENAMES].filter((f) => !result.files.has(f))
+  const missing = authoredFiles.filter((f) => !written.written.includes(f))
   if (missing.length > 0) console.error(`\n! did not produce: ${missing.join(', ')}`)
 
-  console.log(`\nWrote ${ordered.length} files to ${outDir}`)
+  console.log(`\nWrote ${written.written.length} files to ${outDir}`)
 
   if (settings.optimizeSvg && result.optimizedBytes < result.originalBytes) {
     const saved = 1 - result.optimizedBytes / result.originalBytes

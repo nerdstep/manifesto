@@ -2,7 +2,7 @@
  * The app shell, arranged along the Signal Path: source at the top, the pipeline beneath
  * it, then everything that came out the other side.
  *
- * All the session logic — debouncing, request ordering, the drop→panel handoff — lives in
+ * All the session logic — request ordering, the drop→panel handoff — lives in
  * `useBundle`. What is left here is layout and the two things that are genuinely the
  * shell's own: the Output Root and opening the folder.
  */
@@ -32,6 +32,7 @@ export function App() {
     attachDarkMark,
     chooseDarkMark,
     clearDarkMark,
+    regenerate,
   } = useBundle()
 
   useEffect(() => {
@@ -45,9 +46,11 @@ export function App() {
   }, [])
 
   const chooseRoot = useCallback(async () => {
+    const previous = outputRoot
     const { path } = await bun().request.chooseOutputRoot()
     setOutputRoot(path)
-  }, [])
+    if (path !== previous) regenerate('root-change')
+  }, [outputRoot, regenerate])
 
   const bundle = status.kind === 'done' ? status.bundle : null
   const written = bundle === null ? null : bundle.writtenTo

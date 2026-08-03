@@ -15,8 +15,8 @@ import { basename } from 'node:path'
 
 import { Utils } from 'electrobun/bun'
 
+import { nextAvailableName } from '../host/bundle-writer.ts'
 import { failureDetail } from '../host/failures.ts'
-import { nextAvailableName } from './bundle-writer.ts'
 
 /** A Source Mark the user picked, in the same shape a drop produces. */
 export type ChosenSvg = { svg: string; filename: string }

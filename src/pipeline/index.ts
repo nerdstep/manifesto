@@ -37,6 +37,7 @@ import { initializeOnce, rasterize, rasterizeToPixels } from './rasterize.ts'
 import { ICO_MEMBERS, PNG_RENDITIONS } from './renditions.ts'
 import type {
   Advisory,
+  AdvisoryOrigin,
   BundleResult,
   Hex,
   ManifestSettings,
@@ -95,6 +96,29 @@ function prepare(svg: string, optimizeSvg: boolean) {
   return { sanitized, optimized, advisories, mark: normalize(optimized.svg) }
 }
 
+function markAdvisories(
+  prepared: ReturnType<typeof prepare>,
+  optimizeSvg: boolean,
+  origin?: AdvisoryOrigin,
+): Advisory[] {
+  const withOrigin = (advisory: Advisory): Advisory =>
+    origin === undefined ? advisory : { ...advisory, origin }
+  const advisories = prepared.advisories.map(withOrigin)
+
+  if (isWordmark(prepared.mark.aspectRatio)) {
+    advisories.push(withOrigin({ kind: 'wordmark', aspectRatio: prepared.mark.aspectRatio }))
+  }
+
+  if (optimizeSvg) {
+    const drift = pixelDriftPercent(prepared.sanitized, prepared.optimized.svg)
+    if (drift > PIXEL_DRIFT_THRESHOLD) {
+      advisories.push(withOrigin({ kind: 'svgo-pixel-drift', percent: drift }))
+    }
+  }
+
+  return advisories
+}
+
 /**
  * Render every PNG Rendition, plus the ICO members.
  *
@@ -136,23 +160,17 @@ function renderRenditions(
  */
 function render(sourceSvg: string, darkSvg: string | null, settings: RenderSettings): RenderedMark {
   const source = prepare(sourceSvg, settings.optimizeSvg)
-  const advisories: Advisory[] = [...source.advisories]
-
-  if (isWordmark(source.mark.aspectRatio)) {
-    advisories.push({ kind: 'wordmark', aspectRatio: source.mark.aspectRatio })
-  }
-
-  if (settings.optimizeSvg) {
-    const drift = pixelDriftPercent(source.sanitized, source.optimized.svg)
-    if (drift > PIXEL_DRIFT_THRESHOLD) {
-      advisories.push({ kind: 'svgo-pixel-drift', percent: drift })
-    }
-  }
+  const advisories: Advisory[] = markAdvisories(source, settings.optimizeSvg)
 
   // A Dark Mark is the user's second input, so it gets the same treatment as the first
   // — but its advisories are about a file the panel presents separately, so they are
   // not merged into the Source Mark's list.
-  const dark = darkSvg === null ? null : prepare(darkSvg, settings.optimizeSvg).mark
+  let dark: NormalizedMark | null = null
+  if (darkSvg !== null) {
+    const preparedDark = prepare(darkSvg, settings.optimizeSvg)
+    advisories.push(...markAdvisories(preparedDark, settings.optimizeSvg, 'dark'))
+    dark = preparedDark.mark
+  }
 
   const { files, icoMembers } = renderRenditions(source.mark, dark, settings.iconBackground)
 
@@ -172,8 +190,8 @@ function render(sourceSvg: string, darkSvg: string | null, settings: RenderSetti
  * Complete an Asset Bundle by writing `site.webmanifest`.
  *
  * The cheap half, and the only thing that crosses the render/metadata seam. Rendered
- * bytes are reused as-is, never re-rasterized — which is what makes a 150 ms debounce
- * on a colour picker affordable.
+ * bytes are reused as-is, never re-rasterized — which keeps repeated metadata edits cheap
+ * while the host coalesces colour-picker work.
  *
  * Does not mutate `rendered`, so one `RenderedMark` can be completed repeatedly as the
  * user edits.

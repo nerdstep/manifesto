@@ -5,12 +5,11 @@
  * disk. Three things make that safe, and they are the reason this is a module rather than
  * a handful of `useState` calls in `App.tsx`:
  *
- * 1. **Debounce.** Colour pickers fire continuously while dragged. Requests go out at
- *    most every 150 ms, which is comfortably more than the ~60 ms a re-render costs and
- *    far more than the 0.007 ms a metadata-only change costs.
- * 2. **Ordering.** Responses are matched against a ticket, so a slow re-render cannot
- *    overwrite the result of a later, faster metadata edit. Without it, dragging a picker
- *    could settle on a stale Bundle.
+ * 1. **Host queue.** Every accepted edit is sent immediately. The Bun side serializes
+ *    generation and keeps only the newest queued revision, so closing the webview cannot
+ *    strand a value in a browser timer and a colour drag cannot build an unbounded queue.
+ * 2. **Ordering.** Requests carry a monotonic revision and responses are matched against a
+ *    ticket, so a slow re-render cannot overwrite a later, faster metadata edit.
  * 3. **A mirror of the session in a ref.** Callbacks must read the *current* session, not
  *    the one captured when they were created. `commit()` is the only writer and updates
  *    both at once, so the two cannot drift.
@@ -24,16 +23,8 @@ import { isEqual } from 'es-toolkit'
 import { useCallback, useRef, useState } from 'preact/hooks'
 
 import type { Settings } from '../pipeline/index.ts'
-import type { BundleWire, GenerateTrigger } from '../shared/rpc.ts'
+import type { BundleWire, GenerateResult, GenerateTrigger } from '../shared/rpc.ts'
 import { bun } from './rpc.ts'
-
-/**
- * How long to wait after a change before regenerating.
- *
- * Long enough that a dragged colour picker does not queue work faster than it completes,
- * short enough that it reads as live rather than as a save.
- */
-const DEBOUNCE_MS = 150
 
 /** Everything being edited right now. */
 export type Session = {
@@ -52,6 +43,14 @@ export type Status =
   | { kind: 'failed'; error: string }
   | { kind: 'done'; bundle: BundleWire }
 
+/** Keep transport failures actionable without exposing an RPC/library error to the UI. */
+function describeRpcFailure(error: unknown): string {
+  if (error instanceof Error && /timed out/iu.test(error.message)) {
+    return 'Manifesto took too long to finish. Check the output folder and try again.'
+  }
+  return 'Manifesto could not finish writing the Asset Bundle. Check the output folder and try again.'
+}
+
 export function useBundle() {
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
   const [session, setSession] = useState<Session | null>(null)
@@ -59,13 +58,8 @@ export function useBundle() {
   const [pending, setPending] = useState(false)
 
   const current = useRef<Session | null>(null)
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sessionId = useRef(globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`)
   const ticket = useRef(0)
-  /**
-   * A rename queued behind a debounce must not be downgraded to an edit by a keystroke
-   * that lands before the timer fires — that would skip the collision guard.
-   */
-  const queuedTrigger = useRef<GenerateTrigger>('edit')
 
   /** The only writer of the session. Keeps the render copy and the callback copy in step. */
   const commit = useCallback((next: Session | null) => {
@@ -73,24 +67,29 @@ export function useBundle() {
     setSession(next)
   }, [])
 
-  const cancelPending = useCallback(() => {
-    if (timer.current !== null) clearTimeout(timer.current)
-    timer.current = null
-  }, [])
-
   const send = useCallback(
     async (next: Session, trigger: GenerateTrigger) => {
       ticket.current += 1
       const mine = ticket.current
 
-      const result = await bun().request.generate({
-        sourceSvg: next.sourceSvg,
-        filename: next.filename,
-        darkSvg: next.darkSvg,
-        settings: next.settings,
-        bundleName: next.bundleName,
-        trigger,
-      })
+      let result: GenerateResult
+      try {
+        result = await bun().request.generate({
+          sessionId: sessionId.current,
+          sourceSvg: next.sourceSvg,
+          filename: next.filename,
+          darkSvg: next.darkSvg,
+          settings: next.settings,
+          bundleName: next.bundleName,
+          trigger,
+          revision: mine,
+        })
+      } catch (error) {
+        if (mine !== ticket.current) return
+        setPending(false)
+        setStatus({ kind: 'failed', error: describeRpcFailure(error) })
+        return
+      }
 
       // Superseded while in flight. Dropping the answer is right: a newer one is coming
       // and it was computed from newer inputs.
@@ -115,21 +114,14 @@ export function useBundle() {
     [commit],
   )
 
-  /** Apply a change now and regenerate after the debounce. */
+  /** Apply a change and send it immediately; the host coalesces expensive work. */
   const schedule = useCallback(
     (next: Session, trigger: GenerateTrigger) => {
       commit(next)
       setPending(true)
-      if (trigger !== 'edit') queuedTrigger.current = trigger
-
-      cancelPending()
-      timer.current = setTimeout(() => {
-        const use = queuedTrigger.current
-        queuedTrigger.current = 'edit'
-        void send(next, use)
-      }, DEBOUNCE_MS)
+      void send(next, trigger)
     },
-    [commit, cancelPending, send],
+    [commit, send],
   )
 
   /** Apply a change and regenerate immediately — for discrete actions, not for typing. */
@@ -137,11 +129,9 @@ export function useBundle() {
     (next: Session, trigger: GenerateTrigger) => {
       commit(next)
       setPending(true)
-      cancelPending()
-      queuedTrigger.current = 'edit'
       void send(next, trigger)
     },
-    [commit, cancelPending, send],
+    [commit, send],
   )
   /**
    * Start a session from a Source Mark, however it arrived.
@@ -151,20 +141,29 @@ export function useBundle() {
    */
   const begin = useCallback(
     async (sourceSvg: string, filename: string) => {
-      cancelPending()
       setStatus({ kind: 'working', filename })
 
       ticket.current += 1
       const mine = ticket.current
 
-      const result = await bun().request.generate({
-        sourceSvg,
-        filename,
-        darkSvg: null,
-        settings: null,
-        bundleName: null,
-        trigger: 'drop',
-      })
+      let result: GenerateResult
+      try {
+        result = await bun().request.generate({
+          sessionId: sessionId.current,
+          sourceSvg,
+          filename,
+          darkSvg: null,
+          settings: null,
+          bundleName: null,
+          trigger: 'drop',
+          revision: mine,
+        })
+      } catch (error) {
+        if (mine !== ticket.current) return
+        setPending(false)
+        setStatus({ kind: 'failed', error: describeRpcFailure(error) })
+        return
+      }
 
       if (mine !== ticket.current) return
       setPending(false)
@@ -190,9 +189,13 @@ export function useBundle() {
           resolve()
         })
       })
-      await bun().request.refreshViewport()
+      try {
+        await bun().request.refreshViewport()
+      } catch (error) {
+        bun().send.log({ level: 'error', message: describeRpcFailure(error) })
+      }
     },
-    [cancelPending, commit],
+    [commit],
   )
 
   /**
@@ -218,7 +221,7 @@ export function useBundle() {
     await begin(picked.svg, picked.filename)
   }, [begin])
 
-  /** Change one or more settings. Debounced, because this is what typing calls. */
+  /** Change one or more settings. The host coalesces repeated edits. */
   const patch = useCallback(
     (change: Partial<Settings>) => {
       const latest = current.current
@@ -285,6 +288,16 @@ export function useBundle() {
     now({ ...latest, darkSvg: null, darkFilename: null }, 'edit')
   }, [now])
 
+  /** Persist the current Bundle after the user chooses a new Output Root. */
+  const regenerate = useCallback(
+    (trigger: GenerateTrigger = 'edit') => {
+      const latest = current.current
+      if (latest === null) return
+      now(latest, trigger)
+    },
+    [now],
+  )
+
   return {
     status,
     session,
@@ -296,5 +309,6 @@ export function useBundle() {
     attachDarkMark,
     chooseDarkMark,
     clearDarkMark,
+    regenerate,
   }
 }

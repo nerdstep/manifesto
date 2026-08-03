@@ -89,7 +89,8 @@ const generate = createGenerate({
 // --- rpc -------------------------------------------------------------------
 
 const rpc = BrowserView.defineRPC<ManifestoRPC>({
-  maxRequestTime: 30_000,
+  // Native dialogs and a staged disk commit are allowed to outlive a short UI timeout.
+  maxRequestTime: 120_000,
   handlers: {
     requests: {
       generate,

@@ -23,24 +23,22 @@ import { AndroidMaskable } from './MaskablePreview.tsx'
 import {
   contrastInk,
   decodeUtf8,
+  svgUrl,
   Tile,
   pngUrl,
   SquircleClipPath,
-  TAB_CSS,
 } from './preview-parts.tsx'
 
 /**
  * A browser tab at true size.
  *
- * The favicon is inlined rather than put in an `<img>`, so the page's own CSS can force
- * which half of a dual-mode `favicon.svg` is showing. Inside an `<img>` the file obeys the
- * viewer's OS theme and both mocks would show the same mark — which would make the dark
- * mock a lie exactly when someone has supplied a Dark Mark to check.
+ * The favicon is rendered as an `<img>` so user-supplied SVG cannot become active markup in
+ * the webview. Preview-only CSS is embedded into separate data URLs to force each half of a
+ * dual-mode `favicon.svg` without exposing the application document to the file's DOM.
  *
- * Duplicate element ids across the two copies are harmless here: the copies are the same
- * document, so any cross-reference resolves to an identical element.
+ * Duplicate element ids across the two image documents are isolated by the browser.
  */
-function TabMock({ svg, title, dark }: { svg: string; title: string; dark: boolean }) {
+function TabMock({ src, title, dark }: { src: string; title: string; dark: boolean }) {
   return (
     <div
       class={[
@@ -51,13 +49,9 @@ function TabMock({ svg, title, dark }: { svg: string; title: string; dark: boole
       ].join(' ')}
     >
       {/* Exactly 16 CSS px. This is the whole point of this preview. */}
-      <div
-        class={`size-4 shrink-0 [&_svg]:size-full ${dark ? 'tab-dark' : 'tab-light'}`}
-        // The markup is `favicon.svg`, which this app generated three lines of RPC ago
-        // from an already-sanitized mark — `validate()` strips scripts and event handlers
-        // before anything is composed.
-        dangerouslySetInnerHTML={{ __html: svg }}
-      />
+      <div class="size-4 shrink-0">
+        <img src={src} alt="" width={16} height={16} />
+      </div>
       <span class="truncate text-[11px]">{title}</span>
     </div>
   )
@@ -81,11 +75,11 @@ function TabMock({ svg, title, dark }: { svg: string; title: string; dark: boole
  * the brightest thing in the card.
  */
 function AndroidBar({
-  svg,
+  src,
   themeColor,
   title,
 }: {
-  svg: string
+  src: string
   themeColor: string
   title: string
 }) {
@@ -95,10 +89,9 @@ function AndroidBar({
         class="flex items-center gap-2 px-2.5 py-2"
         style={{ background: themeColor, color: contrastInk(themeColor) }}
       >
-        <div
-          class="tab-light size-4 shrink-0 [&_svg]:size-full"
-          dangerouslySetInnerHTML={{ __html: svg }}
-        />
+        <div class="size-4 shrink-0">
+          <img src={src} alt="" width={16} height={16} />
+        </div>
         <span class="truncate text-[11px]">{title}</span>
       </div>
     </div>
@@ -121,6 +114,9 @@ function BrowserContexts({
   title: string
   themeColor: string
 }) {
+  const lightSrc = svgUrl(faviconSvg, false)
+  const darkSrc = svgUrl(faviconSvg, true)
+
   return (
     <Tile
       title="Browser"
@@ -128,9 +124,9 @@ function BrowserContexts({
       note="favicon.svg at its true size on a light and a dark tab. The tinted bar is theme_color on Android Chrome — desktop browsers ignore it."
     >
       <div class="w-full space-y-2">
-        <TabMock svg={faviconSvg} title={title} dark={false} />
-        <TabMock svg={faviconSvg} title={title} dark />
-        <AndroidBar svg={faviconSvg} themeColor={themeColor} title={title} />
+        <TabMock src={lightSrc} title={title} dark={false} />
+        <TabMock src={darkSrc} title={title} dark />
+        <AndroidBar src={lightSrc} themeColor={themeColor} title={title} />
       </div>
     </Tile>
   )
@@ -222,8 +218,6 @@ export function Previews({
 
   return (
     <section class="mt-5 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3">
-      <style>{TAB_CSS}</style>
-
       <SquircleClipPath />
 
       {maskable !== undefined && <AndroidMaskable png={maskable} />}

@@ -13,7 +13,8 @@ import type { ManifestoRPC } from '../shared/rpc.ts'
 
 const electroview = new Electroview({
   rpc: Electroview.defineRPC<ManifestoRPC>({
-    maxRequestTime: 30_000,
+    // Collision dialogs are user-paced; do not turn a slow answer into a second write.
+    maxRequestTime: 120_000,
     handlers: { requests: {}, messages: {} },
   }),
 })

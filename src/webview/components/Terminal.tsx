@@ -7,7 +7,7 @@
  * prints what it produced is one thought, and it is the shape this readout was already
  * borrowing.
  *
- * A polite live region: it updates on every debounced edit, and interrupting someone
+ * A polite live region: it updates after the host accepts the newest edit, and interrupting someone
  * mid-word to say "saved" is worse than telling them a moment later.
  */
 
@@ -102,7 +102,7 @@ function Result({
 
   // `writtenTo === null` has exactly one cause: the target folder holds files Manifesto
   // did not write, and the user either declined to resolve it or the change was a
-  // debounced edit that is never allowed to prompt. Both are the same situation and both
+  // routine edit that is never allowed to prompt. Both are the same situation and both
   // have the same two ways out.
   return bundle.writtenTo === null ? (
     <span class="text-bad">

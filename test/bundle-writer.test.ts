@@ -7,19 +7,28 @@
  */
 
 import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import {
   bundleNameProblem,
+  type BundleWriterFileSystem,
   inspectTarget,
   nextAvailableName,
   recallSettings,
   SIDECAR_FILENAME,
   slugify,
   writeBundle,
-} from '../src/bun/bundle-writer.ts'
+} from '../src/host/bundle-writer.ts'
 import type { Pipeline } from '../src/pipeline/index.ts'
 import { defaultSettings, fixture, parseJsonObject, testPipeline } from './helpers.ts'
 
@@ -141,6 +150,89 @@ describe('writeBundle', () => {
     write(dir, 'square-tight')
 
     expect(readFileSync(join(dir, 'notes.txt'), 'utf8')).toBe('hand-written')
+  })
+
+  test('rolls back authored files when a commit step fails', () => {
+    const dir = join(root, 'acme')
+    const original = write(dir, 'square-tight')
+    const replacement = bundleOf('multicolor')
+    let installed = 0
+
+    const failingFileSystem: BundleWriterFileSystem = {
+      existsSync,
+      mkdirSync,
+      mkdtempSync,
+      rmSync,
+      writeFileSync,
+      renameSync(source, target) {
+        if (String(source).includes('manifesto-stage') && String(target).startsWith(dir)) {
+          installed += 1
+          if (installed === 2) throw new Error('simulated commit failure')
+        }
+        renameSync(source, target)
+      },
+    }
+
+    expect(() =>
+      writeBundle(
+        dir,
+        replacement,
+        { sourceHash: replacement.sourceHash, bundleName: 'acme', settings: defaultSettings },
+        failingFileSystem,
+      ),
+    ).toThrow('simulated commit failure')
+
+    for (const [filename, bytes] of original.files) {
+      expect(Buffer.compare(readFileSync(join(dir, filename)), Buffer.from(bytes))).toBe(0)
+    }
+    expect(inspectTarget(dir, original.sourceHash).kind).toBe('same-mark')
+  })
+
+  test('leaves the previous Bundle untouched when staging a file fails', () => {
+    const dir = join(root, 'acme')
+    const original = write(dir, 'square-tight')
+    const replacement = bundleOf('multicolor')
+    let staged = 0
+    const failingFileSystem: BundleWriterFileSystem = {
+      existsSync,
+      mkdirSync,
+      mkdtempSync,
+      rmSync,
+      renameSync,
+      writeFileSync(path, bytes) {
+        staged += 1
+        if (staged === 2) throw new Error('simulated staging failure')
+        writeFileSync(path, bytes)
+      },
+    }
+
+    expect(() =>
+      writeBundle(
+        dir,
+        replacement,
+        { sourceHash: replacement.sourceHash, bundleName: 'acme', settings: defaultSettings },
+        failingFileSystem,
+      ),
+    ).toThrow('simulated staging failure')
+
+    for (const [filename, bytes] of original.files) {
+      expect(Buffer.compare(readFileSync(join(dir, filename)), Buffer.from(bytes))).toBe(0)
+    }
+    expect(inspectTarget(dir, original.sourceHash).kind).toBe('same-mark')
+  })
+
+  test('does not replace a target path that is a file', () => {
+    const target = join(root, 'acme')
+    writeFileSync(target, 'occupied')
+
+    expect(() =>
+      writeBundle(target, bundleOf('square-tight'), {
+        sourceHash: bundleOf('square-tight').sourceHash,
+        bundleName: 'acme',
+        settings: defaultSettings,
+      }),
+    ).toThrow()
+    expect(readFileSync(target, 'utf8')).toBe('occupied')
   })
 })
 

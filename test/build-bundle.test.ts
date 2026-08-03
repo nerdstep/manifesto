@@ -83,6 +83,62 @@ describe('buildBundle', () => {
     expect(decoder.decode(withDark.files.get('favicon.svg'))).toContain('prefers-color-scheme')
   })
 
+  test('reports advisories from the Dark Mark with their origin', () => {
+    const result = pipeline.buildBundle(
+      fixture('square-tight'),
+      fixture('with-script'),
+      defaultSettings,
+    )
+
+    expect(result.advisories).toContainEqual({
+      kind: 'scripts-removed',
+      elements: 1,
+      attributes: 2,
+      origin: 'dark',
+    })
+  })
+
+  test('runs text, linked-image, and Wordmark checks for the Dark Mark', () => {
+    const withPaintedText =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">' +
+      '<rect width="20" height="20" fill="#fff"/><text x="0" y="50">Dark</text></svg>'
+    const cases = [
+      { svg: withPaintedText, kind: 'text-elements' },
+      { svg: fixture('external-image'), kind: 'external-image' },
+      { svg: fixture('wordmark'), kind: 'wordmark' },
+    ] as const
+
+    for (const { svg, kind } of cases) {
+      const result = pipeline.buildBundle(fixture('square-tight'), svg, defaultSettings)
+      expect(
+        result.advisories.some((advisory) => advisory.kind === kind && advisory.origin === 'dark'),
+      ).toBe(true)
+    }
+  })
+
+  test('emitted favicon.svg contains no active foreign content', () => {
+    const malicious =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">' +
+      '<rect width="60" height="60" fill="#2E5BFF"/>' +
+      '<foreignObject width="60" height="60"><iframe xmlns="http://www.w3.org/1999/xhtml" ' +
+      'srcdoc="&lt;script&gt;parent.document.body.dataset.pwned=1&lt;/script&gt;"/></foreignObject>' +
+      '<foreignObject/><style>@import "https://one.invalid/a.css";</style>' +
+      '<style>@import "https://two.invalid/b.css";</style></svg>'
+    const result = pipeline.buildBundle(malicious, null, defaultSettings)
+    const favicon = new TextDecoder().decode(result.files.get('favicon.svg'))
+
+    expect(favicon).not.toContain('foreignObject')
+    expect(favicon).not.toContain('iframe')
+    expect(favicon).not.toContain('srcdoc')
+    expect(favicon).not.toContain('@import')
+    expect(favicon).not.toContain('.invalid')
+    expect(result.advisories).toContainEqual({
+      kind: 'active-content-removed',
+      foreignObjects: 2,
+      externalStyles: 2,
+    })
+  })
+
   test('a mark that paints nothing fails loudly', () => {
     // Succeeding here would ship a valid-looking, empty icon — the worst outcome.
     for (const name of EMPTY_FIXTURES) {

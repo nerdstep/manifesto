@@ -14,9 +14,9 @@ export function Advisories({ advisories }: { advisories: Advisory[] }) {
 
   return (
     <section class="mt-5 space-y-2" aria-label="Things worth checking">
-      {advisories.map((advisory) => (
+      {advisories.map((advisory, index) => (
         <div
-          key={advisory.kind}
+          key={`${advisory.origin ?? 'source'}-${advisory.kind}-${index}`}
           class="rounded-lg border border-amber/40 bg-amber/8 px-3 py-2.5 text-[13px] text-ink"
         >
           {describeAdvisory(advisory)}

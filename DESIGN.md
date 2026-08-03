@@ -361,7 +361,7 @@ card, monospace, an amber `›` prompt, the command in Ink, a Line Strong divide
 in Confirmed Green, and the destination path in Muted pushed to the right.
 
 It is a `role="status" aria-live="polite"` region — polite because it updates on every
-debounced edit, and interrupting someone mid-word to say "saved" is worse than telling them
+accepted edit, and interrupting someone mid-word to say "saved" is worse than telling them
 a moment later.
 
 ## 6. Do's and Don'ts

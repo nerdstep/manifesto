@@ -1,5 +1,5 @@
 /**
- * Writing an Asset Bundle to disk, and not destroying anything while doing it.
+ * Writing an Asset Bundle to disk, shared by the desktop shell and the CLI.
  *
  * This is the only place in the app that can lose someone's work, so the collision guard
  * is the point of the module rather than a detail of it. Everything here is synchronous
@@ -7,8 +7,17 @@
  * filesystem would test the mock.
  */
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
+import { basename, dirname, join } from 'node:path'
 
 import { isPlainObject } from 'es-toolkit'
 
@@ -28,6 +37,24 @@ export type Sidecar = {
 
 /** Defined in `src/shared/` because the file list in the webview has to name it too. */
 export { SIDECAR_FILENAME }
+
+export type BundleWriterFileSystem = {
+  existsSync: typeof existsSync
+  mkdirSync: typeof mkdirSync
+  mkdtempSync: typeof mkdtempSync
+  renameSync: typeof renameSync
+  rmSync: typeof rmSync
+  writeFileSync: typeof writeFileSync
+}
+
+const nativeWriterFileSystem: BundleWriterFileSystem = {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+}
 
 /**
  * What we found where a Bundle is about to be written.
@@ -177,24 +204,86 @@ export function writeBundle(
   dir: string,
   bundle: BundleResult,
   sidecar: Omit<Sidecar, 'generatedAt' | 'generator'>,
+  fileSystem: BundleWriterFileSystem = nativeWriterFileSystem,
 ): { written: string[] } {
-  mkdirSync(dir, { recursive: true })
-
-  const written: string[] = []
-  for (const [filename, bytes] of bundle.files) {
-    writeFileSync(join(dir, filename), bytes)
-    written.push(filename)
-  }
-
   const complete: Sidecar = {
     ...sidecar,
     generatedAt: new Date().toISOString(),
     generator: 'manifesto',
   }
-  writeFileSync(join(dir, SIDECAR_FILENAME), `${JSON.stringify(complete, null, 2)}\n`)
-  written.push(SIDECAR_FILENAME)
 
-  return { written }
+  const parent = dirname(dir)
+  const folder = basename(dir)
+  let staging: string | null = null
+  let backups: string | null = null
+  let preserveBackups = false
+  const installed: string[] = []
+  const movedToBackup: Array<{ target: string; backup: string }> = []
+
+  try {
+    fileSystem.mkdirSync(parent, { recursive: true })
+    staging = fileSystem.mkdtempSync(join(parent, `.${folder}.manifesto-stage-`))
+    backups = fileSystem.mkdtempSync(join(parent, `.${folder}.manifesto-backup-`))
+
+    // Stage every authored byte before touching the destination. The Sidecar is part of
+    // the transaction: it must never describe a set of files that was not committed.
+    for (const [filename, bytes] of bundle.files) {
+      fileSystem.writeFileSync(join(staging, filename), bytes)
+    }
+    fileSystem.writeFileSync(
+      join(staging, SIDECAR_FILENAME),
+      `${JSON.stringify(complete, null, 2)}\n`,
+    )
+
+    fileSystem.mkdirSync(dir, { recursive: true })
+
+    const authored = [...bundle.files.keys(), SIDECAR_FILENAME]
+    for (const filename of authored) {
+      const target = join(dir, filename)
+      if (fileSystem.existsSync(target)) {
+        const backup = join(backups, filename)
+        fileSystem.renameSync(target, backup)
+        movedToBackup.push({ target, backup })
+      }
+
+      fileSystem.renameSync(join(staging, filename), target)
+      installed.push(target)
+    }
+
+    return { written: authored }
+  } catch (error) {
+    // Best-effort rollback keeps a transient disk/permission error from leaving a mixed
+    // Bundle. If rollback itself fails, preserve the original error for the caller and log
+    // the second failure for diagnosis.
+    for (const target of installed.toReversed()) {
+      try {
+        fileSystem.rmSync(target, { force: true, recursive: true })
+      } catch (rollbackError) {
+        console.error('[manifesto] could not remove a partially committed file:', rollbackError)
+      }
+    }
+
+    for (const { target, backup } of movedToBackup.toReversed()) {
+      try {
+        fileSystem.renameSync(backup, target)
+      } catch (rollbackError) {
+        preserveBackups = true
+        console.error('[manifesto] could not restore a Bundle file during rollback:', rollbackError)
+      }
+    }
+
+    throw error
+  } finally {
+    for (const temporary of [staging, backups]) {
+      if (temporary === null) continue
+      if (temporary === backups && preserveBackups) continue
+      try {
+        fileSystem.rmSync(temporary, { force: true, recursive: true })
+      } catch (cleanupError) {
+        console.error('[manifesto] could not clean a temporary Bundle directory:', cleanupError)
+      }
+    }
+  }
 }
 
 /** Settings recorded by a previous run, so a re-drop restores choices rather than guessing. */

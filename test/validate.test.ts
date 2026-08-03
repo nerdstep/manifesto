@@ -99,6 +99,81 @@ describe('validate — advisories', () => {
     })
   })
 
+  test('removes foreign HTML content and reports it', () => {
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">' +
+      '<rect width="60" height="60" fill="#2E5BFF"/>' +
+      '<foreignObject width="60" height="60"><iframe xmlns="http://www.w3.org/1999/xhtml" ' +
+      'srcdoc="&lt;script&gt;parent.document.body.dataset.pwned=1&lt;/script&gt;"/></foreignObject></svg>'
+
+    const { sanitized, advisories } = validate(svg)
+
+    expect(sanitized).not.toContain('foreignObject')
+    expect(sanitized).not.toContain('srcdoc')
+    expect(sanitized).toContain('#2E5BFF')
+    expect(advisories).toContainEqual({
+      kind: 'active-content-removed',
+      foreignObjects: 1,
+      externalStyles: 0,
+    })
+  })
+
+  test('removes external CSS imports and URLs but keeps ordinary styles', () => {
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">' +
+      '<style>.mark { fill: #2E5BFF; } @import url(https://example.invalid/theme.css);</style>' +
+      '<rect class="mark" width="60" height="60"/></svg>'
+
+    const { sanitized, advisories } = validate(svg)
+
+    expect(sanitized).not.toContain('@import')
+    expect(sanitized).not.toContain('example.invalid')
+    expect(sanitized).toContain('class="mark"')
+    expect(sanitized).toContain('fill: #2E5BFF')
+    expect(advisories).toContainEqual({
+      kind: 'active-content-removed',
+      foreignObjects: 0,
+      externalStyles: 1,
+    })
+  })
+
+  test('removes every adjacent active node', () => {
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">' +
+      '<rect width="60" height="60" fill="#2E5BFF"/>' +
+      '<foreignObject/><foreignObject/>' +
+      '<style>@import "https://one.invalid/a.css";</style>' +
+      '<style>@import "https://two.invalid/b.css";</style></svg>'
+
+    const { sanitized, advisories } = validate(svg)
+
+    expect(sanitized).not.toContain('foreignObject')
+    expect(sanitized).not.toContain('@import')
+    expect(sanitized).not.toContain('.invalid')
+    expect(advisories).toContainEqual({
+      kind: 'active-content-removed',
+      foreignObjects: 2,
+      externalStyles: 2,
+    })
+  })
+
+  test('removes external URLs from style attributes without dropping safe declarations', () => {
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">' +
+      '<rect width="60" height="60" style="fill:url(https://example.invalid/fill.svg);stroke:#fff"/>' +
+      '</svg>'
+
+    const { sanitized, advisories } = validate(svg)
+
+    expect(sanitized).not.toContain('example.invalid')
+    expect(sanitized).toContain('stroke:#fff')
+    expect(advisories).toContainEqual({
+      kind: 'active-content-removed',
+      foreignObjects: 0,
+      externalStyles: 1,
+    })
+  })
+
   test('clean marks raise nothing', () => {
     for (const name of CLEAN_FIXTURES) {
       expect(validate(fixture(name)).advisories).toEqual([])

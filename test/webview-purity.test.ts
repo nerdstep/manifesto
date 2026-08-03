@@ -29,7 +29,7 @@ import { join } from 'node:path'
 
 import { SAFE_ZONE_DIAMETER } from '../src/pipeline/index.ts'
 import { contrastRatio } from '../src/shared/color.ts'
-import { contrastInk, SAFE_ZONE } from '../src/webview/components/preview-parts.tsx'
+import { contrastInk, SAFE_ZONE, svgUrl } from '../src/webview/components/preview-parts.tsx'
 
 const SHARED_DIR = join(import.meta.dir, '..', 'src', 'shared')
 
@@ -50,6 +50,38 @@ describe('webview purity', () => {
   test('preview text stays readable on arbitrary user-selected backgrounds', () => {
     for (const background of ['#4da3ff', '#808080', '#ff0000', '#7f00ff']) {
       expect(contrastRatio(background, contrastInk(background))).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  test('SVG previews stay in static image resources', () => {
+    const source = '<svg xmlns="http://www.w3.org/2000/svg"></svg>'
+    const light = svgUrl(source)
+    const dark = svgUrl(source, true)
+
+    expect(light.startsWith('data:image/svg+xml;charset=utf-8,')).toBe(true)
+    expect(dark.startsWith('data:image/svg+xml;charset=utf-8,')).toBe(true)
+    const lightSvg = decodeURIComponent(light.split(',', 2)[1] ?? '')
+    const darkSvg = decodeURIComponent(dark.split(',', 2)[1] ?? '')
+    expect(lightSvg).not.toContain('dangerouslySetInnerHTML')
+    expect(lightSvg).toContain(
+      '.mfo-dark{display:none!important}.mfo-light{display:inline!important}',
+    )
+    expect(darkSvg).toContain(
+      '.mfo-light{display:none!important}.mfo-dark{display:inline!important}',
+    )
+  })
+
+  test('webview source has no active SVG markup injection', () => {
+    const webviewDir = join(import.meta.dir, '..', 'src', 'webview')
+    const files = readdirSync(webviewDir, { recursive: true }).filter(
+      (file): file is string => typeof file === 'string',
+    )
+
+    for (const name of files.filter((file) => /\.(?:ts|tsx)$/u.test(file))) {
+      const source = code(readFileSync(join(webviewDir, name), 'utf8'))
+      expect(source, `${name} must not inject SVG markup into the document`).not.toContain(
+        'dangerouslySetInnerHTML',
+      )
     }
   })
 

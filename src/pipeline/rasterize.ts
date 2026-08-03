@@ -12,7 +12,7 @@
  *    never becomes output.
  *
  * WASM objects hold memory outside the JS heap, so every `Resvg` and `RenderedImage`
- * here is freed in a `finally`. The app rasterizes on every debounced keystroke; leaking
+ * here is freed in a `finally`. The app may rasterize on every accepted keystroke; leaking
  * a 1024² buffer per pass would be felt.
  */
 

@@ -19,7 +19,7 @@
  */
 
 import { _collections, optimize as runSvgo } from 'svgo/browser'
-import type { CustomPlugin, XastElement } from 'svgo/browser'
+import type { CustomPlugin, XastElement, XastParent } from 'svgo/browser'
 
 import type { Advisory } from './types.ts'
 import { InvalidSvgError } from './types.ts'
@@ -51,6 +51,8 @@ type Findings = {
   scriptElements: number
   eventAttributes: number
   unresolvableImages: string[]
+  foreignObjects: number
+  externalStyles: number
 }
 
 /** Drop an XML namespace prefix: `svg:text` -> `text`. */
@@ -93,18 +95,83 @@ function collector(into: Findings): CustomPlugin {
   }
 }
 
+/** Remove one node without mutating the array a visitor is currently indexing. */
+function detach(node: XastElement, parentNode: XastParent): void {
+  parentNode.children = parentNode.children.filter((child) => child !== node)
+}
+
+/** Remove only CSS constructs that can fetch another resource; keep local styling intact. */
+function sanitizeCss(css: string): { css: string; changed: boolean } {
+  let changed = false
+  const withoutImports = css.replaceAll(/@import\b[^;]*(?:;|$)/giu, () => {
+    changed = true
+    return ''
+  })
+  const sanitized = withoutImports.replaceAll(
+    /url\(\s*(["']?)([^)]*?)\1\s*\)/giu,
+    (match: string, _quote: string, href: string) => {
+      const reference = href.trim()
+      if (reference.startsWith('#') || reference.toLowerCase().startsWith('data:')) return match
+      changed = true
+      return 'none'
+    },
+  )
+  return { css: sanitized, changed }
+}
+
+/** Remove content that can execute or load active content in a browser document. */
+function removeActiveContent(into: Findings): CustomPlugin {
+  return {
+    name: 'manifesto-remove-active-content',
+    fn: () => ({
+      element: {
+        enter: (node: XastElement, parentNode: XastParent) => {
+          if (localName(node.name) === 'foreignObject') {
+            into.foreignObjects += 1
+            detach(node, parentNode)
+            return
+          }
+
+          const inlineStyle = node.attributes.style
+          if (inlineStyle !== undefined) {
+            const safe = sanitizeCss(inlineStyle)
+            if (safe.changed) {
+              into.externalStyles += 1
+              node.attributes.style = safe.css
+            }
+          }
+
+          if (localName(node.name) !== 'style') return
+
+          const css = node.children
+            .filter((child) => child.type === 'text' || child.type === 'cdata')
+            .map((child) => child.value)
+            .join('')
+          const safe = sanitizeCss(css)
+          if (!safe.changed) return
+
+          into.externalStyles += 1
+          node.children = [{ type: 'text', value: safe.css }]
+        },
+      },
+    }),
+  }
+}
+
 export function validate(svg: string): ValidationResult {
   const findings: Findings = {
     textElements: 0,
     scriptElements: 0,
     eventAttributes: 0,
     unresolvableImages: [],
+    foreignObjects: 0,
+    externalStyles: 0,
   }
 
   let stripped: string
   try {
     stripped = runSvgo(svg, {
-      plugins: [collector(findings), 'removeScripts'],
+      plugins: [collector(findings), removeActiveContent(findings), 'removeScripts'],
       js2svg: { pretty: false },
     }).data
   } catch (cause) {
@@ -113,16 +180,17 @@ export function validate(svg: string): ValidationResult {
     })
   }
 
-  const removed = findings.scriptElements + findings.eventAttributes
+  const scriptsRemoved = findings.scriptElements + findings.eventAttributes
+  const activeContentRemoved = findings.foreignObjects + findings.externalStyles
 
   // Only hand back SVGO's re-serialized output if something actually had to go.
   // Otherwise the Source Mark passes through byte-for-byte, so a user who turned
   // optimization off gets exactly the file they dropped.
-  const sanitized = removed > 0 ? stripped : svg
+  const sanitized = scriptsRemoved + activeContentRemoved > 0 ? stripped : svg
 
   const advisories: Advisory[] = []
 
-  if (removed > 0) {
+  if (scriptsRemoved > 0) {
     advisories.push({
       kind: 'scripts-removed',
       elements: findings.scriptElements,
@@ -136,6 +204,14 @@ export function validate(svg: string): ValidationResult {
 
   if (findings.unresolvableImages.length > 0) {
     advisories.push({ kind: 'external-image', hrefs: findings.unresolvableImages })
+  }
+
+  if (findings.foreignObjects > 0 || findings.externalStyles > 0) {
+    advisories.push({
+      kind: 'active-content-removed',
+      foreignObjects: findings.foreignObjects,
+      externalStyles: findings.externalStyles,
+    })
   }
 
   return { sanitized, advisories }

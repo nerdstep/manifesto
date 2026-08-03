@@ -1,5 +1,5 @@
 /**
- * The render cache: what a debounced panel is allowed to skip.
+ * The render cache: what a rapidly edited panel is allowed to skip.
  *
  * Tested with a counting stub rather than the real rasterizer. The property being checked
  * is "which changes cause a render", which is entirely about the cache key — running

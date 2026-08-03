@@ -39,16 +39,20 @@ export type BundleWire = {
 /**
  * What caused this request, which decides whether it may open a modal.
  *
- * - `drop` / `rename` — the user just chose this destination, so a collision with
+ * - `drop` / `rename` / `root-change` — the user just chose this destination, so a collision with
  *   something we did not write is worth asking about.
- * - `edit` — a debounced settings change. **Never prompts.** It writes only where a
+ * - `edit` — a routine settings change. **Never prompts.** It writes only where a
  *   previous write of this same mark already lives, and otherwise reports
  *   `writtenTo: null`. Without this distinction, holding down the Icon Background picker
- *   would open a modal every 150 ms.
+ *   would open a modal for every colour-pick event.
  */
-export type GenerateTrigger = 'drop' | 'rename' | 'edit'
+export type GenerateTrigger = 'drop' | 'rename' | 'edit' | 'root-change'
 
 export type GenerateRequest = {
+  /** Identifies one webview lifetime, so revisions can restart after a reload. */
+  sessionId?: string
+  /** Monotonic webview revision. The host uses it to discard stale queued work. */
+  revision?: number
   sourceSvg: string
   /** Filename of the dropped file, for seeding the Bundle Name and the inferred Name. */
   filename: string

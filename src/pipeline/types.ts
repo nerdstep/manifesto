@@ -15,10 +15,9 @@ export type Hex = `#${string}`
  * Changing any of these — or the Dark Mark, which is a separate argument — means the
  * Renditions must be rasterized again. Everything else is metadata.
  *
- * This partition exists as a type because Phase 6's panel regenerates on a 150 ms
- * debounce and must skip rasterization when only metadata moved. Left in prose, that
- * knowledge would have to be re-derived in the webview, outside the reach of the
- * purity guard and of every fixture.
+ * This partition exists as a type because the panel must skip rasterization when only
+ * metadata moved. Left in prose, that knowledge would have to be re-derived in the
+ * webview, outside the reach of the purity guard and of every fixture.
  */
 export type RenderSettings = {
   /** Opaque fill behind the mark where transparency is illegal. */
@@ -50,22 +49,27 @@ export type ManifestSettings = {
  */
 export type Settings = RenderSettings & ManifestSettings
 
+/** Which mark an advisory describes when a Bundle carries two marks. */
+export type AdvisoryOrigin = 'source' | 'dark'
+
 /**
  * Something the user should know that does not stop generation.
  *
  * Advisories never block. The single hard failure in this pipeline is a mark with no
  * painted pixels, which throws `EmptyMarkError` — because there is no icon to make.
  */
-export type Advisory =
+export type Advisory = (
   | { kind: 'wordmark'; aspectRatio: number }
   | { kind: 'text-elements'; count: number }
   | { kind: 'external-image'; hrefs: string[] }
+  | { kind: 'active-content-removed'; foreignObjects: number; externalStyles: number }
   | { kind: 'svgo-pixel-drift'; percent: number }
   /**
    * Reported because the app edited the user's file. Stripping scripts is not
    * optional, but doing it silently would be.
    */
   | { kind: 'scripts-removed'; elements: number; attributes: number }
+) & { origin?: AdvisoryOrigin }
 
 /** Painted extents, in the source document's viewport pixels. */
 export type Extent = { x: number; y: number; w: number; h: number }

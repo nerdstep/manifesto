@@ -1,7 +1,7 @@
 /**
  * The render/metadata seam.
  *
- * Phase 6's panel regenerates on a 150 ms debounce, so it must know which edits require
+ * The panel sends edits immediately, so it must know which edits require
  * rasterizing. That knowledge is a type — `RenderSettings` vs `ManifestSettings` — and
  * these tests are what make the split true rather than merely declared.
  *
@@ -80,7 +80,7 @@ describe('withManifest — the cheap half', () => {
 
 describe('the seam holds', () => {
   test('a metadata edit changes nothing but the manifest — byte for byte', () => {
-    // This is the whole point. If it fails, Phase 6's debounce is re-rasterizing on
+    // This is the whole point. If it fails, rapid metadata edits are re-rasterizing on
     // every keystroke and nobody would notice except by feel.
     const rendered = pipeline.render(fixture('multicolor'), null, renderSettings)
 

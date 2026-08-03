@@ -25,6 +25,30 @@
 
 import { EmptyMarkError, InvalidSvgError } from '../pipeline/types.ts'
 
+/** A Bundle was rendered but the filesystem could not commit it. */
+export class BundleWriteError extends Error {
+  override readonly name = 'BundleWriteError'
+
+  constructor(cause: unknown) {
+    super(
+      "Manifesto couldn't write the Asset Bundle. Check that the output folder is available and try again.",
+      { cause },
+    )
+  }
+}
+
+/** The CLI found a Bundle file that it will not replace without explicit consent. */
+export class BundleCollisionError extends Error {
+  override readonly name = 'BundleCollisionError'
+
+  constructor(files: string[]) {
+    super(
+      `The output directory already contains Bundle files: ${files.join(', ')}. ` +
+        'Choose another directory or pass --force to replace them.',
+    )
+  }
+}
+
 /**
  * A message the user can act on, or `null` if this failure has no known cause.
  *
@@ -50,6 +74,14 @@ export function describeFailure(error: unknown): string {
     )
   }
 
+  if (error instanceof BundleWriteError) {
+    return error.message
+  }
+
+  if (error instanceof BundleCollisionError) {
+    return error.message
+  }
+
   return "Something went wrong generating the icons, and it isn't a cause Manifesto recognises."
 }
 
@@ -59,5 +91,8 @@ export function describeFailure(error: unknown): string {
  * Pairs with `describeFailure`: the user gets the sentence, the developer gets the cause.
  */
 export function failureDetail(error: unknown): string {
-  return error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+  if (!(error instanceof Error)) return String(error)
+  const cause =
+    error.cause instanceof Error ? `; cause: ${error.cause.name}: ${error.cause.message}` : ''
+  return `${error.name}: ${error.message}${cause}`
 }

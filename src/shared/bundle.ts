@@ -48,9 +48,9 @@ export const SIDECAR_FILENAME = 'manifesto.json'
  * Deliberately unlike anything an author would write, so the toggle rules inside that
  * file cannot match content within either mark.
  *
- * The webview needs them because the browser-tab preview renders `favicon.svg` inline and
- * *forces* which half is visible — the file itself swaps on `prefers-color-scheme`, and a
- * preview that can only ever show the viewer's own OS theme cannot show both mocks
+ * The webview needs them because the browser-tab preview renders `favicon.svg` as a static
+ * image and *forces* which half is visible — the file itself swaps on `prefers-color-scheme`,
+ * and a preview that can only ever show the viewer's own OS theme cannot show both mocks
  * truthfully. Overriding needs the exact class names, so they live here rather than being
  * guessed at in two places.
  */

@@ -68,6 +68,11 @@ bun run cli acme-logo.svg --dark acme-dark.svg --bg '#111111'
 bun run cli --snippet
 ```
 
+The CLI writes the same seven Bundle files and `manifesto.json` Sidecar as the app. It
+refuses to replace authored files already present in the output directory; pass `--force`
+when replacing an existing Bundle is intentional. Unrelated files in that directory are
+preserved.
+
 ```text
 --dark <file.svg>     dark-mode logo, used on dark backgrounds and in favicon.svg
 --name <string>       manifest name              (default: inferred from the filename)
@@ -76,6 +81,7 @@ bun run cli --snippet
 --bg <#rrggbb>        icon background            (default: inferred by contrast)
 --splash <#rrggbb>    manifest background_color  (default: same as --bg)
 --no-optimize         skip SVGO
+--force               replace existing Bundle files in the output directory
 --snippet             print the <head> snippet and exit
 ```
 
@@ -91,9 +97,9 @@ Tailwind webview that has no filesystem access at all. Rendering is `@resvg/resv
 ```text
 src/
 ├── pipeline/   pure. No fs, no Bun, no Electrobun. Rasterizes, composes, assembles.
-├── bun/        the Electrobun shell: window, RPC, and all disk writes
+├── bun/        the Electrobun shell: window, dialogs, and RPC
 ├── cli/        headless entry point
-├── host/       shared by bun + cli. May import anything.
+├── host/       shared filesystem and failure handling for bun + cli. May import anything.
 ├── shared/     shared by the host and the webview. Must stay webview-safe.
 └── webview/    Preact UI. May import values only from webview, shared, and preact.
 ```
@@ -119,9 +125,6 @@ you have decided the output *should* change.
 | [CONTEXT.md](./CONTEXT.md) | domain vocabulary — Source Mark, Rendition, Safe Zone, Asset Bundle. Use these terms in code and commits. |
 | [PRODUCT.md](./PRODUCT.md) | who it is for, the voice, the anti-references, the accessibility line |
 | [DESIGN.md](./DESIGN.md) | the visual system: tokens, type scale, named rules |
-| [docs/design-v1.md](./docs/design-v1.md) | why the output set is these seven files and not forty |
-| [docs/implementation-plan.md](./docs/implementation-plan.md) | the phased build, with what went wrong at each step |
-| [docs/phase-0-findings.md](./docs/phase-0-findings.md) | the spikes, and the measurements that settled them |
 
 ## Status
 

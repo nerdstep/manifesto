@@ -49,29 +49,29 @@ export function SquircleClipPath() {
   )
 }
 
+/** Force one half of a dual-mode `favicon.svg` to show inside an image document. */
+function forceFaviconMode(svg: string, dark: boolean): string {
+  const visible = dark ? FAVICON_DARK_CLASS : FAVICON_LIGHT_CLASS
+  const hidden = dark ? FAVICON_LIGHT_CLASS : FAVICON_DARK_CLASS
+  const override = `<style>.${hidden}{display:none!important}.${visible}{display:inline!important}</style>`
+  return svg.replace(/<\/svg>\s*$/iu, `${override}</svg>`)
+}
+
 /**
- * Forces one half of a dual-mode `favicon.svg` to show.
+ * Render generated SVG as a static image resource, never as markup in the application DOM.
  *
- * Rendered from the shared class-name constants rather than written into `app.css`, so
- * there is one definition of these names in the codebase. Tailwind could not generate
- * these rules anyway: the class names come from a generated file, not from any component
- * its `@source` scan can see.
- *
- * Two class selectors beat the single-class rules inside the SVG, in either media state —
- * which is what makes the dark mock show the Dark Mark on a light-themed machine.
+ * The generated file has already been sanitized, but an image context is an important
+ * second boundary: a malformed future sanitizer cannot execute content in the webview tree.
  */
-export const TAB_CSS = [
-  `.tab-light .${FAVICON_DARK_CLASS}{display:none}`,
-  `.tab-light .${FAVICON_LIGHT_CLASS}{display:inline}`,
-  `.tab-dark .${FAVICON_LIGHT_CLASS}{display:none}`,
-  `.tab-dark .${FAVICON_DARK_CLASS}{display:inline}`,
-].join('')
+export function svgUrl(svg: string, dark = false): string {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(forceFaviconMode(svg, dark))}`
+}
 
 export function pngUrl(base64: string): string {
   return `data:image/png;base64,${base64}`
 }
 
-/** base64 → text, for the one file rendered as markup rather than as an image. */
+/** base64 → text, for the one file turned into an image URL. */
 export function decodeUtf8(base64: string): string {
   const binary = atob(base64)
   const bytes = Uint8Array.from(binary, (character) => character.codePointAt(0) ?? 0)

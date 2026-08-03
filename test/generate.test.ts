@@ -19,10 +19,10 @@ import {
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { SIDECAR_FILENAME } from '../src/bun/bundle-writer.ts'
 import { createGenerate } from '../src/bun/generate.ts'
 import type { ResolveCollision } from '../src/bun/generate.ts'
 import { createRenderCache } from '../src/bun/render-cache.ts'
+import { SIDECAR_FILENAME } from '../src/host/bundle-writer.ts'
 import type { Pipeline, Settings } from '../src/pipeline/index.ts'
 import type { GenerateRequest } from '../src/shared/rpc.ts'
 import { defaultSettings, fixture, parseJsonObject, testPipeline } from './helpers.ts'
@@ -42,6 +42,18 @@ function tempRoot(): string {
   const root = mkdtempSync(join(tmpdir(), 'manifesto-generate-'))
   roots.push(root)
   return root
+}
+
+function uninitializedDeferred(_value: unknown): never {
+  throw new Error('deferred promise was not initialized')
+}
+
+function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
+  let settle: (value: T) => void = uninitializedDeferred
+  const promise = new Promise<T>((resolve) => {
+    settle = resolve
+  })
+  return { promise, resolve: settle }
 }
 
 /** A collision prompt that records every call and answers with `answer`. */
@@ -175,7 +187,7 @@ describe('generate', () => {
     })
 
     test('an edit NEVER prompts — it declines to write instead', async () => {
-      // The load-bearing one. An edit arrives every 150 ms while a colour picker is
+      // The load-bearing one. An edit can arrive for every colour-picker event while it is
       // dragged; a modal on each would make the app unusable, and auto-replacing someone
       // else's folder would be worse.
       const root = tempRoot()
@@ -239,6 +251,19 @@ describe('generate', () => {
       expect(edited.bundle.writtenTo).toBe(join(root, 'acme-logo'))
       expect(readFileSync(join(root, 'acme-logo', 'site.webmanifest'), 'utf8')).toContain('Renamed')
     })
+
+    test('a root change is allowed to prompt for its newly chosen destination', async () => {
+      const root = tempRoot()
+      occupyWithOtherMark(root, 'acme-logo')
+      const { generate, prompt } = harness(root, 'acme-logo-2')
+
+      const result = await generate(
+        request({ settings: defaultSettings, bundleName: 'acme-logo', trigger: 'root-change' }),
+      )
+
+      expect(result.ok).toBe(true)
+      expect(prompt.calls).toHaveLength(1)
+    })
   })
 
   test('a mark that paints nothing fails as a result, not an exception', async () => {
@@ -250,5 +275,136 @@ describe('generate', () => {
     expect(result.ok).toBe(false)
     if (result.ok) return
     expect(result.error).toContain('convert the text to outlines')
+  })
+
+  test('a target path that is a file returns a recoverable write error', async () => {
+    const root = tempRoot()
+    writeFileSync(join(root, 'acme-logo'), 'occupied')
+    const { generate } = harness(root)
+
+    const result = await generate(request())
+
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error).toContain("couldn't write the Asset Bundle")
+    expect(readFileSync(join(root, 'acme-logo'), 'utf8')).toBe('occupied')
+  })
+
+  test('coalesces queued edits and rejects an out-of-order revision', async () => {
+    const root = tempRoot()
+    const { generate } = harness(root)
+    const first = generate(request({ revision: 1, sessionId: 'view-a' }))
+    const latest = generate(
+      request({
+        revision: 3,
+        sessionId: 'view-a',
+        settings: { ...defaultSettings, name: 'Latest' },
+      }),
+    )
+    const stale = await generate(
+      request({
+        revision: 2,
+        sessionId: 'view-a',
+        settings: { ...defaultSettings, name: 'Stale' },
+      }),
+    )
+
+    expect(stale).toEqual({ ok: false, error: 'This edit was superseded by a newer one.' })
+    await Promise.all([first, latest])
+    expect(readFileSync(join(root, 'acme-logo', 'site.webmanifest'), 'utf8')).toContain('Latest')
+  })
+
+  test('keeps queued rename intent when a newer edit replaces its data', async () => {
+    const root = tempRoot()
+    occupyWithOtherMark(root, 'blocker')
+    occupyWithOtherMark(root, 'target')
+    const firstDecision = deferred<string | null>()
+    const calls: string[] = []
+    const generate = createGenerate({
+      pipeline,
+      render: createRenderCache((svg, dark, settings) => pipeline.render(svg, dark, settings)),
+      outputRoot: () => root,
+      resolveCollision: (_root, bundleName) => {
+        calls.push(bundleName)
+        return calls.length === 1 ? firstDecision.promise : Promise.resolve('target-2')
+      },
+    })
+
+    const blocking = generate(
+      request({
+        bundleName: 'blocker',
+        settings: defaultSettings,
+        trigger: 'rename',
+        revision: 1,
+        sessionId: 'view-a',
+      }),
+    )
+    const rename = generate(
+      request({
+        bundleName: 'target',
+        settings: defaultSettings,
+        trigger: 'rename',
+        revision: 2,
+        sessionId: 'view-a',
+      }),
+    )
+    const latest = generate(
+      request({
+        bundleName: 'target',
+        settings: { ...defaultSettings, name: 'Latest' },
+        trigger: 'edit',
+        revision: 3,
+        sessionId: 'view-a',
+      }),
+    )
+
+    expect(await rename).toEqual({ ok: false, error: 'This edit was superseded by a newer one.' })
+    firstDecision.resolve(null)
+    await blocking
+    const result = await latest
+
+    expect(calls).toEqual(['blocker', 'target'])
+    expect(result.ok).toBe(true)
+    expect(readFileSync(join(root, 'target-2', 'site.webmanifest'), 'utf8')).toContain('Latest')
+  })
+
+  test('carries a running collision redirect into the latest queued edit', async () => {
+    const root = tempRoot()
+    occupyWithOtherMark(root, 'target')
+    const decision = deferred<string | null>()
+    const generate = createGenerate({
+      pipeline,
+      render: createRenderCache((svg, dark, settings) => pipeline.render(svg, dark, settings)),
+      outputRoot: () => root,
+      resolveCollision: () => decision.promise,
+    })
+
+    const rename = generate(
+      request({
+        bundleName: 'target',
+        settings: defaultSettings,
+        trigger: 'rename',
+        revision: 1,
+        sessionId: 'view-a',
+      }),
+    )
+    const latest = generate(
+      request({
+        bundleName: 'target',
+        settings: { ...defaultSettings, name: 'Latest' },
+        trigger: 'edit',
+        revision: 2,
+        sessionId: 'view-a',
+      }),
+    )
+
+    decision.resolve('target-2')
+    await rename
+    const result = await latest
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.bundle.bundleName).toBe('target-2')
+    expect(readFileSync(join(root, 'target-2', 'site.webmanifest'), 'utf8')).toContain('Latest')
   })
 })

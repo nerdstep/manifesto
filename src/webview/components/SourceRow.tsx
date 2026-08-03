@@ -35,7 +35,8 @@ export function SourceRow({
   advisories,
   onToggle,
 }: Props) {
-  const drift = advisories.find((advisory) => advisory.kind === 'svgo-pixel-drift')
+  const driftCandidate = advisories.find((advisory) => advisory.kind === 'svgo-pixel-drift')
+  const drift = driftCandidate?.origin === 'dark' ? undefined : driftCandidate
   const saved = originalBytes === 0 ? 0 : 1 - optimizedBytes / originalBytes
 
   return (
