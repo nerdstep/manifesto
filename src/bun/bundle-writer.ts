@@ -10,6 +10,8 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
+import { isPlainObject } from 'es-toolkit'
+
 import type { BundleResult, Settings } from '../pipeline/index.ts'
 import { SIDECAR_FILENAME } from '../shared/bundle.ts'
 
@@ -73,21 +75,19 @@ type ReadSidecar = {
   settings: unknown
 }
 
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
-}
-
 function readSidecar(dir: string): ReadSidecar | null {
   const path = join(dir, SIDECAR_FILENAME)
   if (!existsSync(path)) return null
 
   try {
     const parsed: unknown = JSON.parse(readFileSync(path, 'utf8'))
-    if (!isObject(parsed)) return null
+    if (!isPlainObject(parsed)) return null
 
     // A Sidecar without a usable hash is no better than none: it cannot answer the only
     // question we ask it, so the folder stays "unknown" and the user gets asked.
-    const { sourceHash, generatedAt, settings } = parsed
+    // Annotated: `isPlainObject` narrows to `Record<PropertyKey, any>`, and these came
+    // off disk, so they must stay unchecked until something checks them.
+    const { sourceHash, generatedAt, settings }: Record<string, unknown> = parsed
     if (typeof sourceHash !== 'string') return null
 
     return {
@@ -102,7 +102,7 @@ function readSidecar(dir: string): ReadSidecar | null {
 
 /** Every field a `Settings` needs, checked — this came off disk. */
 function isSettings(value: unknown): value is Settings {
-  if (!isObject(value)) return false
+  if (!isPlainObject(value)) return false
   const strings = ['name', 'shortName', 'themeColor', 'iconBackground', 'splashBackground']
   return (
     strings.every((key) => typeof value[key] === 'string') && typeof value.optimizeSvg === 'boolean'

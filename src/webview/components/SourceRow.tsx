@@ -1,5 +1,5 @@
 /**
- * The Source Mark line: what SVGO did, and whether it was safe.
+ * What SVGO did to the Source Mark, and whether it was safe.
  *
  * The toggle lives here rather than in the settings panel because this is the only place
  * the user has evidence to decide with. "Optimize SVG" next to a byte delta and a
@@ -8,16 +8,19 @@
  * The verdict is not a claim that the markup is unchanged — it certainly is. It is a
  * claim about *pixels*, made by rendering both versions and comparing them, because
  * SVGO's classic breakages all produce valid SVG and only show up when drawn.
+ *
+ * The filename is not repeated here: the source pane above already names it, and saying
+ * it twice on one screen is how a layout starts to feel padded.
  */
 
 import type { Advisory } from '../../pipeline/index.ts'
+import { Panel } from './ui.tsx'
 
 function formatBytes(bytes: number): string {
   return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} kB`
 }
 
 type Props = {
-  filename: string
   originalBytes: number
   optimizedBytes: number
   optimizeSvg: boolean
@@ -26,7 +29,6 @@ type Props = {
 }
 
 export function SourceRow({
-  filename,
   originalBytes,
   optimizedBytes,
   optimizeSvg,
@@ -37,12 +39,10 @@ export function SourceRow({
   const saved = originalBytes === 0 ? 0 : 1 - optimizedBytes / originalBytes
 
   return (
-    <section class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-line bg-panel px-3.5 py-2.5 text-[13px]">
-      <span class="font-mono">{filename}</span>
-
+    <Panel class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 text-[13px]">
       {optimizeSvg ? (
         <>
-          <span class="text-muted">
+          <span class="font-mono text-muted">
             {formatBytes(originalBytes)} → {formatBytes(optimizedBytes)}{' '}
             <span class={saved > 0 ? 'text-ok' : 'text-muted'}>
               ({saved >= 0 ? '−' : '+'}
@@ -53,26 +53,26 @@ export function SourceRow({
           {drift === undefined ? (
             <span class="text-ok">✓ No visible change</span>
           ) : (
-            <span class="text-warn">
+            <span class="text-amber">
               ⚠ Changed {drift.percent.toFixed(2)}% of pixels — compare the previews
             </span>
           )}
         </>
       ) : (
-        <span class="text-muted">{formatBytes(originalBytes)} — not optimized</span>
+        <span class="font-mono text-muted">{formatBytes(originalBytes)} — not optimized</span>
       )}
 
-      <label class="ml-auto flex shrink-0 items-center gap-2">
+      <label class="ml-auto flex shrink-0 cursor-pointer items-center gap-2">
         <input
           type="checkbox"
           checked={optimizeSvg}
-          class="size-4 accent-accent"
+          class="size-4 accent-cyan"
           onChange={(event) => {
             onToggle(event.currentTarget.checked)
           }}
         />
         <span>Optimize SVG</span>
       </label>
-    </section>
+    </Panel>
   )
 }

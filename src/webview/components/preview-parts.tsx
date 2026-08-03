@@ -82,20 +82,51 @@ export function contrastInk(onDark: boolean): string {
   return onDark ? '#ffffff' : '#1c1917'
 }
 
-export function Panel({
+/**
+ * One output tile: a Ground-coloured well holding the platform mock at true size, under a
+ * specimen caption.
+ *
+ * The caption is the name and the exact dimensions, in that order, with the dimension in
+ * monospace because it is a fact about the file. See The Specimen Caption Rule — this is a
+ * caption on an artefact, not a section heading, which is why 10px uppercase is right here
+ * and would be an affectation above a paragraph.
+ *
+ * The caption sits *below* the well so the eye reaches the artefact first. The tiles are a
+ * contact sheet; the labels are what you read second.
+ */
+export function Tile({
   title,
+  dimensions,
   note,
+  controls,
   children,
 }: {
   title: string
+  /** e.g. `16×16`. Rendered monospace beside the name. */
+  dimensions: string
   note: string
+  /**
+   * Optional controls that change what the well is showing — the launcher-mask picker is
+   * the only one.
+   *
+   * A slot rather than something the caller puts inside `children`, because the well is
+   * for the artefact and nothing else. Controls sitting on the specimen surface read as
+   * part of the specimen. They also go *below* it: beside it, they compete with the icon
+   * for the tile's width and force the artefact off centre at every column width.
+   */
+  controls?: ComponentChildren
   children: ComponentChildren
 }) {
   return (
-    <div class="rounded-xl border border-line bg-panel p-3.5">
-      <h3 class="mb-3 text-[11px] font-semibold tracking-[0.08em] text-muted uppercase">{title}</h3>
-      {children}
-      <p class="mt-3 text-[11px] text-muted">{note}</p>
-    </div>
+    <figure class="m-0 flex flex-col gap-3 rounded-xl border border-line bg-surface p-3.5 transition-colors duration-150 ease-signal hover:border-line-strong">
+      <div class="grid min-h-33 place-items-center rounded-lg bg-bg p-3.5">{children}</div>
+      {/* No layout imposed — the tile owns the slot's position, the caller owns its shape. */}
+      {controls}
+      <figcaption class="flex items-baseline justify-between gap-2">
+        <span class="text-[10px] font-bold tracking-widest text-muted uppercase">{title}</span>
+        <span class="shrink-0 font-mono text-[10px] text-dim">{dimensions}</span>
+      </figcaption>
+      <p class="text-[11px] text-dim">{note}</p>
+    </figure>
   )
 }

@@ -73,7 +73,7 @@ export type ManifestoRPC = {
       /** Drop → Asset Bundle on disk. The whole app in one call. */
       generate: { params: GenerateRequest; response: GenerateResult }
       /**
-       * Native file picker for the Source Mark. `null` when the user cancels.
+       * Native SVG picker, for the Source Mark or the Dark Mark. `null` when the user cancels.
        *
        * The keyboard route into the app. Dropping a file is the only other way in, and a
        * drop cannot be performed without a pointer — so without this the entire app is
@@ -82,9 +82,9 @@ export type ManifestoRPC = {
        * Returns the SVG text rather than a path, so the webview stays filesystem-free and
        * this lands in exactly the same shape a drop produces.
        */
-      chooseSourceSvg: {
+      chooseSvg: {
         params: void
-        response: { sourceSvg: string; filename: string } | null
+        response: { svg: string; filename: string } | null
       }
       /** Current Output Root, plus whether it was remembered from a previous run. */
       getOutputRoot: { params: void; response: { path: string } }

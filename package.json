@@ -24,9 +24,13 @@
   },
   "dependencies": {
     "@resvg/resvg-wasm": "^2.6.2",
+    "clsx": "^2.1.1",
     "electrobun": "^1.18.1",
+    "es-toolkit": "^1.50.0",
     "ico-endec": "^0.1.6",
-    "svgo": "^4.0.2"
+    "lucide-preact": "^1.28.0",
+    "svgo": "^4.0.2",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",

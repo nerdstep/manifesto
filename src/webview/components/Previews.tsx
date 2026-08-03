@@ -24,7 +24,7 @@ import { AndroidMaskable } from './MaskablePreview.tsx'
 import {
   contrastInk,
   decodeUtf8,
-  Panel,
+  Tile,
   pngUrl,
   SquircleClipPath,
   TAB_CSS,
@@ -64,28 +64,90 @@ function TabMock({ svg, title, dark }: { svg: string; title: string; dark: boole
   )
 }
 
-function BrowserTab({ faviconSvg, title }: { faviconSvg: string; title: string }) {
+/**
+ * Android Chrome's toolbar, tinted with `theme_color`.
+ *
+ * In the same card as the desktop tabs because all three answer one question — what a
+ * browser shows — and because Theme Color is otherwise invisible: it never touches a
+ * Rendition, so nothing else on screen changes when you edit it and the field reads like
+ * it does nothing.
+ *
+ * Kept visually distinct from the tabs above it rather than merged into them: desktop
+ * browsers ignore `theme_color` entirely, and tinting a desktop tab would be inventing
+ * behaviour that does not exist.
+ *
+ * No sliver of white page beneath it. It was there so the tint would read as a bar rather
+ * than a swatch, but the two tabs stacked above already establish that this is browser
+ * chrome — and it assumed the user's site is white while being, on a near-black surface,
+ * the brightest thing in the card.
+ */
+function AndroidBar({
+  svg,
+  themeColor,
+  title,
+}: {
+  svg: string
+  themeColor: string
+  title: string
+}) {
+  const onDark = isDarkColor(themeColor)
+
   return (
-    <Panel
-      title="Browser tab"
-      note="favicon.svg at its true size, 16px. Shown on a light and a dark tab, because a dark-mode logo swaps between them."
+    <div class="overflow-hidden rounded-lg">
+      <div
+        class="flex items-center gap-2 px-2.5 py-2"
+        style={{ background: themeColor, color: contrastInk(onDark) }}
+      >
+        <div
+          class="tab-light size-4 shrink-0 [&_svg]:size-full"
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
+        <span class="truncate text-[11px]">{title}</span>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Everything a browser shows: the favicon at 16px on a light tab and a dark tab, and the
+ * Android toolbar tinted with `theme_color`.
+ *
+ * Three mocks in one card rather than two cards. They share a subject and a source file,
+ * and splitting them cost a whole column for one strip of colour.
+ */
+function BrowserContexts({
+  faviconSvg,
+  title,
+  themeColor,
+}: {
+  faviconSvg: string
+  title: string
+  themeColor: string
+}) {
+  return (
+    <Tile
+      title="Browser"
+      dimensions="16×16"
+      note="favicon.svg at its true size on a light and a dark tab. The tinted bar is theme_color on Android Chrome — desktop browsers ignore it."
     >
-      <div class="space-y-2">
+      <div class="w-full space-y-2">
         <TabMock svg={faviconSvg} title={title} dark={false} />
         <TabMock svg={faviconSvg} title={title} dark />
+        <AndroidBar svg={faviconSvg} themeColor={themeColor} title={title} />
       </div>
-    </Panel>
+    </Tile>
   )
 }
 
 /** iOS home screen. The icon is 180px of bytes shown at the 60pt iOS actually draws. */
 function IosHome({ png, label }: { png: string; label: string }) {
   return (
-    <Panel
+    <Tile
       title="iOS home screen"
+      dimensions="180×180"
       note="apple-touch-icon.png at the size iOS draws it. iOS turns transparency into black, so this file always gets a solid background."
     >
-      <div class="flex items-center gap-3 rounded-lg bg-linear-to-b from-[#4a5568] to-[#2d3748] p-4">
+      <div class="flex items-center gap-3 rounded-lg bg-linear-to-b from-[#4a5568] to-[#2d3748] px-6 py-5">
         <div class="text-center">
           <img
             src={pngUrl(png)}
@@ -98,51 +160,7 @@ function IosHome({ png, label }: { png: string; label: string }) {
           <span class="mt-1.5 block max-w-15 truncate text-[10px] text-white">{label}</span>
         </div>
       </div>
-    </Panel>
-  )
-}
-
-/**
- * Android Chrome's toolbar, tinted with `theme_color`.
- *
- * This preview exists because Theme Color is otherwise invisible: it never touches a
- * Rendition, so nothing else on screen changes when you edit it, and the field reads like
- * it does nothing. Here it is doing the one thing it does.
- *
- * Android specifically — desktop browsers ignore `theme_color` entirely, so showing it on
- * the desktop tab mock above would be inventing behaviour that does not exist.
- */
-function AndroidToolbar({
-  svg,
-  themeColor,
-  title,
-}: {
-  svg: string
-  themeColor: string
-  title: string
-}) {
-  const onDark = isDarkColor(themeColor)
-
-  return (
-    <Panel
-      title="Android address bar"
-      note="theme_color tints the toolbar on Android Chrome. Desktop browsers ignore it, and it never appears inside an icon file."
-    >
-      <div class="overflow-hidden rounded-lg">
-        <div
-          class="flex items-center gap-2 px-3 py-2.5"
-          style={{ background: themeColor, color: contrastInk(onDark) }}
-        >
-          <div
-            class="size-4 shrink-0 [&_svg]:size-full tab-light"
-            dangerouslySetInnerHTML={{ __html: svg }}
-          />
-          <span class="truncate text-[11px]">{title}</span>
-        </div>
-        {/* A sliver of page below, so the tint reads as a bar rather than a swatch. */}
-        <div class="h-8 bg-white" />
-      </div>
-    </Panel>
+    </Tile>
   )
 }
 
@@ -161,8 +179,9 @@ function PwaSplash({ png, background, name }: { png: string; background: string;
   const onDark = isDarkColor(background)
 
   return (
-    <Panel
+    <Tile
       title="PWA splash"
+      dimensions="512×512"
       note="background_color, shown while an installed web app starts. icon-512.png is transparent, so this is the color behind it."
     >
       <div
@@ -180,7 +199,7 @@ function PwaSplash({ png, background, name }: { png: string; background: string;
           {name}
         </span>
       </div>
-    </Panel>
+    </Tile>
   )
 }
 
@@ -204,15 +223,16 @@ export function Previews({
   const tabSvg = faviconSvg === undefined ? null : decodeUtf8(faviconSvg)
 
   return (
-    <section class="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2">
+    <section class="mt-5 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3">
       <style>{TAB_CSS}</style>
 
       <SquircleClipPath />
 
       {maskable !== undefined && <AndroidMaskable png={maskable} />}
-      {tabSvg !== null && <BrowserTab faviconSvg={tabSvg} title={name} />}
+      {tabSvg !== null && (
+        <BrowserContexts faviconSvg={tabSvg} title={name} themeColor={themeColor} />
+      )}
       {appleTouch !== undefined && <IosHome png={appleTouch} label={shortName} />}
-      {tabSvg !== null && <AndroidToolbar svg={tabSvg} themeColor={themeColor} title={name} />}
       {icon512 !== undefined && (
         <PwaSplash png={icon512} background={splashBackground} name={name} />
       )}

@@ -4,346 +4,438 @@
   "title": "Design System: Manifesto",
   "extensions": {
     "colorMeta": {
-      "ink": {
-        "role": "neutral",
-        "displayName": "Ink",
-        "canonical": "#1c1917",
-        "darkValue": "#e7e5e4",
-        "note": "All primary text. 16.7:1 on Ground in light, 14.7:1 in dark.",
-        "tonalRamp": [
-          "#0c0b0a",
-          "#1c1917",
-          "#332e2b",
-          "#4d4642",
-          "#6b625d",
-          "#948a84",
-          "#c2b9b3",
-          "#f0ebe8"
-        ]
-      },
-      "muted": {
-        "role": "neutral",
-        "displayName": "Muted Stone",
-        "canonical": "#78716c",
-        "darkValue": "#8b93a1",
-        "note": "Labels, notes, secondary readouts. 4.59:1 on Ground at 11px — may be darkened, never lightened.",
-        "tonalRamp": [
-          "#26221f",
-          "#3b3532",
-          "#524a46",
-          "#6a615c",
-          "#78716c",
-          "#9c948f",
-          "#c6bfba",
-          "#eee9e6"
-        ]
-      },
       "bg": {
         "role": "neutral",
         "displayName": "Ground",
-        "canonical": "#fafaf9",
-        "darkValue": "#12141a",
-        "note": "The page beneath every panel.",
+        "canonical": "#04070e",
+        "sampledFrom": "hero.png page background #000611, lifted off true black",
+        "note": "The page, and the inside of every preview well. Deliberately not #000611 — white text on true black halates. The blue cast is kept.",
         "tonalRamp": [
-          "#141312",
-          "#2a2725",
-          "#43403d",
-          "#5f5b57",
-          "#8a8580",
-          "#b8b2ac",
-          "#e2ded9",
-          "#fafaf9"
+          "#04070e",
+          "#0a1122",
+          "#111c30",
+          "#1b2740",
+          "#2c3b5c",
+          "#4a5b80",
+          "#8494b4",
+          "#dde4f0"
         ]
       },
-      "panel": {
+      "surface": {
         "role": "neutral",
-        "displayName": "Panel",
-        "canonical": "#ffffff",
-        "darkValue": "#191c23",
-        "note": "Every raised surface: panels, groups, inputs, buttons. The second and final surface level.",
+        "displayName": "Surface",
+        "canonical": "#111c30",
+        "sampledFrom": "hero.png output tiles #000e1a / #000918",
+        "note": "Panels, tiles, the source pane, the terminal. 1.18 above Ground — the border does the separating, as the brand asset does.",
         "tonalRamp": [
-          "#15171c",
-          "#191c23",
-          "#2b303b",
-          "#414857",
-          "#6b7385",
-          "#9aa1b0",
-          "#cdd2da",
-          "#ffffff"
+          "#04070e",
+          "#0a1122",
+          "#111c30",
+          "#1b2740",
+          "#2c3b5c",
+          "#4a5b80",
+          "#8494b4",
+          "#dde4f0"
+        ]
+      },
+      "raised": {
+        "role": "neutral",
+        "displayName": "Raised",
+        "canonical": "#1b2740",
+        "note": "Inputs and buttons — the things you can put a cursor in. The worst-case background for contrast; measure every new colour against this.",
+        "tonalRamp": [
+          "#04070e",
+          "#0a1122",
+          "#111c30",
+          "#1b2740",
+          "#2c3b5c",
+          "#4a5b80",
+          "#8494b4",
+          "#dde4f0"
         ]
       },
       "line": {
         "role": "neutral",
         "displayName": "Line",
-        "canonical": "#e7e5e4",
-        "darkValue": "#2b303b",
-        "note": "Every border in the app, always 1px. The only thing separating the two surfaces.",
+        "canonical": "#243350",
+        "note": "Every border, always 1px, except the source pane's 2px dashed.",
         "tonalRamp": [
-          "#1a1918",
-          "#2b303b",
-          "#4a4744",
-          "#6d6a66",
-          "#95918d",
-          "#bdb9b6",
-          "#e7e5e4",
-          "#f7f6f5"
+          "#0a0f1a",
+          "#131c2e",
+          "#1b2740",
+          "#243350",
+          "#33456a",
+          "#4a5f8c",
+          "#7b8dae",
+          "#c3cddf"
         ]
       },
-      "accent": {
-        "role": "primary",
-        "displayName": "Signal Blue",
-        "canonical": "#2e5bff",
-        "darkValue": "#7b95ff",
-        "note": "The only saturated colour in the interface. Focus rings, active drag state, checked controls, the Safe Zone ring. Never decoration.",
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Line Strong",
+        "canonical": "#33456a",
+        "note": "Hover borders and the resting dashed border of the source pane.",
         "tonalRamp": [
-          "#0a1440",
-          "#122266",
-          "#1b338f",
-          "#2446bf",
-          "#2e5bff",
-          "#6484ff",
-          "#9db1ff",
-          "#d6dfff"
+          "#0a0f1a",
+          "#131c2e",
+          "#1b2740",
+          "#243350",
+          "#33456a",
+          "#4a5f8c",
+          "#7b8dae",
+          "#c3cddf"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#f5f6f7",
+        "sampledFrom": "hero.png wordmark, sampled exactly",
+        "note": "All primary text. 13.76:1 at its worst, on Raised.",
+        "tonalRamp": [
+          "#16181c",
+          "#292d33",
+          "#3f444d",
+          "#5a616d",
+          "#7d8593",
+          "#a6adb9",
+          "#d2d7de",
+          "#f5f6f7"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "#93a4c2",
+        "note": "Labels, captions, secondary readouts. 5.90:1 at its worst.",
+        "tonalRamp": [
+          "#131926",
+          "#222c42",
+          "#33415f",
+          "#4a5c80",
+          "#6b7ea2",
+          "#93a4c2",
+          "#bcc7dc",
+          "#e5eaf3"
+        ]
+      },
+      "dim": {
+        "role": "neutral",
+        "displayName": "Dim",
+        "canonical": "#8494b4",
+        "note": "The floor. 4.87:1 on Raised at 10px — clears AA by 0.37. May be lightened, never darkened.",
+        "tonalRamp": [
+          "#111725",
+          "#1f2740",
+          "#2f3b5c",
+          "#44547c",
+          "#6172a0",
+          "#8494b4",
+          "#b3bed4",
+          "#e0e6f0"
+        ]
+      },
+      "cyan": {
+        "role": "primary",
+        "displayName": "Signal Cyan",
+        "canonical": "#1bd6fd",
+        "sampledFrom": "hero.png dominant saturated colour (#1bd6fd, #17c8fd, #25dafc)",
+        "note": "Upstream. The source pane, the running stage, every focus ring, the Safe Zone ring, a selected mask. Never emphasis.",
+        "tonalRamp": [
+          "#04222b",
+          "#073a49",
+          "#0a5670",
+          "#0e7a9c",
+          "#12a3cf",
+          "#1bd6fd",
+          "#79e7fe",
+          "#c8f5ff"
+        ]
+      },
+      "amber": {
+        "role": "secondary",
+        "displayName": "Landed Amber",
+        "canonical": "#ffc712",
+        "sampledFrom": "hero.png connector cores fanning out of the export stage",
+        "note": "Downstream. The output heading, the terminal prompt, the path something was written to. Amber means it exists on disk now.",
+        "tonalRamp": [
+          "#2b1f01",
+          "#4a3603",
+          "#705005",
+          "#9c7008",
+          "#cc930c",
+          "#ffc712",
+          "#ffdc6b",
+          "#fff0c2"
+        ]
+      },
+      "blue": {
+        "role": "tertiary",
+        "displayName": "Deep Blue",
+        "canonical": "#4da3ff",
+        "sampledFrom": "hero.png tagline #0089ff, lifted for AA",
+        "note": "The tagline and syntax-highlighted tag names. The sampled #0089ff sits at 3.9:1 on Ground and would have failed as body text.",
+        "tonalRamp": [
+          "#04162b",
+          "#082747",
+          "#0d3d6e",
+          "#125799",
+          "#1c78cc",
+          "#4da3ff",
+          "#8fc4ff",
+          "#d3e6ff"
         ]
       },
       "ok": {
         "role": "tertiary",
         "displayName": "Confirmed Green",
-        "canonical": "#047857",
-        "darkValue": "#4ade80",
-        "note": "A write succeeded. Status line and the pixel-identical verdict.",
+        "canonical": "#4ade80",
+        "note": "A write succeeded. The terminal result line.",
         "tonalRamp": [
-          "#012118",
-          "#023a2a",
-          "#03563e",
-          "#047857",
-          "#079b72",
-          "#2fc79b",
-          "#7ee0c1",
-          "#d3f6ea"
-        ]
-      },
-      "warn": {
-        "role": "tertiary",
-        "displayName": "Caution Amber",
-        "canonical": "#b45309",
-        "darkValue": "#fbbf24",
-        "note": "An advisory. Worth knowing, never blocking; the user decides.",
-        "tonalRamp": [
-          "#2e1502",
-          "#4d2404",
-          "#7a3906",
-          "#b45309",
-          "#e2740f",
-          "#f59e34",
-          "#fbc470",
-          "#fde8c4"
+          "#041a0e",
+          "#082e1a",
+          "#0d4728",
+          "#13653a",
+          "#1e8b50",
+          "#2fb96c",
+          "#4ade80",
+          "#bff3d4"
         ]
       },
       "bad": {
         "role": "tertiary",
         "displayName": "Refusal Red",
-        "canonical": "#dc2626",
-        "darkValue": "#f87171",
+        "canonical": "#ff6b6b",
         "note": "Generation failed, or nothing was written.",
         "tonalRamp": [
-          "#360808",
-          "#571010",
-          "#8a1a1a",
-          "#b81f1f",
-          "#dc2626",
-          "#ec5f5f",
-          "#f79a9a",
-          "#fcdcdc"
+          "#2b0a0a",
+          "#471010",
+          "#6e1919",
+          "#9c2424",
+          "#cc3838",
+          "#ff6b6b",
+          "#ffa3a3",
+          "#ffdcdc"
         ]
       }
     },
     "typographyMeta": {
+      "display": {
+        "displayName": "Wordmark",
+        "purpose": "The only type above 13px, and one per screen. Lowercase, 800, tightened to -0.03em. Solid fill — the poster's gradient becomes mud at UI sizes."
+      },
       "title": {
         "displayName": "Title",
-        "purpose": "The drop zone's primary line, and the largest text in the app at 13px."
+        "purpose": "The source filename, and any line naming the thing you are looking at."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Controls, advisories, table rows. The default."
+        "purpose": "Controls, hints, prose. The default."
       },
       "label": {
-        "displayName": "Micro-Label",
-        "purpose": "Group titles, panel titles, field labels. Uppercase and uniform — the only structural separator in a system with no shadows and no display type."
+        "displayName": "Section Label",
+        "purpose": "Section headings. Cyan upstream, amber downstream — the label's colour is how you know which half of the app you are in."
       },
-      "note": {
-        "displayName": "Note",
-        "purpose": "The explanatory line under a label or a preview. Muted Stone."
+      "caption": {
+        "displayName": "Specimen Caption",
+        "purpose": "Output tile captions: name, then exact dimensions in monospace. A caption on an artefact, not a section eyebrow."
       },
       "code": {
         "displayName": "Literal",
-        "purpose": "Marks a string the user could copy, type, or find on disk: paths, filenames, hex values, the head snippet. Never emphasis."
+        "purpose": "Marks a string the user could act on — a path, filename, hex value, pixel dimension, the head snippet. Never emphasis."
       }
     },
-    "shadows": [],
-    "motion": [
+    "shadows": [
       {
-        "name": "state-transition",
-        "value": "transition-colors, ~150ms",
-        "purpose": "Border and background colour changes on hover, focus and drag-over. The only motion in the app's chrome."
+        "name": "focus-ring",
+        "value": "0 0 0 3px color-mix(in srgb, #1bd6fd 30%, transparent)",
+        "purpose": "Keyboard focus, on :focus-visible only. Not elevation."
       },
       {
-        "name": "regeneration-debounce",
-        "value": "150ms trailing",
-        "purpose": "Not a transition — the interval between a settings edit and the regeneration it triggers. Chosen against a ~60ms render so work never queues faster than it completes."
+        "name": "stage-active",
+        "value": "0 0 0 1px color-mix(in srgb, #1bd6fd 40%, transparent)",
+        "purpose": "The pipeline stage currently running. A rim, not a halo."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Exponential ease-out. No bounce, no elastic, anywhere."
+      },
+      {
+        "name": "fast",
+        "value": "140ms",
+        "purpose": "Border and background colour changes on hover, focus, drag-over."
+      },
+      {
+        "name": "slow",
+        "value": "320ms",
+        "purpose": "Pipeline stage transitions and the progress line."
+      },
+      {
+        "name": "stage-step",
+        "value": "260ms",
+        "purpose": "Interval between pipeline stages lighting up. Reduced motion collapses to the finished state rather than removing the feedback."
       }
     ],
     "breakpoints": [
       {
-        "name": "sm",
-        "value": "640px",
-        "purpose": "Settings groups go from one column to two."
+        "name": "flow-stack",
+        "value": "860px",
+        "purpose": "Source pane and pipeline stop sitting side by side."
       },
       {
-        "name": "lg",
-        "value": "1024px",
-        "purpose": "Preview panels go from one column to two."
+        "name": "arrows-hide",
+        "value": "620px",
+        "purpose": "Pipeline connector arrows drop; the stages wrap."
       }
     ]
   },
   "components": [
     {
-      "name": "Button",
-      "kind": "button",
-      "refersTo": "button",
-      "description": "The only button style in the app. No primary/secondary split, because no screen has competing actions.",
-      "html": "<button class=\"ds-btn\">Choose output folder…</button>",
-      "css": ".ds-btn { background: var(--color-panel, #fff); color: var(--color-ink, #1c1917); border: 1px solid var(--color-line, #e7e5e4); border-radius: 8px; padding: 6px 12px; font: 400 13px/1.4 ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: border-color 150ms ease-out; } .ds-btn:hover { border-color: var(--color-muted, #78716c); } .ds-btn:focus-visible { outline: none; border-color: var(--color-accent, #2e5bff); box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent, #2e5bff) 40%, transparent); }"
+      "name": "Source Pane",
+      "kind": "custom",
+      "refersTo": "source-pane",
+      "description": "The entry point, and the only 2px dashed border in the system — the one place that says put something here. Activatable by Enter, Space or click, which is the sole keyboard route into the app.",
+      "html": "<div class=\"ds-source\" role=\"button\" tabindex=\"0\" aria-label=\"Drop an SVG logo here, or activate to choose one\"><div class=\"ds-source-head\"><span class=\"ds-source-name\">logo.svg</span><span class=\"ds-tag\">SVG</span></div><div class=\"ds-stage\"></div></div>",
+      "css": ".ds-source { display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 2px dashed #33456a; border-radius: 12px; background: #111c30; color: #f5f6f7; cursor: pointer; outline: none; transition: border-color 140ms cubic-bezier(0.22,1,0.36,1), background-color 140ms cubic-bezier(0.22,1,0.36,1); } .ds-source:hover { border-color: #1bd6fd; } .ds-source:focus-visible { border-color: #1bd6fd; box-shadow: 0 0 0 3px color-mix(in srgb, #1bd6fd 30%, transparent); } .ds-source-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; } .ds-source-name { font: 600 13px/1.4 ui-monospace, Consolas, monospace; } .ds-tag { padding: 2px 8px; border-radius: 999px; font: 700 10px/1.4 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: #1bd6fd; background: color-mix(in srgb, #1bd6fd 12%, transparent); } .ds-stage { min-height: 120px; border-radius: 8px; background: linear-gradient(to right, color-mix(in srgb, #1bd6fd 8%, transparent) 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(to bottom, color-mix(in srgb, #1bd6fd 8%, transparent) 1px, transparent 1px) 0 0 / 24px 24px, #04070e; }"
+    },
+    {
+      "name": "Pipeline Step",
+      "kind": "custom",
+      "refersTo": "pipeline-step",
+      "description": "One of five ordered stages. Ordering is information here, which is what earns the sequence — do not reuse the pattern for anything unordered.",
+      "html": "<div class=\"ds-steps\"><div class=\"ds-step\" data-state=\"done\"><span>Parse</span></div><div class=\"ds-step\" data-state=\"active\"><span>Normalize</span></div><div class=\"ds-step\"><span>Resize</span></div></div>",
+      "css": ".ds-steps { display: flex; gap: 6px; } .ds-step { flex: 1 1 88px; display: flex; justify-content: center; padding: 12px 6px; border: 1px solid #243350; border-radius: 8px; background: #04070e; color: #8494b4; transition: border-color 320ms cubic-bezier(0.22,1,0.36,1), color 320ms cubic-bezier(0.22,1,0.36,1), box-shadow 320ms cubic-bezier(0.22,1,0.36,1); } .ds-step span { font: 700 9px/1.4 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; } .ds-step[data-state='active'] { color: #1bd6fd; border-color: #1bd6fd; box-shadow: 0 0 0 1px color-mix(in srgb, #1bd6fd 40%, transparent); } .ds-step[data-state='done'] { color: #93a4c2; border-color: #33456a; }"
+    },
+    {
+      "name": "Output Tile",
+      "kind": "card",
+      "refersTo": "tile",
+      "description": "A Surface card holding a Ground-coloured well, the platform mock at true size, and a specimen caption naming the file and its exact dimensions.",
+      "html": "<figure class=\"ds-tile\"><div class=\"ds-well\"><div class=\"ds-tab\"><span class=\"ds-fav\"></span><span>Northwind Trading</span></div></div><figcaption><span class=\"ds-name\">Browser tab</span><span class=\"ds-dim\">16×16</span></figcaption></figure>",
+      "css": ".ds-tile { margin: 0; display: flex; flex-direction: column; gap: 12px; padding: 14px; border: 1px solid #243350; border-radius: 12px; background: #111c30; transition: border-color 140ms cubic-bezier(0.22,1,0.36,1); } .ds-tile:hover { border-color: #33456a; } .ds-well { display: grid; place-items: center; min-height: 132px; padding: 14px; border-radius: 8px; background: #04070e; } .ds-tile figcaption { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; } .ds-name { font: 700 10px/1.4 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: #93a4c2; } .ds-dim { font: 400 10px/1.4 ui-monospace, Consolas, monospace; color: #8494b4; } .ds-tab { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 10px; border: 1px solid #3c4043; border-bottom: none; border-radius: 8px 8px 0 0; background: #292a2d; color: #e8eaed; font-size: 11px; } .ds-fav { width: 16px; height: 16px; flex: none; background: #1bd6fd; border-radius: 3px; }"
     },
     {
       "name": "Text Input",
       "kind": "input",
       "refersTo": "input",
-      "description": "Panel background, hairline border, focus shifts the border to Signal Blue. No glow, no size change.",
-      "html": "<input class=\"ds-input\" type=\"text\" value=\"Northwind Trading\" />",
-      "css": ".ds-input { width: 100%; background: var(--color-panel, #fff); color: var(--color-ink, #1c1917); border: 1px solid var(--color-line, #e7e5e4); border-radius: 8px; padding: 6px 10px; font: 400 13px/1.4 ui-sans-serif, system-ui, sans-serif; outline: none; transition: border-color 150ms ease-out; } .ds-input:focus { border-color: var(--color-accent, #2e5bff); }"
+      "description": "Raised background so it reads as somewhere a cursor goes. Focus shifts the border to Signal Cyan — no glow, no size change.",
+      "html": "<label class=\"ds-field\"><span>Name</span><input class=\"ds-input\" type=\"text\" value=\"Northwind Trading\" /></label>",
+      "css": ".ds-field > span { display: block; margin-bottom: 6px; font: 700 10px/1.4 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: #93a4c2; } .ds-input { width: 100%; padding: 7px 10px; border: 1px solid #243350; border-radius: 8px; background: #1b2740; color: #f5f6f7; font: 400 13px/1.5 ui-sans-serif, system-ui, sans-serif; outline: none; transition: border-color 140ms cubic-bezier(0.22,1,0.36,1); } .ds-input:focus { border-color: #1bd6fd; }"
     },
     {
-      "name": "Micro-Label",
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "One button style. No primary/secondary split, because no screen has competing actions.",
+      "html": "<button class=\"ds-btn\">Copy</button>",
+      "css": ".ds-btn { padding: 6px 12px; border: 1px solid #243350; border-radius: 8px; background: #1b2740; color: #f5f6f7; font: 400 13px/1.5 ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: border-color 140ms cubic-bezier(0.22,1,0.36,1); } .ds-btn:hover { border-color: #33456a; } .ds-btn:focus-visible { outline: none; border-color: #1bd6fd; box-shadow: 0 0 0 3px color-mix(in srgb, #1bd6fd 30%, transparent); }"
+    },
+    {
+      "name": "Mask Pill",
+      "kind": "chip",
+      "refersTo": "mask-pill",
+      "description": "The launcher-mask picker. Selection is carried by aria-pressed, not by colour alone.",
+      "html": "<div class=\"ds-pills\" role=\"group\" aria-label=\"Launcher mask shape\"><button aria-pressed=\"true\">circle</button><button aria-pressed=\"false\">squircle</button><button aria-pressed=\"false\">rounded</button></div>",
+      "css": ".ds-pills { display: flex; gap: 4px; } .ds-pills button { flex: 1 1 auto; padding: 4px 8px; border: 1px solid #243350; border-radius: 999px; background: transparent; color: #8494b4; font: 400 10px/1.4 ui-sans-serif, system-ui, sans-serif; text-transform: capitalize; cursor: pointer; transition: color 140ms cubic-bezier(0.22,1,0.36,1), border-color 140ms cubic-bezier(0.22,1,0.36,1); } .ds-pills button:hover { color: #93a4c2; border-color: #33456a; } .ds-pills button[aria-pressed='true'] { color: #1bd6fd; border-color: #1bd6fd; } .ds-pills button:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, #1bd6fd 30%, transparent); }"
+    },
+    {
+      "name": "Terminal Line",
       "kind": "custom",
-      "refersTo": "label",
-      "description": "The structural layer. Uniform by rule: a second label treatment would read as a second kind of structure.",
-      "html": "<span class=\"ds-label\">Theme color</span>",
-      "css": ".ds-label { display: block; margin-bottom: 6px; font: 600 11px/1.4 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted, #78716c); }"
-    },
-    {
-      "name": "Panel",
-      "kind": "card",
-      "refersTo": "panel",
-      "description": "The only container. 12px radius, hairline border, flat — one step softer than the controls inside it. Never nested.",
-      "html": "<div class=\"ds-panel\"><span class=\"ds-panel-title\">Browser tab</span><p class=\"ds-panel-note\">favicon.svg at its true size, 16px.</p></div>",
-      "css": ".ds-panel { background: var(--color-panel, #fff); border: 1px solid var(--color-line, #e7e5e4); border-radius: 12px; padding: 14px; } .ds-panel-title { display: block; margin-bottom: 12px; font: 600 11px/1.4 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted, #78716c); } .ds-panel-note { margin: 12px 0 0; font: 400 11px/1.5 ui-sans-serif, system-ui, sans-serif; color: var(--color-muted, #78716c); }"
-    },
-    {
-      "name": "Drop Zone",
-      "kind": "custom",
-      "refersTo": "drop-zone",
-      "description": "The app's entry point and largest element. The only dashed border and the only 2px border in the system. Activatable by Enter, Space or click — the sole keyboard route into the app.",
-      "html": "<div class=\"ds-drop\" role=\"button\" tabindex=\"0\" aria-label=\"Drop an SVG logo here, or activate to choose one\"><strong class=\"ds-drop-title\">Drop your logo here, or click to choose one</strong><small class=\"ds-drop-note\">One SVG becomes 6 icon files, a web app manifest, and the 4 &lt;head&gt; tags that point at them.</small></div>",
-      "css": ".ds-drop { border: 2px dashed var(--color-line, #e7e5e4); border-radius: 12px; padding: 52px 24px; text-align: center; color: var(--color-muted, #78716c); cursor: pointer; outline: none; transition: border-color 150ms ease-out, background-color 150ms ease-out; } .ds-drop:hover { border-color: var(--color-muted, #78716c); } .ds-drop:focus-visible { border-color: var(--color-accent, #2e5bff); box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent, #2e5bff) 40%, transparent); } .ds-drop-title { display: block; font: 600 13px/1.4 ui-sans-serif, system-ui, sans-serif; color: var(--color-ink, #1c1917); } .ds-drop-note { display: block; margin-top: 6px; font: 400 12px/1.5 ui-sans-serif, system-ui, sans-serif; }"
-    },
-    {
-      "name": "Advisory",
-      "kind": "custom",
-      "refersTo": "advisory",
-      "description": "Worth knowing, never blocking. A tinted surface rather than a stripe: the colour means this is a different kind of thing, not a decorated panel.",
-      "html": "<div class=\"ds-advisory\">This logo is 3.2:1 — far wider than it is tall. Icons are square, so it has to shrink to fit and will be hard to read at 16px.</div>",
-      "css": ".ds-advisory { background: color-mix(in srgb, var(--color-warn, #b45309) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-warn, #b45309) 40%, transparent); border-radius: 8px; padding: 10px 12px; font: 400 13px/1.5 ui-sans-serif, system-ui, sans-serif; color: var(--color-ink, #1c1917); }"
-    },
-    {
-      "name": "Failure Notice",
-      "kind": "custom",
-      "refersTo": "advisory",
-      "description": "Same surface treatment as an advisory, in Refusal Red. Generation failed and nothing was written.",
-      "html": "<div class=\"ds-failure\">There's nothing to draw in this SVG. If your logo is live text, it renders blank without its font — convert the text to outlines and export it again.</div>",
-      "css": ".ds-failure { background: color-mix(in srgb, var(--color-bad, #dc2626) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-bad, #dc2626) 50%, transparent); border-radius: 8px; padding: 10px 12px; font: 400 13px/1.5 ui-sans-serif, system-ui, sans-serif; color: var(--color-ink, #1c1917); }"
-    },
-    {
-      "name": "Status Line",
-      "kind": "custom",
-      "refersTo": "note",
+      "refersTo": "terminal",
       "description": "The only confirmation that anything reached disk. A polite live region, so it is announced without stealing focus mid-edit.",
-      "html": "<p class=\"ds-status\" role=\"status\" aria-live=\"polite\"><span class=\"ds-status-ok\">Saved 7 files</span> to <span class=\"ds-status-path\">C:\\Users\\me\\Downloads\\manifesto\\acme-logo</span></p>",
-      "css": ".ds-status { margin: 14px 0 0; min-height: 16px; font: 400 12px/1.5 ui-sans-serif, system-ui, sans-serif; color: var(--color-muted, #78716c); } .ds-status-ok { color: var(--color-ok, #047857); } .ds-status-path { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; }"
+      "html": "<div class=\"ds-terminal\" role=\"status\" aria-live=\"polite\"><span class=\"ds-prompt\">›</span><span class=\"ds-cmd\">manifesto build</span><span class=\"ds-sep\">│</span><span class=\"ds-result\">✓ 7 files written</span><span class=\"ds-path\">~/Downloads/manifesto/northwind-trading</span></div>",
+      "css": ".ds-terminal { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 13px 16px; border: 1px solid #243350; border-radius: 12px; background: #111c30; font: 400 12px/1.6 ui-monospace, Consolas, monospace; } .ds-prompt { color: #ffc712; } .ds-cmd { color: #f5f6f7; } .ds-sep { color: #33456a; } .ds-result { color: #4ade80; } .ds-path { color: #93a4c2; margin-left: auto; }"
     }
   ],
   "narrative": {
-    "northStar": "The Contact Sheet",
-    "overview": "A photographer's contact sheet is a grid of frames printed at the size they were shot, unretouched and unlabelled, laid out so a human eye can pick the good one. It does not argue. It does not crop for effect. Its entire value is that what you see is what the negative holds.\n\nManifesto is that sheet for icons. The interface exists to put six generated files in front of someone at the size the platform will actually draw them — 16px in a tab, 60pt on a home screen, 512 under a launcher mask — and then get out of the way. Every preview renders the bytes that were just written to disk, never a recomputed approximation, because a Safe Zone breach looks perfectly fine in a preview that recalculated it. The chrome around those frames is deliberately almost nothing: hairline borders, one flat surface lifted off another, type small enough to recede.\n\nWhat this rejects: the tool that performs competence. No hero metric, no gradient, no oversized headline announcing what the app does. The app is opened, used for ninety seconds and closed; anything that asks to be admired on the way past is taking time from the task. Confidence here comes from accuracy — the ring drawn at the true Safe Zone diameter, the byte delta, the path the files went to — never from tone.",
+    "northStar": "The Signal Path",
+    "overview": "One file enters at the left. It passes through named stages — parse, normalize, resize, optimize, export — and fans out to every platform that needed it. That is the product in one sentence, and it is the shape of the interface: source on the left, transformation across the middle, artefacts on the right.\n\nDirection is the organising idea, so colour encodes direction. Cyan is upstream: the source mark, the running stage, focus, anything you are still deciding. Amber is downstream: what has landed on disk, and where. A glance at which accent dominates a region tells you which side of the render seam you are looking at, before you have read a word.\n\nThe surface is near-black with a blue cast, lifted just off true black. It is not \"dark mode\" as a preference — it is the ground the signal reads against. Cyan and amber only behave as signal because almost nothing else on screen is saturated; on a light ground the same two colours become decoration, which is why this system is specified dark-first and why the near-black is load-bearing rather than a taste.\n\nWhat this rejects: the tool that performs competence. No hero metric, no gradient text, no oversized headline announcing what the app does. The app is opened, used for ninety seconds and closed. Confidence comes from accuracy — the ring drawn at the true Safe Zone diameter, the byte delta, the path the files went to — never from tone.",
     "keyCharacteristics": [
-      "No display type. The largest text in the app is 13px. The h1 is 12px uppercase.",
-      "Flat. No shadow anywhere in the app's own chrome. Depth is two surfaces and a hairline.",
-      "Monochrome until something is true. Colour appears only to report a state.",
+      "Directional colour. Cyan upstream, amber downstream. No third meaning.",
+      "Near-black ground, blue-cast, lifted off #000000 so white text does not halate.",
+      "Bordered planes, no shadows. Depth is three surfaces and a hairline.",
       "True size by default. Nothing is scaled up to look impressive.",
-      "Dark mode is a variable swap, not a second design."
+      "Glow is state. It appears on the running stage and on focus, nowhere else.",
+      "Dark-first, and a light counterpart is not specified — see The Ground Rule."
     ],
     "rules": [
       {
-        "name": "The Reporting Rule",
-        "body": "Colour is never applied for emphasis, hierarchy, or decoration. A coloured pixel in this interface means the app is reporting a fact: focused, active, succeeded, worth checking, failed. If you want something to stand out and it is not one of those five things, use weight or position.",
+        "name": "The Direction Rule",
+        "body": "Cyan is upstream, amber is downstream, and neither is ever used for emphasis. If you want something to stand out and it is not \"this is the input\" or \"this is on disk\", use weight, size, or position. A third accent role would destroy the only thing this palette actually tells you.",
         "section": "colors"
       },
       {
-        "name": "The 4.59 Rule",
-        "body": "Muted Stone on Ground measures 4.59:1 — it clears WCAG AA with 0.09 to spare, and it is used at 11px. It may be darkened. It may never be lightened. Every token pair in both themes has been measured and passes AA; that is a property to preserve, not a coincidence to rely on.",
+        "name": "The Ground Rule",
+        "body": "The base is #04070e, not the asset's #000611. A poster is looked at once; an app is stared at, and white text on true black halates and smears in the eye. The blue cast is kept so it still reads as the same surface. Never darken the ground to match the poster exactly, and never neutralise the blue out of it.",
         "section": "colors"
       },
       {
-        "name": "The One Swap Rule",
-        "body": "Dark mode overrides the nine --color-* variables and nothing else. No component may carry a dark: variant. If a surface needs per-theme treatment beyond a variable, the token set is wrong.",
+        "name": "The 4.87 Rule",
+        "body": "Every text token clears WCAG AA against all three planes. The tightest pair is Dim on Raised at 4.87:1, and Dim is used at 10px. Measured, not assumed: Ink 13.76, Muted 5.90, Cyan 8.56, Amber 9.52 at their worst. Any new colour must be measured against --raised before it ships, because that is always the worst case.",
         "section": "colors"
       },
       {
-        "name": "The No-Display Rule",
-        "body": "There is no type role above 13px, and adding one is a change to the product's posture, not a styling choice. An app used for ninety seconds does not get a hero. If a section seems to need a bigger heading, it more likely needs to be shorter.",
+        "name": "The Signal Scarcity Rule",
+        "body": "Saturated colour covers well under a tenth of the screen. The moment cyan or amber is used to make a panel look interesting, every other cyan and amber on screen stops meaning anything.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Loud Thing Rule",
+        "body": "The wordmark is the only type above 13px. There is no headline role and no subhead role. If a region seems to need a bigger heading, it more likely needs to be shorter.",
         "section": "typography"
       },
       {
-        "name": "The Micro-Label Rule",
-        "body": "Structural labels are 11px / 600 / 0.08em / uppercase / Muted Stone — every group title, panel title and field label, without exception. Uppercase micro-labels are load-bearing here rather than decorative: they are the only thing separating one region from the next in a system with no shadows and no display type. Because they are the mechanism, they must stay uniform; a second label treatment would read as a second kind of structure.",
+        "name": "The Specimen Caption Rule",
+        "body": "Every output tile is captioned with its name and its exact dimensions, in that order, at 10px — BROWSER TAB · 16×16. The dimension is monospace because it is a fact about the file. This is a caption on an artefact, not a section eyebrow, and it is the only place uppercase micro-type is paired with a number.",
         "section": "typography"
       },
       {
         "name": "The Literal Rule",
-        "body": "Monospace marks a string the user could act on — a path, a filename, a hex value, a folder name. Never use it for emphasis or for numbers that are merely numeric.",
+        "body": "Monospace marks a string the user could act on. Never use it for emphasis, and never for numbers that are merely numeric.",
         "section": "typography"
       },
       {
-        "name": "The Two-Surface Rule",
-        "body": "Panel on Ground, divided by a 1px Line. A third surface level, a nested panel, or a panel inside a panel means the layout is wrong. Group related controls by spacing and a shared label instead.",
+        "name": "The Glow-Is-State Rule",
+        "body": "The brand asset glows everywhere because it is a poster. Here, a glow means one of exactly two things: this control has keyboard focus, or this stage is running right now. A glow used to make something look premium is forbidden.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Three-Plane Rule",
+        "body": "Ground, Surface, Raised. A fourth level, or a card inside a card, means the layout is wrong. Group related controls by spacing and a shared label instead.",
         "section": "elevation"
       },
       {
         "name": "The Simulation Exception",
-        "body": "A preview may use any treatment required to look like the platform it depicts — iOS corner radii, launcher masks, a browser tab's chrome, a drop shadow under a home-screen icon. Those pixels are content, not interface. They must never leak outward into the app's own surfaces.",
+        "body": "A preview may use whatever it needs to look like the platform it depicts — iOS corner radii, a launcher mask, Chrome's #292a2d tab chrome, a drop shadow under a home-screen icon. Those pixels are content, not interface, and must never leak outward into the app's own surfaces.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "Do report state with colour and nothing else. Five meanings only: focused, active, succeeded, worth checking, failed.",
-      "Do keep every border 1px and every surface flat. Depth is Panel over Ground.",
+      "Do use cyan for upstream and amber for downstream. Those are the only two meanings.",
+      "Do measure any new colour against --raised (#1b2740), which is always the worst case, and keep it at or above 4.5:1.",
+      "Do keep every border 1px, except the source pane's 2px dashed.",
       "Do render previews from the bytes on disk, at or below the size the platform uses.",
-      "Do put structural labels in 11px / 600 / 0.08em / uppercase / Muted Stone, uniformly.",
-      "Do use monospace for anything the user could copy, type, or find on disk.",
-      "Do keep dark mode to the nine-variable swap.",
-      "Do put focus rings on focus-visible so keyboard users get them and mouse users see no change."
+      "Do caption every output tile with its name and exact dimensions.",
+      "Do put focus rings on :focus-visible so keyboard users get them and mouse users see no change.",
+      "Do give every animation a prefers-reduced-motion path that keeps the outcome and drops the choreography. The pipeline still has to report that it finished."
     ],
     "donts": [
-      "Don't use a border-left or border-right above 1px as a coloured accent. The advisories used to and were rewritten as tinted surfaces.",
-      "Don't add a shadow to any app surface. The one in the codebase is depicting iOS.",
-      "Don't introduce a type role above 13px, or a second label treatment.",
-      "Don't nest a panel inside a panel.",
-      "Don't lighten Muted Stone. It has 0.09 of headroom over AA at 11px.",
+      "Don't add a third accent role. Cyan and amber mean direction; a third colour deletes the meaning of the first two.",
+      "Don't use glow, blur, or backdrop-filter decoratively. Glow is focus or a running stage, and nothing else.",
+      "Don't drop the ground to #000000 to match the poster. See The Ground Rule.",
+      "Don't add a shadow to any surface, or a fourth plane, or a card inside a card.",
+      "Don't introduce a type role between 13px and the 30px wordmark.",
+      "Don't use background-clip: text with a gradient. The poster's wordmark has a gradient; at UI sizes it becomes mud. Solid Ink.",
+      "Don't use a border-left or border-right above 1px as a coloured accent.",
+      "Don't put a decorative grid behind a surface. The grid under the source mark is depicting a vector-editor canvas, which is the only justification available.",
       "Don't write marketing-speak into the interface — \"Effortlessly generate stunning icons!\" No exclamation marks, no adjectives doing work that facts should do.",
       "Don't write enterprise / compliance tone — \"The operation could not be completed.\" Passive voice with no cause, no next step, nobody accountable.",
       "Don't write over-friendly / cutesy copy — \"Oops! Something went wrong 😅\". No emoji, no apologies, no jokes where an explanation belongs.",
       "Don't let raw developer output reach the screen — \"EmptyMarkError: alpha scan returned null\". Library names, internal type names and stack-trace vocabulary stop at src/host/failures.ts.",
-      "Don't add a component dependency to the view bundle. react-aria-components measures +170 kB against a 38 kB budget; the drop zone is role=\"button\" and 40 lines instead.",
+      "Don't add a component dependency to the view bundle. react-aria-components measures +170 kB against a 38 kB budget; the source pane is role=\"button\" and 40 lines instead.",
       "Don't scale a preview up to make it look impressive. If it is small on screen, that is the point."
     ]
   }

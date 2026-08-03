@@ -20,6 +20,7 @@
  * is editing.
  */
 
+import { isEqual } from 'es-toolkit'
 import { useCallback, useRef, useState } from 'preact/hooks'
 
 import type { Settings } from '../pipeline/index.ts'
@@ -33,21 +34,6 @@ import { bun } from './rpc.ts'
  * short enough that it reads as live rather than as a save.
  */
 const DEBOUNCE_MS = 150
-
-/**
- * Every settings field, for comparing two `Settings` without asserting a key type.
- *
- * A field missing from this list only costs a redundant regeneration, never a lost edit —
- * the merged object is what gets sent either way.
- */
-const SETTING_KEYS: readonly (keyof Settings)[] = [
-  'name',
-  'shortName',
-  'themeColor',
-  'iconBackground',
-  'splashBackground',
-  'optimizeSvg',
-]
 
 /** Everything being edited right now. */
 export type Session = {
@@ -223,9 +209,9 @@ export function useBundle() {
    * as `null` and leaves everything exactly as it was.
    */
   const open = useCallback(async () => {
-    const picked = await bun().request.chooseSourceSvg()
+    const picked = await bun().request.chooseSvg()
     if (picked === null) return
-    await begin(picked.sourceSvg, picked.filename)
+    await begin(picked.svg, picked.filename)
   }, [begin])
 
   /** Change one or more settings. Debounced, because this is what typing calls. */
@@ -237,8 +223,13 @@ export function useBundle() {
       // A change that changes nothing must not regenerate. Colour inputs fire on both
       // commit paths — the native picker closing and the field blurring — and re-writing
       // an identical Bundle would flicker the status line for no reason.
+      //
+      // `isEqual` rather than a hand-kept list of keys: the list version could only
+      // promise that a forgotten field costs a redundant render, which is a caveat this
+      // does not need to carry. `Settings` is flat and primitive-valued, so a deep compare
+      // here is exact and cheap.
       const settings = { ...latest.settings, ...change }
-      if (SETTING_KEYS.every((key) => settings[key] === latest.settings[key])) return
+      if (isEqual(settings, latest.settings)) return
 
       schedule({ ...latest, settings }, 'edit')
     },
@@ -260,15 +251,29 @@ export function useBundle() {
     [now],
   )
 
-  const attachDarkMark = useCallback(
-    async (file: File) => {
+  /** Both routes to a Dark Mark land here, for the same reason `begin` exists. */
+  const setDarkMark = useCallback(
+    (darkSvg: string, darkFilename: string) => {
       const latest = current.current
       if (latest === null) return
-      const darkSvg = await file.text()
-      now({ ...latest, darkSvg, darkFilename: file.name }, 'edit')
+      now({ ...latest, darkSvg, darkFilename }, 'edit')
     },
     [now],
   )
+
+  const attachDarkMark = useCallback(
+    async (file: File) => {
+      setDarkMark(await file.text(), file.name)
+    },
+    [setDarkMark],
+  )
+
+  /** The native picker, so the Dark Mark is reachable without a pointer too. */
+  const chooseDarkMark = useCallback(async () => {
+    const picked = await bun().request.chooseSvg()
+    if (picked === null) return
+    setDarkMark(picked.svg, picked.filename)
+  }, [setDarkMark])
 
   const clearDarkMark = useCallback(() => {
     const latest = current.current
@@ -285,6 +290,7 @@ export function useBundle() {
     patch,
     rename,
     attachDarkMark,
+    chooseDarkMark,
     clearDarkMark,
   }
 }

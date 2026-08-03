@@ -13,6 +13,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 
+import { isPlainObject } from 'es-toolkit'
+
 export type WindowFrame = { x: number; y: number; width: number; height: number }
 
 export type AppState = {
@@ -28,7 +30,7 @@ export type AppState = {
  * it had never once observed, and it blocked this default from ever taking effect for
  * anyone who had already launched the app.
  */
-export const DEFAULT_WINDOW_CSS = { width: 1080, height: 840 }
+export const DEFAULT_WINDOW_CSS = { width: 1280, height: 880 }
 
 /** Never take up more than this much of the display, so the window always fits. */
 const MAX_SCREEN_FRACTION = 0.9
@@ -77,16 +79,6 @@ export function windowFrame(display: {
 }
 
 /**
- * Narrowing predicates rather than assertions.
- *
- * These read a file that anything could have written, so every field is checked. An
- * assertion here would be claiming knowledge we do not have about someone else's bytes.
- */
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
-}
-
-/**
  * Read state, falling back to defaults on anything unexpected.
  *
  * A corrupt state file must never stop the app opening — the worst case is that the Output
@@ -101,9 +93,11 @@ export function loadState(path: string, defaultOutputRoot: string): AppState {
 
   try {
     const parsed: unknown = JSON.parse(readFileSync(path, 'utf8'))
-    if (!isObject(parsed)) return fallback
+    if (!isPlainObject(parsed)) return fallback
 
-    const stored = parsed.outputRoot
+    // `isPlainObject` narrows to `Record<PropertyKey, any>`, so the annotation is what
+    // keeps this an unchecked value that has to be proven rather than an implicit `any`.
+    const stored: unknown = parsed.outputRoot
     return {
       outputRoot: typeof stored === 'string' && stored.length > 0 ? stored : defaultOutputRoot,
     }

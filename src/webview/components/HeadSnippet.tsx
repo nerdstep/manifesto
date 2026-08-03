@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks'
 
 import { bun } from '../rpc.ts'
+import { Button } from './ui.tsx'
 
 /**
  * The one part of the last mile that stays manual.
@@ -19,28 +20,24 @@ export function HeadSnippet({ snippet }: { snippet: string }) {
     }, 1600)
   }
 
+  // The heading is `Results`', so that every downstream section is titled the same way.
   return (
-    <section class="mt-5">
-      <div class="mb-2 flex items-center justify-between">
-        <h2 class="text-xs font-semibold tracking-[0.12em] text-muted uppercase">
-          Paste into &lt;head&gt;
-        </h2>
-        <button
-          type="button"
-          class="rounded-lg border border-line bg-panel px-3 py-1.5 text-[13px] hover:border-muted"
+    <section>
+      <div class="mb-2 flex items-start justify-between gap-3">
+        <p class="text-[11px] text-dim">
+          These tags point at the files above. Manifesto never edits your HTML, so this is the one
+          step it cannot do for you.
+        </p>
+        <Button
           aria-label="Copy the head tags to the clipboard"
           onClick={() => {
             void copy()
           }}
         >
           {copied ? 'Copied' : 'Copy'}
-        </button>
+        </Button>
       </div>
-      <p class="mb-2 text-[11px] text-muted">
-        These four tags point at the files above. Manifesto never edits your HTML, so this is the
-        one step it cannot do for you.
-      </p>
-      <pre class="overflow-x-auto rounded-xl border border-line bg-panel p-3.5 text-xs">
+      <pre class="overflow-x-auto rounded-xl border border-line bg-surface p-3.5 font-mono text-xs text-muted">
         {snippet}
       </pre>
     </section>

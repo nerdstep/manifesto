@@ -15,7 +15,10 @@ import type { ComponentChildren } from 'preact'
 
 import type { Settings } from '../../pipeline/index.ts'
 import { ICON_FILENAMES } from '../../shared/bundle.ts'
-import { ColorField, CommittedField, DarkMarkField, Field, INPUT } from './fields.tsx'
+import { ColorField, CommittedField, DarkMarkField, Field } from './fields.tsx'
+import { Input, Note, SectionLabel } from './ui.tsx'
+import type { Tone } from './ui.tsx'
+
 type Props = {
   settings: Settings
   bundleName: string
@@ -23,6 +26,7 @@ type Props = {
   onPatch: (change: Partial<Settings>) => void
   onRename: (bundleName: string) => void
   onDarkMark: (file: File) => void
+  onChooseDarkMark: () => void
   onClearDarkMark: () => void
 }
 
@@ -36,17 +40,24 @@ type Props = {
 function Group({
   title,
   note,
+  tone = 'upstream',
   children,
 }: {
   title: string
   note: string
+  /**
+   * Which half of the Signal Path this group belongs to. Cyan is what you are still
+   * deciding; amber is where the result lands. The Bundle Name is the only setting on
+   * this screen that names a destination rather than a value, so it is the only amber one.
+   */
+  tone?: Tone
   children: ComponentChildren
 }) {
   return (
-    <section class="mt-5 rounded-xl border border-line bg-panel p-4">
+    <section class="mt-3 rounded-xl border border-line bg-surface p-4">
       <header class="mb-3.5">
-        <h2 class="text-[11px] font-semibold tracking-[0.08em] text-ink uppercase">{title}</h2>
-        <p class="mt-0.5 text-[11px] text-muted">{note}</p>
+        <SectionLabel tone={tone}>{title}</SectionLabel>
+        <Note class="mt-0.5">{note}</Note>
       </header>
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
     </section>
@@ -60,6 +71,7 @@ export function SettingsPanel({
   onPatch,
   onRename,
   onDarkMark,
+  onChooseDarkMark,
   onClearDarkMark,
 }: Props) {
   return (
@@ -84,7 +96,12 @@ export function SettingsPanel({
             onPatch({ iconBackground })
           }}
         />
-        <DarkMarkField filename={darkFilename} onFile={onDarkMark} onClear={onClearDarkMark} />
+        <DarkMarkField
+          filename={darkFilename}
+          onFile={onDarkMark}
+          onChoose={onChooseDarkMark}
+          onClear={onClearDarkMark}
+        />
       </Group>
 
       {/* Exactly the fields in `ManifestSettings`. None of these touch a pixel. */}
@@ -93,10 +110,9 @@ export function SettingsPanel({
         note="Text and colors browsers read when your site is installed or pinned. None of them appear inside an icon — the previews show where each one lands."
       >
         <Field label="Name">
-          <input
+          <Input
             type="text"
             value={settings.name}
-            class={INPUT}
             onInput={(event) => {
               onPatch({ name: event.currentTarget.value })
             }}
@@ -104,10 +120,9 @@ export function SettingsPanel({
         </Field>
 
         <Field label="Short name">
-          <input
+          <Input
             type="text"
             value={settings.shortName}
-            class={INPUT}
             onInput={(event) => {
               onPatch({ shortName: event.currentTarget.value })
             }}
@@ -132,7 +147,7 @@ export function SettingsPanel({
       </Group>
 
       {/* Neither: the Bundle Name names the folder on disk and reaches no file at all. */}
-      <Group title="Output" note="Where the files are written.">
+      <Group title="Output" note="Where the files are written." tone="downstream">
         <CommittedField
           label="Folder"
           value={bundleName}

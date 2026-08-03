@@ -19,7 +19,7 @@ import { failureDetail } from '../host/failures.ts'
 import { nextAvailableName } from './bundle-writer.ts'
 
 /** A Source Mark the user picked, in the same shape a drop produces. */
-export type ChosenSource = { sourceSvg: string; filename: string }
+export type ChosenSvg = { svg: string; filename: string }
 
 /**
  * The native file picker — the keyboard route into the app.
@@ -27,7 +27,7 @@ export type ChosenSource = { sourceSvg: string; filename: string }
  * Returns the SVG *text*, not a path, so the webview stays filesystem-free and this lands
  * in exactly the same shape as a drop. `null` means the user cancelled.
  */
-export async function chooseSourceSvg(startingFolder: string): Promise<ChosenSource | null> {
+export async function chooseSvg(startingFolder: string): Promise<ChosenSvg | null> {
   const picked = await Utils.openFileDialog({
     startingFolder,
     allowedFileTypes: 'svg',
@@ -40,7 +40,7 @@ export async function chooseSourceSvg(startingFolder: string): Promise<ChosenSou
   if (path === undefined || path.length === 0) return null
 
   try {
-    return { sourceSvg: readFileSync(path, 'utf8'), filename: basename(path) }
+    return { svg: readFileSync(path, 'utf8'), filename: basename(path) }
   } catch (error) {
     // Indistinguishable from a cancel at the wire, which is acceptable only because the
     // user selected this file from a native dialog moments ago — if it cannot be read now,

@@ -86,7 +86,11 @@ describe('windowFrame', () => {
     // The whole point of making the process DPI-aware: frames stop being virtualized, so
     // the app has to do this multiplication itself or the window comes out 1/scale too
     // small on every scaled display.
-    const frame = windowFrame({ scale: 1.5, width: 2560, height: 1440 })
+    //
+    // A 4K panel, deliberately: this asserts the *scaling*, so the display has to be big
+    // enough that the 90% clamp does not bind. On a 1440-tall screen the intended height
+    // now exceeds the clamp, which is the clamp working — and is what the next test is for.
+    const frame = windowFrame({ scale: 1.5, width: 3840, height: 2160 })
 
     expect(frame.width).toBe(DEFAULT_WINDOW_CSS.width * 1.5)
     expect(frame.height).toBe(DEFAULT_WINDOW_CSS.height * 1.5)

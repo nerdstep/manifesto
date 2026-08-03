@@ -21,7 +21,7 @@ import type { Pipeline } from '../pipeline/index.ts'
 import type { ManifestoRPC } from '../shared/rpc.ts'
 import { loadState, saveState, stateFilePath, windowFrame } from './app-state.ts'
 import type { AppState } from './app-state.ts'
-import { chooseOutputRoot, chooseSourceSvg, resolveCollision } from './dialogs.ts'
+import { chooseOutputRoot, chooseSvg, resolveCollision } from './dialogs.ts'
 import { createGenerate } from './generate.ts'
 import { createRenderCache } from './render-cache.ts'
 import { enablePerMonitorDpi } from './windows-dpi.ts'
@@ -94,7 +94,7 @@ const rpc = BrowserView.defineRPC<ManifestoRPC>({
     requests: {
       generate,
 
-      chooseSourceSvg: () => chooseSourceSvg(state.outputRoot),
+      chooseSvg: () => chooseSvg(state.outputRoot),
 
       getOutputRoot: () => ({ path: state.outputRoot }),
 
