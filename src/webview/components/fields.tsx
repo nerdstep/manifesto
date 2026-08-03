@@ -207,7 +207,7 @@ export function DarkMarkField({
             }
           }}
           class={cn(
-            'flex min-w-0 flex-1 cursor-pointer items-center rounded-lg border border-dashed px-2.5 py-1.5 text-[13px]',
+            'flex min-w-0 flex-1 cursor-pointer items-center rounded-lg border border-dashed px-2.5 py-1.5 text-[13px] h-8',
             'transition-colors duration-150 ease-signal',
             focusRing,
             over ? 'border-cyan bg-cyan/8 text-ink' : 'border-line text-muted hover:border-cyan',

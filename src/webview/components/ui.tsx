@@ -67,7 +67,7 @@ export function Input({ class: klass, className, ...rest }: InputProps) {
     <input
       class={cn(
         'w-full rounded-lg border border-line bg-raised px-2.5 py-1.5 text-[13px] text-ink',
-        'outline-none transition-colors duration-150 ease-signal focus:border-cyan',
+        'outline-none transition-colors duration-150 ease-signal focus:border-cyan h-8',
         klass,
         className,
       )}
