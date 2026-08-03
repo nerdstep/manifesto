@@ -115,9 +115,8 @@ components:
     padding: "13px 16px"
 ---
 
+<!-- markdownlint-disable MD024 MD025 MD026 MD036 -->
 <!--
-  markdownlint-disable MD024 MD025 MD026 MD036
-
   Four rules are switched off for this file only, and none of them because the warning is
   inconvenient:
 
