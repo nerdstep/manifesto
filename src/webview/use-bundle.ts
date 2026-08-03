@@ -143,13 +143,11 @@ export function useBundle() {
     },
     [commit, cancelPending, send],
   )
-
   /**
    * Start a session from a Source Mark, however it arrived.
    *
-   * Dropping a file and choosing one from the native dialog differ only in where the text
-   * came from. Keeping one implementation is what stops the keyboard route becoming a
-   * second-class path that quietly diverges from the one everybody tests.
+   * Dropping and choosing differ only in where the text came from. One implementation
+   * keeps the keyboard route from quietly diverging from the one everybody tests.
    */
   const begin = useCallback(
     async (sourceSvg: string, filename: string) => {
@@ -187,6 +185,12 @@ export function useBundle() {
         bundleName: result.bundle.bundleName,
       })
       setStatus({ kind: 'done', bundle: result.bundle })
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          resolve()
+        })
+      })
+      await bun().request.refreshViewport()
     },
     [cancelPending, commit],
   )

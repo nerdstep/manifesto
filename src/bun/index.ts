@@ -117,6 +117,21 @@ const rpc = BrowserView.defineRPC<ManifestoRPC>({
         Utils.clipboardWriteText(text)
         return { ok: true }
       },
+
+      refreshViewport: async () => {
+        const { width, height } = mainWindow.getSize()
+
+        // Windows/WebView2 does not repaint the root scrollbar when the document alone
+        // becomes taller. Make the host emit a real resize, then restore the exact frame.
+        // The turn between the two calls prevents Windows from coalescing them.
+        mainWindow.setSize(width + 1, height)
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, 0)
+        })
+        mainWindow.setSize(width, height)
+
+        return { ok: true }
+      },
     },
 
     messages: {

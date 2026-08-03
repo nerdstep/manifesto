@@ -92,6 +92,14 @@ export type ManifestoRPC = {
       chooseOutputRoot: { params: void; response: { path: string } }
       revealInFolder: { params: { path: string }; response: { ok: boolean } }
       copyToClipboard: { params: { text: string }; response: { ok: boolean } }
+      /**
+       * Re-apply the native WebView bounds after a drop changes the document height.
+       *
+       * WebView2 can update the root scroll range without repainting its scrollbar. A
+       * native bounds change is the only invalidation that refreshes that compositor
+       * layer; DOM resize events and rebuilding the CSS scroll container do not.
+       */
+      refreshViewport: { params: void; response: { ok: boolean } }
     }
     messages: {
       /** Webview failures, surfaced where the developer will see them. */
