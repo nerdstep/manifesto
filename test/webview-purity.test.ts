@@ -28,7 +28,8 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { SAFE_ZONE_DIAMETER } from '../src/pipeline/index.ts'
-import { SAFE_ZONE } from '../src/webview/components/preview-parts.tsx'
+import { contrastRatio } from '../src/shared/color.ts'
+import { contrastInk, SAFE_ZONE } from '../src/webview/components/preview-parts.tsx'
 
 const SHARED_DIR = join(import.meta.dir, '..', 'src', 'shared')
 
@@ -44,6 +45,12 @@ describe('webview purity', () => {
     // this is what keeps the copy honest. A ring drawn at the wrong diameter is worse
     // than no ring: it would certify marks that actually get clipped.
     expect(SAFE_ZONE).toBe(SAFE_ZONE_DIAMETER)
+  })
+
+  test('preview text stays readable on arbitrary user-selected backgrounds', () => {
+    for (const background of ['#4da3ff', '#808080', '#ff0000', '#7f00ff']) {
+      expect(contrastRatio(background, contrastInk(background))).toBeGreaterThanOrEqual(4.5)
+    }
   })
 
   test('every module in src/shared is reachable from the webview', () => {

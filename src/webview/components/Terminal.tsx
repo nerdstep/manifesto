@@ -42,8 +42,7 @@ export function Terminal({
   return (
     <section
       class="mt-6 rounded-xl border border-line bg-surface font-mono text-xs"
-      role="status"
-      aria-live="polite"
+      aria-label="Generation status"
     >
       <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 py-3">
         <span class="text-amber" aria-hidden="true">
@@ -53,7 +52,9 @@ export function Terminal({
         <span class="text-line-strong" aria-hidden="true">
           │
         </span>
-        <Result status={status} pending={pending} bundle={bundle} />
+        <span class="min-w-0" role="status" aria-live="polite" aria-atomic="true">
+          <Result status={status} pending={pending} bundle={bundle} />
+        </span>
         <span class="ml-auto truncate text-muted" title={bundle?.writtenTo ?? outputRoot}>
           {bundle?.writtenTo ?? outputRoot}
         </span>
@@ -93,7 +94,7 @@ function Result({
 }) {
   if (status.kind === 'idle') return <span class="text-dim">waiting for a logo</span>
   if (status.kind === 'working') return <span class="text-cyan">rendering…</span>
-  if (status.kind === 'failed') return <span class="text-bad">✗ nothing generated</span>
+  if (status.kind === 'failed') return <span class="text-bad">✗ {status.error}</span>
   if (pending) return <span class="text-cyan">saving…</span>
   if (bundle === null) return null
 

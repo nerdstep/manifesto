@@ -9,6 +9,7 @@
 import type { ComponentChildren } from 'preact'
 
 import { FAVICON_DARK_CLASS, FAVICON_LIGHT_CLASS } from '../../shared/bundle.ts'
+import { contrastRatio } from '../../shared/color.ts'
 
 /** Android's launcher mask shapes, plus the unmasked truth. */
 export const MASKS = ['circle', 'squircle', 'rounded', 'none'] as const
@@ -77,9 +78,12 @@ export function decodeUtf8(base64: string): string {
   return new TextDecoder().decode(bytes)
 }
 
-/** Text colour that stays readable on a user-chosen background. */
-export function contrastInk(onDark: boolean): string {
-  return onDark ? '#ffffff' : '#1c1917'
+/** Text colour that maximizes contrast on a user-chosen background. */
+export function contrastInk(background: string): string {
+  const light = '#ffffff'
+  const dark = '#000000'
+
+  return contrastRatio(background, light) >= contrastRatio(background, dark) ? light : dark
 }
 
 /**

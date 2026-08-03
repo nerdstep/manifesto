@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import {
+  bundleNameProblem,
   inspectTarget,
   nextAvailableName,
   recallSettings,
@@ -73,6 +74,25 @@ describe('slugify', () => {
     // Bundle Name is a filesystem slug; `name` is a display string. Conflating them
     // means editing a PWA label renames a directory.
     expect(slugify('Northwind Trading Co.svg')).toBe('northwind-trading-co')
+  })
+})
+
+describe('bundleNameProblem', () => {
+  test('accepts ordinary folder names and international text', () => {
+    expect(bundleNameProblem('acme-icons')).toBeNull()
+    expect(bundleNameProblem('图标 🚀')).toBeNull()
+  })
+
+  test('rejects paths, empty names, and Windows device names', () => {
+    for (const name of ['', '   ', '.', '..', '../outside', '..\\outside', 'C:\\outside', 'CON']) {
+      expect(bundleNameProblem(name), name).not.toBeNull()
+    }
+  })
+
+  test('rejects names that Windows silently rewrites', () => {
+    expect(bundleNameProblem(' icons')).not.toBeNull()
+    expect(bundleNameProblem('icons ')).not.toBeNull()
+    expect(bundleNameProblem('icons.')).not.toBeNull()
   })
 })
 

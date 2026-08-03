@@ -17,7 +17,13 @@ import { describeFailure, failureDetail } from '../host/failures.ts'
 import { hashSource } from '../pipeline/index.ts'
 import type { Pipeline, Settings } from '../pipeline/index.ts'
 import type { BundleWire, GenerateRequest, GenerateResult, GenerateTrigger } from '../shared/rpc.ts'
-import { inspectTarget, recallSettings, slugify, writeBundle } from './bundle-writer.ts'
+import {
+  bundleNameProblem,
+  inspectTarget,
+  recallSettings,
+  slugify,
+  writeBundle,
+} from './bundle-writer.ts'
 import type { TargetState } from './bundle-writer.ts'
 import type { RenderFn } from './render-cache.ts'
 
@@ -123,6 +129,9 @@ export function createGenerate(deps: GenerateDeps) {
     // never follows `settings.name` — a rename in the manifest must not silently move
     // someone's folder.
     const requested = bundleName ?? slugify(filename)
+    const requestedProblem = bundleNameProblem(requested)
+    if (requestedProblem !== null) return { ok: false, error: requestedProblem }
+
     const found = inspectTarget(join(root, requested), hashSource(sourceSvg))
 
     let resolved: Settings
@@ -159,6 +168,11 @@ export function createGenerate(deps: GenerateDeps) {
     // Not written: the user still gets the Bundle to look at, and the panel keeps working
     // — it just isn't on disk.
     if (finalName === null) return { ok: true, bundle: wire(null, requested) }
+
+    // Collision resolution is host-owned today, but validating its result keeps that
+    // boundary safe if another resolver is introduced later.
+    const finalNameProblem = bundleNameProblem(finalName)
+    if (finalNameProblem !== null) return { ok: false, error: finalNameProblem }
 
     const target = join(root, finalName)
     writeBundle(target, bundle, {

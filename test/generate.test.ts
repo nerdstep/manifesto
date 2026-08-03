@@ -7,7 +7,15 @@
  */
 
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -85,6 +93,18 @@ function occupyWithOtherMark(root: string, name: string): void {
 }
 
 describe('generate', () => {
+  test('rejects an unsafe Bundle Name before touching the filesystem', async () => {
+    const root = tempRoot()
+    const { generate } = harness(root)
+
+    for (const bundleName of ['../outside', '..\\outside', 'C:\\outside', 'CON']) {
+      const result = await generate(request({ bundleName, trigger: 'rename' }))
+      expect(result.ok, bundleName).toBe(false)
+    }
+
+    expect(readdirSync(root)).toEqual([])
+  })
+
   test('a drop infers its settings and returns the ones it used', async () => {
     const root = tempRoot()
     const { generate } = harness(root)

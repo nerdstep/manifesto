@@ -15,7 +15,7 @@ import { useEffect, useState } from 'preact/hooks'
 
 import type { Hex } from '../../pipeline/index.ts'
 import { cn } from '../utils/index.ts'
-import { Caption, focusRing, Input, Note } from './ui.tsx'
+import { Button, Caption, focusRing, Input, Note } from './ui.tsx'
 
 export function Field({ label, children }: { label: string; children: ComponentChildren }) {
   return (
@@ -65,10 +65,14 @@ export function ColorField({
   const shown = isHex(draft) ? draft : value
 
   return (
-    <Field label={label}>
+    <fieldset class="min-w-0">
+      <legend class="mb-1.5">
+        <Caption>{label}</Caption>
+      </legend>
       <div class="flex items-center gap-2">
         <input
           type="color"
+          aria-label={`${label} color picker`}
           value={shown}
           class={cn(
             'h-8 w-10 shrink-0 cursor-pointer rounded-lg border border-line bg-raised p-0.5',
@@ -84,6 +88,7 @@ export function ColorField({
         />
         <Input
           type="text"
+          aria-label={`${label} hex value`}
           value={draft}
           spellcheck={false}
           class="font-mono uppercase"
@@ -101,7 +106,7 @@ export function ColorField({
           }}
         />
       </div>
-    </Field>
+    </fieldset>
   )
 }
 
@@ -167,64 +172,64 @@ export function DarkMarkField({
   const [over, setOver] = useState(false)
 
   return (
-    <Field label="Dark-mode logo (optional)">
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label={
-          filename === null
-            ? 'Drop a dark-mode SVG here, or activate to choose one'
-            : `Dark-mode logo ${filename}. Activate to replace it.`
-        }
-        onDragOver={(event) => {
-          event.preventDefault()
-          setOver(true)
-        }}
-        onDragLeave={(event) => {
-          if (event.relatedTarget === null) setOver(false)
-        }}
-        onDrop={(event) => {
-          event.preventDefault()
-          setOver(false)
-          const file = [...(event.dataTransfer?.files ?? [])].find((f) => /\.svg$/iu.test(f.name))
-          if (file !== undefined) onFile(file)
-        }}
-        onClick={onChoose}
-        onKeyDown={(event) => {
-          // Space is prevented because its default is scrolling the page.
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault()
-            onChoose()
+    <fieldset class="min-w-0">
+      <legend class="mb-1.5">
+        <Caption>Dark-mode logo (optional)</Caption>
+      </legend>
+      <div class="flex items-stretch gap-2">
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={
+            filename === null
+              ? 'Drop a dark-mode SVG here, or activate to choose one'
+              : `Dark-mode logo ${filename}. Activate to replace it.`
           }
-        }}
-        class={cn(
-          'flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-dashed px-2.5 py-1.5 text-[13px]',
-          'transition-colors duration-150 ease-signal',
-          focusRing,
-          over ? 'border-cyan bg-cyan/8 text-ink' : 'border-line text-muted hover:border-cyan',
-        )}
-      >
-        <span class="truncate font-mono text-xs">{filename ?? 'Drop or click to choose'}</span>
+          onDragOver={(event) => {
+            event.preventDefault()
+            setOver(true)
+          }}
+          onDragLeave={(event) => {
+            if (event.relatedTarget === null) setOver(false)
+          }}
+          onDrop={(event) => {
+            event.preventDefault()
+            setOver(false)
+            const file = [...(event.dataTransfer?.files ?? [])].find((f) => /\.svg$/iu.test(f.name))
+            if (file !== undefined) onFile(file)
+          }}
+          onClick={onChoose}
+          onKeyDown={(event) => {
+            // Space is prevented because its default is scrolling the page.
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              onChoose()
+            }
+          }}
+          class={cn(
+            'flex min-w-0 flex-1 cursor-pointer items-center rounded-lg border border-dashed px-2.5 py-1.5 text-[13px]',
+            'transition-colors duration-150 ease-signal',
+            focusRing,
+            over ? 'border-cyan bg-cyan/8 text-ink' : 'border-line text-muted hover:border-cyan',
+          )}
+        >
+          <span class="truncate font-mono text-xs">{filename ?? 'Drop or click to choose'}</span>
+        </div>
         {filename !== null && (
-          <button
-            type="button"
-            class="shrink-0 cursor-pointer text-xs text-muted hover:text-bad"
+          <Button
+            class="text-xs text-muted hover:text-bad"
             // "Remove" alone is ambiguous once a screen reader reads it out of context.
             aria-label={`Remove the dark-mode logo, ${filename}`}
-            // The row is itself a button; without this, removing also opens the picker.
-            onClick={(event) => {
-              event.stopPropagation()
-              onClear()
-            }}
+            onClick={onClear}
           >
             Remove
-          </button>
+          </Button>
         )}
       </div>
       <Note class="mt-1">
         Used wherever the icon background is dark, and inside favicon.svg so browsers swap
         automatically.
       </Note>
-    </Field>
+    </fieldset>
   )
 }

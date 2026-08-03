@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks'
+import { useEffect, useRef, useState } from 'preact/hooks'
 
 import { bun } from '../rpc.ts'
 import { Button } from './ui.tsx'
@@ -11,12 +11,22 @@ import { Button } from './ui.tsx'
  */
 export function HeadSnippet({ snippet }: { snippet: string }) {
   const [copied, setCopied] = useState(false)
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(
+    () => () => {
+      if (resetTimer.current !== null) clearTimeout(resetTimer.current)
+    },
+    [],
+  )
 
   async function copy() {
     await bun().request.copyToClipboard({ text: snippet })
     setCopied(true)
-    setTimeout(() => {
+    if (resetTimer.current !== null) clearTimeout(resetTimer.current)
+    resetTimer.current = setTimeout(() => {
       setCopied(false)
+      resetTimer.current = null
     }, 1600)
   }
 

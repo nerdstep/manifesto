@@ -56,6 +56,7 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
   function handleDrop(event: DragEvent) {
     event.preventDefault()
     setOver(false)
+    if (busy) return
 
     const file = [...(event.dataTransfer?.files ?? [])].find((f) => /\.svg$/iu.test(f.name))
     if (file === undefined) {
@@ -76,77 +77,90 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
   const loaded = filename !== null
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label="Drop an SVG logo here, or activate to choose one"
-      aria-busy={busy}
-      onDragOver={(e) => {
-        e.preventDefault()
-        setOver(true)
-      }}
-      onDragLeave={(e) => {
-        if (e.relatedTarget === null) setOver(false)
-      }}
-      onDrop={handleDrop}
-      onClick={choose}
-      onKeyDown={(e) => {
-        // The two keys a `role="button"` is required to answer to. Space is prevented
-        // because its default is scrolling the page, which would fire the picker and jump
-        // the view at the same time.
-        if (e.key === 'Enter' || e.key === ' ') {
+    <>
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label="Drop an SVG logo here, or activate to choose one"
+        aria-busy={busy}
+        aria-disabled={busy}
+        aria-describedby={rejected ? 'source-file-status' : undefined}
+        onDragOver={(e) => {
           e.preventDefault()
-          choose()
-        }
-      }}
-      class={[
-        'flex h-full cursor-pointer flex-col rounded-xl border-2 border-dashed bg-surface p-4',
-        'outline-none transition-colors duration-150 ease-signal',
-        'focus-visible:border-cyan focus-visible:ring-3 focus-visible:ring-cyan/30',
-        over ? 'border-cyan bg-cyan/7' : 'border-line-strong hover:border-cyan',
-        busy ? 'opacity-70' : '',
-      ].join(' ')}
-    >
-      <div class="mb-3 flex items-center justify-between gap-2.5">
-        <span class="truncate font-mono text-[13px] font-semibold text-ink">
-          {loaded ? filename : 'Drop your logo here'}
-        </span>
-        <span class="shrink-0 rounded-full bg-cyan/12 px-2 py-0.5 text-[10px] font-bold tracking-widest text-cyan uppercase">
-          SVG
-        </span>
-      </div>
+          if (!busy) setOver(true)
+        }}
+        onDragLeave={(e) => {
+          if (e.relatedTarget === null) setOver(false)
+        }}
+        onDrop={handleDrop}
+        onClick={choose}
+        onKeyDown={(e) => {
+          // The two keys a `role="button"` is required to answer to. Space is prevented
+          // because its default is scrolling the page, which would fire the picker and jump
+          // the view at the same time.
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            choose()
+          }
+        }}
+        class={[
+          'flex h-full flex-col rounded-xl border-2 border-dashed bg-surface p-4',
+          'outline-none transition-colors duration-150 ease-signal',
+          'focus-visible:border-cyan focus-visible:ring-3 focus-visible:ring-cyan/30',
+          over
+            ? 'border-cyan bg-cyan/7'
+            : busy
+              ? 'border-line-strong'
+              : 'border-line-strong hover:border-cyan',
+          busy ? 'cursor-wait opacity-70' : 'cursor-pointer',
+        ].join(' ')}
+      >
+        <div class="mb-3 flex items-center justify-between gap-2.5">
+          <span class="truncate font-mono text-[13px] font-semibold text-ink">
+            {loaded ? filename : 'Drop your logo here'}
+          </span>
+          <span class="shrink-0 rounded-full bg-cyan/12 px-2 py-0.5 text-[10px] font-bold tracking-widest text-cyan uppercase">
+            SVG
+          </span>
+        </div>
 
-      {/*
+        {/*
         A measured field. This is the one grid background in the system, and it is here
         because the pane is depicting a vector editor's canvas — a measurement surface,
         the same justification the Safe Zone ring has. See DESIGN.md.
       */}
-      <div class="signal-grid grid min-h-40 grow place-items-center rounded-lg bg-bg p-4">
-        {sourceSvg !== null && !busy ? (
-          <img
-            src={sourceUri(sourceSvg)}
-            alt={`${filename ?? 'The logo'}, as supplied`}
-            class="max-h-40 w-auto max-w-full object-contain"
-          />
-        ) : (
-          <p class="max-w-[38ch] text-center">
-            <span class="block text-[13px] font-semibold text-ink">
-              {busy
-                ? 'Rendering…'
-                : rejected
-                  ? "That file isn't an SVG"
-                  : 'Drop or click to choose'}
-            </span>
-            <span class="mt-1.5 block text-[11px] text-muted">
-              {rejected
-                ? 'Manifesto needs an SVG. Export your logo as SVG and try again.'
-                : `One SVG becomes ${ICON_FILENAMES.length} icon files, a web app manifest, and the ${HEAD_SNIPPET_TAG_COUNT} <head> tags that point at them.`}
-            </span>
-          </p>
+        <div class="signal-grid grid min-h-40 grow place-items-center rounded-lg bg-bg p-4">
+          {sourceSvg !== null && !busy ? (
+            <img
+              src={sourceUri(sourceSvg)}
+              alt={`${filename ?? 'The logo'}, as supplied`}
+              class="max-h-40 w-auto max-w-full object-contain"
+            />
+          ) : (
+            <p class="max-w-[38ch] text-center">
+              <span class="block text-[13px] font-semibold text-ink">
+                {busy
+                  ? 'Rendering…'
+                  : rejected
+                    ? "That file isn't an SVG"
+                    : 'Drop or click to choose'}
+              </span>
+              <span class="mt-1.5 block text-[11px] text-muted">
+                {rejected
+                  ? 'Manifesto needs an SVG. Export your logo as SVG and try again.'
+                  : `One SVG becomes ${ICON_FILENAMES.length} icon files, a web app manifest, and the ${HEAD_SNIPPET_TAG_COUNT} <head> tags that point at them.`}
+              </span>
+            </p>
+          )}
+        </div>
+
+        {loaded && (
+          <Caption class="mt-2.5 block text-dim">Drop another, or click to replace</Caption>
         )}
       </div>
-
-      {loaded && <Caption class="mt-2.5 block text-dim">Drop another, or click to replace</Caption>}
-    </div>
+      <span id="source-file-status" class="sr-only" role="status" aria-live="polite">
+        {rejected ? "That file isn't an SVG. Export your logo as SVG and try again." : ''}
+      </span>
+    </>
   )
 }

@@ -19,7 +19,6 @@
  * they land, both fields read as if editing them does nothing.
  */
 
-import { isDarkColor } from '../../shared/color.ts'
 import { AndroidMaskable } from './MaskablePreview.tsx'
 import {
   contrastInk,
@@ -90,13 +89,11 @@ function AndroidBar({
   themeColor: string
   title: string
 }) {
-  const onDark = isDarkColor(themeColor)
-
   return (
     <div class="overflow-hidden rounded-lg">
       <div
         class="flex items-center gap-2 px-2.5 py-2"
-        style={{ background: themeColor, color: contrastInk(onDark) }}
+        style={{ background: themeColor, color: contrastInk(themeColor) }}
       >
         <div
           class="tab-light size-4 shrink-0 [&_svg]:size-full"
@@ -176,8 +173,6 @@ function IosHome({ png, label }: { png: string; label: string }) {
  * visible in this context.
  */
 function PwaSplash({ png, background, name }: { png: string; background: string; name: string }) {
-  const onDark = isDarkColor(background)
-
   return (
     <Tile
       title="PWA splash"
@@ -195,7 +190,10 @@ function PwaSplash({ png, background, name }: { png: string; background: string;
           height={96}
           class="block size-24"
         />
-        <span class="max-w-full truncate px-4 text-[13px]" style={{ color: contrastInk(onDark) }}>
+        <span
+          class="max-w-full truncate px-4 text-[13px]"
+          style={{ color: contrastInk(background) }}
+        >
           {name}
         </span>
       </div>
