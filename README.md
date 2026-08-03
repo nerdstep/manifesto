@@ -119,9 +119,6 @@ you have decided the output *should* change.
 | [CONTEXT.md](./CONTEXT.md) | domain vocabulary — Source Mark, Rendition, Safe Zone, Asset Bundle. Use these terms in code and commits. |
 | [PRODUCT.md](./PRODUCT.md) | who it is for, the voice, the anti-references, the accessibility line |
 | [DESIGN.md](./DESIGN.md) | the visual system: tokens, type scale, named rules |
-| [docs/design-v1.md](./docs/design-v1.md) | why the output set is these seven files and not forty |
-| [docs/implementation-plan.md](./docs/implementation-plan.md) | the phased build, with what went wrong at each step |
-| [docs/phase-0-findings.md](./docs/phase-0-findings.md) | the spikes, and the measurements that settled them |
 
 ## Status
 
