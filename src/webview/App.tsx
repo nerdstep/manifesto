@@ -20,7 +20,7 @@ import { bun } from './rpc.ts'
 import { useBundle } from './use-bundle.ts'
 
 export function App() {
-  const [outputRoot, setOutputRoot] = useState('—')
+  const [outputRoot, setOutputRoot] = useState('Loading...')
   const {
     status,
     session,
@@ -72,7 +72,7 @@ export function App() {
           manifesto
         </h1>
         <p class="text-[11px] font-semibold tracking-[0.16em] text-blue uppercase">
-          From one SVG to every web asset
+          Generate website icons from one SVG
         </p>
       </header>
 

@@ -4,112 +4,82 @@
 
 product
 
-## Users
+## Audience
 
-Developers who ship websites and already know what a favicon, an apple-touch-icon and a
-maskable icon are — but who do not know this app's internals, its domain vocabulary, or why
-it emits seven files rather than forty.
+Manifesto is for developers who have a finished SVG and need the standard icon files for
+a website. They know what favicons, touch icons, and maskable icons are. They should not
+need to learn the app's internal vocabulary.
 
-Their context: they have a finished logo as an SVG and a site that needs icons. This is a
-five-minute task standing between them and something else they actually care about. They
-are not here to learn about icons; they are here to be done with icons.
+This is a short task in a larger project. The user wants to generate the files, check them,
+and move on.
 
-The job: turn one SVG into every icon asset a website needs, correct on every platform,
-without having to know what each platform demands.
+## Purpose
 
-## Product Purpose
+Manifesto turns one SVG into a complete set of website icons, a web app manifest, and the
+`<head>` tags that reference them. It writes the files to a folder chosen by the user.
 
-Manifesto takes one Source Mark and produces a complete Asset Bundle — seven files plus the
-`<head>` snippet that references them — on disk, in a folder the user chooses.
+The app handles platform differences that are easy to miss.
 
-It exists because the platform requirements are unobvious and unforgiving, and getting them
-wrong fails silently: transparency on an `apple-touch-icon` composites onto black in iOS; a
-maskable icon that ignores the circular Safe Zone gets its corners cut off on a Pixel; a
-downsampled 16px favicon turns to grey mush. None of these look wrong until they are on
-someone's phone.
+- iOS places transparent touch icons on a black background.
+- Android clips maskable icons to a circular safe zone.
+- Small favicons lose detail when resized from a large raster image.
 
-Success is the user dropping a file, glancing at the previews, and closing the app —
-without reading documentation and without discovering a problem three weeks later.
+Success means the user can drop in a file, check the previews, copy the tags, and close the
+app without reading documentation.
 
-## Brand Personality
+## Voice
 
-**Precise, quiet, trustworthy.**
+Manifesto is precise, quiet, and trustworthy.
 
-The interface states facts and gets out of the way. Confidence comes from accuracy, never
-from tone — nothing is oversold, and nothing is softened. When the app has done something
-to the user's files, it says exactly what; when it has declined to, it says why.
+Use plain language and short sentences. State what happened, name the affected file or
+folder, and give the next step when one is needed. Prefer familiar terms such as logo,
+icon, and folder in the interface. Keep domain terms such as Source Mark, Rendition, and
+Asset Bundle in code and technical documentation.
 
-Voice: plain and instructive. Short declaratives. Explain the consequence before the
-mechanism, because the consequence is what the reader is deciding about. Domain vocabulary
-(Source Mark, Rendition, Safe Zone) is precise and load-bearing *in the codebase*, but the
-interface should prefer the words the user already has.
+Avoid decorative punctuation and staged emphasis. Do not use em dashes to join thoughts.
+Do not introduce explanations with a colon when a heading, list, or separate sentence is
+clearer.
 
-## Anti-references
+## Avoid
 
-- **Marketing-speak.** "Effortlessly generate stunning icons!" No exclamation marks, no
-  adjectives doing work that facts should do.
-- **Enterprise / compliance tone.** "The operation could not be completed." Passive voice
-  with no cause, no next step, and nobody accountable.
-- **Over-friendly / cutesy.** "Oops! Something went wrong 😅" No emoji, no apologies, no
-  jokes where an explanation belongs.
-- **Raw developer output.** "EmptyMarkError: alpha scan returned null." Internal type names,
-  library names, and stack-trace vocabulary must not reach the interface. The user did not
-  choose resvg and should not have to know it exists.
+| Style | Example | Better approach |
+| --- | --- | --- |
+| Marketing language | Effortlessly generate stunning icons | State what the app creates |
+| Impersonal errors | The operation could not be completed | Name the problem and a next step |
+| Cutesy language | Oops! Something went wrong | Describe the failure without jokes or emoji |
+| Developer output | EmptyMarkError or resvg parse failure | Explain the problem using file and artwork terms |
+| Over-explanation | A paragraph defending a label or behavior | Keep only the information needed to act |
 
-## Constraints
+## Product principles
 
-**Host code must never reach the view bundle.** It has happened twice, and both times the
-symptom was "drag and drop doesn't work" — the module died on load and took the drop
-handlers with it, which reads exactly like a framework limitation.
+1. **Say what happened to the files.** Show whether files were written, skipped, or blocked.
+   Include the path when it helps.
 
-Three directories, three meanings:
+2. **Lead with the consequence.** Explain what the user will see before explaining the
+   technical cause.
 
-| `src/webview/` | may import values from `src/webview/`, `src/shared/`, `preact` |
-| `src/shared/`  | may import values from `src/shared/` only — so it stays reachable |
-| `src/host/`    | Bun shell + CLI. May import anything. Never reachable from the view |
+3. **Make warnings actionable.** Tell the user what to change. Do not show warnings that
+   offer no useful next step.
 
-Enforced by `no-restricted-imports` in `.oxlintrc.json`, per file, with `allowTypeImports`
-so type-only imports across the seam stay legal. It is per-file but adds up to the
-transitive property, because `src/shared/` is closed under the same restriction — that is
-the whole reason `src/host/` exists as a separate layer.
+4. **Show the generated file.** Previews use the bytes written to disk at the size used by
+   the target platform.
 
-**The view bundle also has a 200 kB cap**, which is a canary and not a performance budget:
-the view loads from local disk and there is no user-facing cost to size. Measured
-context — the view is 38 kB, `react-aria-components` via `preact/compat` is +170 kB,
-`svgo/browser` alone is 541 kB. Prefer platform primitives and native dialogs over adding
-a dependency to the view.
+5. **Treat inferred values as editable values.** Do not present them as recommendations or
+   ask the user to confirm them.
 
-## Design Principles
+## Interface constraints
 
-1. **Say what happened to their files.** This app writes to disk on every edit. Every write,
-   every skipped write, and every collision is stated plainly, with the path. The user
-   should never have to open a folder to find out what the app did.
+The webview must not import host or pipeline code. This boundary is enforced by
+`no-restricted-imports` in `.oxlintrc.json`. Type-only imports are allowed.
 
-2. **Explain the consequence, then the cause.** "Your icon will be invisible on iOS" comes
-   before "transparency composites onto black". The reader is deciding whether to act, and
-   only the consequence tells them.
+Keep the webview bundle below 200 kB. Prefer browser controls and native dialogs over new
+webview dependencies.
 
-3. **Every warning names an action.** A message the reader cannot act on is noise. If there
-   is nothing to do about it, it is not worth saying.
+## Accessibility
 
-4. **Show the artefact, not a description of it.** Previews render the bytes that were
-   written, at the size the platform will use. A claim about the output is weaker than the
-   output.
-
-5. **Never claim more precision than we have.** Inferred values are presented as ordinary
-   editable values, not as recommendations. Where the app is guessing, the guess is
-   overwritable and unremarkable — it does not ask to be audited.
-
-## Accessibility & Inclusion
-
-- **Full keyboard operation.** Every control reachable and operable without a mouse. The
-  drop zone is itself the button: Enter or Space opens the native file picker, so the entry
-  point is not mouse-only. Prefer this shape over adding a second visible control — the
-  screen does one thing, and a "Choose a file" button beside a screen-sized target is noise.
-  A visible focus ring is required wherever this pattern is used; `focus-visible` keeps it
-  off the mouse path.
-- **Screen reader support.** Real labels on every control, a live region announcing
-  generation results ("Wrote 7 files to …"), and preview alt text that describes what the
-  preview demonstrates rather than restating the filename.
-- WCAG AA contrast (4.5:1 body, 3:1 large) is treated as a baseline in both themes rather
-  than an explicit requirement.
+- Every control must work with a keyboard.
+- The drop zone opens the file picker with Enter or Space.
+- Every control needs a visible focus state and an accessible name.
+- Generation results belong in a polite live region.
+- Preview alt text should explain what the preview shows.
+- Text and controls must meet WCAG AA contrast requirements.

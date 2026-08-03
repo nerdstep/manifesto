@@ -225,7 +225,7 @@ describe('generate', () => {
       await generate(request())
 
       expect(prompt.calls).toHaveLength(1)
-      expect(prompt.calls[0]?.detail).toContain("didn't create it")
+      expect(prompt.calls[0]?.detail).toContain('did not create this folder')
       expect(readFileSync(join(root, 'acme-logo', 'index.html'), 'utf8')).toBe('<!doctype html>')
     })
 
@@ -274,7 +274,7 @@ describe('generate', () => {
 
     expect(result.ok).toBe(false)
     if (result.ok) return
-    expect(result.error).toContain('convert the text to outlines')
+    expect(result.error).toContain('Convert live text to outlines')
   })
 
   test('a target path that is a file returns a recoverable write error', async () => {
@@ -286,7 +286,7 @@ describe('generate', () => {
 
     expect(result.ok).toBe(false)
     if (result.ok) return
-    expect(result.error).toContain("couldn't write the Asset Bundle")
+    expect(result.error).toContain('could not write the icon files')
     expect(readFileSync(join(root, 'acme-logo'), 'utf8')).toBe('occupied')
   })
 

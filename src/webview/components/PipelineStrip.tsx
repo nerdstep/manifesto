@@ -170,7 +170,7 @@ export function PipelineStrip({ state, bundle }: Props) {
           ? 'Nothing rendered yet'
           : state === 'working'
             ? 'Rendering'
-            : 'Each rendition is drawn at final size — nothing is resampled'}
+            : 'Each icon is rendered at its final size'}
       </Caption>
     </section>
   )

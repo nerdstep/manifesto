@@ -78,13 +78,13 @@ export async function resolveCollision(
 
   const { response } = await Utils.showMessageBox({
     type: 'question',
-    title: 'That folder already has files in it',
-    message: `"${bundleName}" already exists in your output folder.`,
+    title: 'Folder already exists',
+    message: `"${bundleName}" is already in your output folder.`,
     // The second sentence matters as much as the first. "Overwrite" sounds like it empties
     // the folder, and it does not — `writeBundle` only ever writes the files it authored
     // and never deletes anything. Saying so is the difference between an informed choice
     // and a guess about how destructive this is.
-    detail: `${detail}\n\nOverwriting replaces the icon files with the new ones. Anything else in that folder is left alone.`,
+    detail: `${detail}\n\nOverwrite replaces the icon files. Other files in the folder are left alone.`,
     buttons: [`Save as "${keepBoth}"`, 'Overwrite', 'Cancel'],
     defaultId: 0,
     cancelId: 2,

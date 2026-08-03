@@ -34,7 +34,7 @@ export function AndroidMaskable({ png }: { png: string }) {
     <Tile
       title="Android maskable"
       dimensions="512×512"
-      note="icon-maskable-512.png. Android launchers crop this to their own shape, so anything outside the ring can be cut off."
+      note="Android launchers crop icon-maskable-512.png to different shapes. Anything outside the ring may be cut off."
       controls={
         // Two rows, not one wrapping row. Four mask pills need about 240px and the tile is
         // 265px wide at four columns, so a single row would wrap unpredictably as the grid

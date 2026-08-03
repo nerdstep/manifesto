@@ -35,8 +35,7 @@ export function HeadSnippet({ snippet }: { snippet: string }) {
     <section>
       <div class="mb-2 flex items-start justify-between gap-3">
         <p class="text-[11px] text-dim">
-          These tags point at the files above. Manifesto never edits your HTML, so this is the one
-          step it cannot do for you.
+          Paste these tags into your site's &lt;head&gt;. Manifesto does not edit your HTML.
         </p>
         <Button
           aria-label="Copy the head tags to the clipboard"

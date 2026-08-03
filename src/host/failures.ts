@@ -30,10 +30,9 @@ export class BundleWriteError extends Error {
   override readonly name = 'BundleWriteError'
 
   constructor(cause: unknown) {
-    super(
-      "Manifesto couldn't write the Asset Bundle. Check that the output folder is available and try again.",
-      { cause },
-    )
+    super('Manifesto could not write the icon files. Check the output folder and try again.', {
+      cause,
+    })
   }
 }
 
@@ -43,8 +42,8 @@ export class BundleCollisionError extends Error {
 
   constructor(files: string[]) {
     super(
-      `The output directory already contains Bundle files: ${files.join(', ')}. ` +
-        'Choose another directory or pass --force to replace them.',
+      `The output folder already contains ${files.join(', ')}. ` +
+        'Choose another folder or pass --force to replace them.',
     )
   }
 }
@@ -59,19 +58,15 @@ export class BundleCollisionError extends Error {
 export function describeFailure(error: unknown): string {
   if (error instanceof EmptyMarkError) {
     return (
-      "There's nothing to draw in this SVG. If your logo is live text, it renders blank " +
-      'without its font — convert the text to outlines and export it again. The same ' +
-      'happens when everything in the file is hidden or fully transparent.'
+      'This SVG has no visible artwork. Convert live text to outlines and export it again. ' +
+      'Also check that the artwork is not hidden or fully transparent.'
     )
   }
 
   if (error instanceof InvalidSvgError) {
     // Deliberately NOT `error.message`: that carries the parser's own words, which name
     // the rendering library and describe the file in terms the reader has no use for.
-    return (
-      "This file couldn't be read as SVG. If it opens in your design tool, try exporting " +
-      'it again — some tools write SVG that browsers accept but renderers reject.'
-    )
+    return 'Manifesto could not read this SVG. Try exporting it again from your design tool.'
   }
 
   if (error instanceof BundleWriteError) {
@@ -82,7 +77,7 @@ export function describeFailure(error: unknown): string {
     return error.message
   }
 
-  return "Something went wrong generating the icons, and it isn't a cause Manifesto recognises."
+  return 'Manifesto could not generate the icons. Try another SVG or check the output folder.'
 }
 
 /**

@@ -227,8 +227,7 @@ export function DarkMarkField({
         )}
       </div>
       <Note class="mt-1">
-        Used wherever the icon background is dark, and inside favicon.svg so browsers swap
-        automatically.
+        Used on dark icon backgrounds and in favicon.svg when the browser uses dark mode.
       </Note>
     </fieldset>
   )

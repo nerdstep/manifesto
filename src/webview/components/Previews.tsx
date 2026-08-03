@@ -121,7 +121,7 @@ function BrowserContexts({
     <Tile
       title="Browser"
       dimensions="16×16"
-      note="favicon.svg at its true size on a light and a dark tab. The tinted bar is theme_color on Android Chrome — desktop browsers ignore it."
+      note="favicon.svg at 16 px on light and dark tabs. The bar uses Theme color in Android Chrome."
     >
       <div class="w-full space-y-2">
         <TabMock src={lightSrc} title={title} dark={false} />
@@ -138,7 +138,7 @@ function IosHome({ png, label }: { png: string; label: string }) {
     <Tile
       title="iOS home screen"
       dimensions="180×180"
-      note="apple-touch-icon.png at the size iOS draws it. iOS turns transparency into black, so this file always gets a solid background."
+      note="apple-touch-icon.png at the size used on an iOS home screen. The file has a solid background because iOS turns transparency black."
     >
       <div class="flex items-center gap-3 rounded-lg bg-linear-to-b from-[#4a5568] to-[#2d3748] px-6 py-5">
         <div class="text-center">
@@ -173,7 +173,7 @@ function PwaSplash({ png, background, name }: { png: string; background: string;
     <Tile
       title="PWA splash"
       dimensions="512×512"
-      note="background_color, shown while an installed web app starts. icon-512.png is transparent, so this is the color behind it."
+      note="Splash background shown while an installed web app starts. The transparent icon-512.png appears on top of it."
     >
       <div
         class="flex flex-col items-center justify-center gap-3 rounded-lg py-8"

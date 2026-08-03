@@ -58,8 +58,8 @@ function toBase64(files: Map<string, Uint8Array>): Record<string, string> {
 /** Why the folder that is already there counts as a collision. */
 function describeTarget(found: TargetState): string {
   return found.kind === 'different-mark'
-    ? `It holds icons Manifesto generated from a different logo on ${found.sidecar.generatedAt.slice(0, 10)}.`
-    : "Manifesto didn't create it, so there's no way to know what's inside."
+    ? `Manifesto generated the icons in this folder from a different logo on ${found.sidecar.generatedAt.slice(0, 10)}.`
+    : 'Manifesto did not create this folder. Its contents are unknown.'
 }
 
 /**

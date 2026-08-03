@@ -148,14 +148,14 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
               <span class="mt-1.5 block text-[11px] text-muted">
                 {rejected
                   ? 'Manifesto needs an SVG. Export your logo as SVG and try again.'
-                  : `One SVG becomes ${ICON_FILENAMES.length} icon files, a web app manifest, and the ${HEAD_SNIPPET_TAG_COUNT} <head> tags that point at them.`}
+                  : `Creates ${ICON_FILENAMES.length} icon files, a web app manifest, and ${HEAD_SNIPPET_TAG_COUNT} tags for your site's <head>.`}
               </span>
             </p>
           )}
         </div>
 
         {loaded && (
-          <Caption class="mt-2.5 block text-dim">Drop another, or click to replace</Caption>
+          <Caption class="mt-2.5 block text-dim">Drop another SVG or click to replace</Caption>
         )}
       </div>
       <span id="source-file-status" class="sr-only" role="status" aria-live="polite">

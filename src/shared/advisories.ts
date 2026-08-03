@@ -29,56 +29,56 @@ function count(n: number, singular: string, plural = `${singular}s`): string {
 }
 
 export function describeAdvisory(advisory: Advisory): string {
-  const prefix = advisory.origin === 'dark' ? 'Dark Mark: ' : ''
+  const prefix = advisory.origin === 'dark' ? 'Dark-mode logo. ' : ''
 
   switch (advisory.kind) {
     case 'wordmark':
       return (
         prefix +
-        (`This logo is ${advisory.aspectRatio.toFixed(1)}:1 — far wider than it is tall. ` +
-          `Icons are square, so it has to shrink to fit and will be hard to read at 16px. ` +
-          `A monogram or symbol usually works better.`)
+        (`This logo is ${advisory.aspectRatio.toFixed(1)} times wider than it is tall. ` +
+          `It may be hard to read at 16 px after it is fitted into a square. ` +
+          `Use a monogram or symbol if one is available.`)
       )
 
     case 'text-elements':
       return (
         prefix +
-        (`This SVG contains live text (${count(advisory.count, 'element')}). ` +
-          `Text renders blank unless its font is embedded, so it will be missing from the ` +
-          `icons. Convert the text to outlines and export again.`)
+        (`This SVG contains ${count(advisory.count, 'element')} with live text. ` +
+          `The text may be missing if its font is not embedded. ` +
+          `Convert the text to outlines and export the SVG again.`)
       )
 
     case 'external-image':
       return (
         prefix +
-        (`${count(advisory.hrefs.length, 'linked image')} couldn't be read, so ` +
-          `${advisory.hrefs.length === 1 ? 'it was' : 'they were'} left out of the icons: ` +
-          `${advisory.hrefs.join(', ')}. Embed the artwork in the SVG if it's part of the logo.`)
+        (`Manifesto could not read ${count(advisory.hrefs.length, 'linked image')} ` +
+          `(${advisory.hrefs.join(', ')}). ` +
+          `${advisory.hrefs.length === 1 ? 'It was' : 'They were'} left out of the icons. ` +
+          `Embed the artwork in the SVG if it is part of the logo.`)
       )
 
     case 'active-content-removed':
       return (
         prefix +
-        (`Removed ${count(advisory.foreignObjects, 'embedded HTML block')} and ` +
+        (`Manifesto removed ${count(advisory.foreignObjects, 'embedded HTML block')} and ` +
           `${count(advisory.externalStyles, 'external style reference')} from the SVG before ` +
-          `rendering. They can run or load content when the SVG is opened in a browser. ` +
+          `rendering because they can load content in a browser. ` +
           `Export the artwork without embedded HTML or external CSS.`)
       )
 
     case 'scripts-removed':
       return (
         prefix +
-        (`Removed ${count(advisory.elements, 'script')} and ` +
+        (`Manifesto removed ${count(advisory.elements, 'script')} and ` +
           `${count(advisory.attributes, 'event handler')} from the SVG before rendering. ` +
-          `Icons shouldn't run code. Your original file wasn't changed.`)
+          `Your original file was not changed.`)
       )
 
     case 'svgo-pixel-drift':
       return (
         prefix +
-        (`Optimizing changed ${advisory.percent.toFixed(2)}% of the artwork's pixels, so the ` +
-          `icons may not match your original exactly. Compare them, and turn off ` +
-          `optimization if anything looks wrong.`)
+        (`Optimization changed ${advisory.percent.toFixed(2)}% of the artwork's pixels. ` +
+          `Compare the previews and turn off optimization if anything looks wrong.`)
       )
 
     default: {

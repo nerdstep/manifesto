@@ -24,24 +24,24 @@ import type { Hex, Settings } from '../pipeline/index.ts'
 import { describeAdvisory } from '../shared/advisories.ts'
 
 const USAGE = `
-manifesto — drop an SVG, get every icon asset a website needs
+manifesto
+Generate website icons from one SVG.
 
   bun run cli <mark.svg> [outDir] [options]
 
 Options
   --dark <file.svg>     Dark Mark, used on dark backgrounds and in favicon.svg
-  --name <string>       Manifest name              (default: inferred)
-  --short <string>      Manifest short_name        (default: inferred, or --name)
-  --theme <#rrggbb>     theme_color                (default: inferred)
-  --bg <#rrggbb>        Icon Background            (default: inferred)
-  --splash <#rrggbb>    Manifest background_color  (default: same as --bg)
+  --name <string>       Manifest name              (inferred by default)
+  --short <string>      Manifest short_name        (inferred or uses --name)
+  --theme <#rrggbb>     theme_color                (inferred by default)
+  --bg <#rrggbb>        Icon Background            (inferred by default)
+  --splash <#rrggbb>    Manifest background_color  (uses --bg by default)
   --no-optimize         Skip SVGO
   --force               Replace existing Bundle files in the output directory
   --snippet             Print the <head> snippet and exit
   -h, --help
 
-Every default is what the app's panel would open with, so the CLI and a drop produce
-the same Asset Bundle from the same mark.
+The CLI uses the same defaults as the app and produces the same files.
 `.trim()
 
 /** Parse `--flag value` pairs and positional arguments. */
@@ -180,7 +180,7 @@ export async function main(argv: string[]): Promise<number> {
   console.log(`  ${SIDECAR_FILENAME.padEnd(24)} recorded settings`)
 
   const missing = authoredFiles.filter((f) => !written.written.includes(f))
-  if (missing.length > 0) console.error(`\n! did not produce: ${missing.join(', ')}`)
+  if (missing.length > 0) console.error(`\n! Missing files\n  ${missing.join(', ')}`)
 
   console.log(`\nWrote ${written.written.length} files to ${outDir}`)
 
@@ -195,7 +195,7 @@ export async function main(argv: string[]): Promise<number> {
     console.log(`\n! ${describeAdvisory(advisory)}`)
   }
 
-  console.log(`\nPaste into <head>:\n\n${HEAD_SNIPPET}\n`)
+  console.log(`\nPaste this into <head>\n\n${HEAD_SNIPPET}\n`)
   return 0
 }
 

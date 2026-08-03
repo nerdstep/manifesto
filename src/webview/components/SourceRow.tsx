@@ -55,12 +55,12 @@ export function SourceRow({
             <span class="text-ok">✓ No visible change</span>
           ) : (
             <span class="text-amber">
-              ⚠ Changed {drift.percent.toFixed(2)}% of pixels — compare the previews
+              ⚠ Optimization changed {drift.percent.toFixed(2)}% of pixels. Compare the previews.
             </span>
           )}
         </>
       ) : (
-        <span class="font-mono text-muted">{formatBytes(originalBytes)} — not optimized</span>
+        <span class="font-mono text-muted">{formatBytes(originalBytes)}, not optimized</span>
       )}
 
       <label class="ml-auto flex shrink-0 cursor-pointer items-center gap-2">

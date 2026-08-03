@@ -73,9 +73,8 @@ export function Terminal({
             ))}
           </ul>
           <p class="mt-2.5 text-[11px] text-dim">
-            <span class="text-muted">{SIDECAR_FILENAME}</span> is written alongside these. It
-            records the settings used, so re-dropping the same logo restores them. Deleting it is
-            safe.
+            <span class="text-muted">{SIDECAR_FILENAME}</span> saves these settings for the next
+            time you use this logo. You can delete it.
           </p>
         </div>
       )}
@@ -106,8 +105,8 @@ function Result({
   // have the same two ways out.
   return bundle.writtenTo === null ? (
     <span class="text-bad">
-      ✗ nothing saved — <span class="text-ink">{bundle.bundleName}</span> already holds files
-      Manifesto did not write. Rename it above, or choose another folder.
+      ✗ Nothing saved. <span class="text-ink">{bundle.bundleName}</span> already contains files
+      Manifesto did not create. Rename the folder or choose another output folder.
     </span>
   ) : (
     <span class="text-ok">✓ {count} files written</span>

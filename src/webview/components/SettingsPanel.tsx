@@ -85,10 +85,7 @@ export function SettingsPanel({
         render cache keys on them. If a field ever moves between these two groups, it has
         to move in `types.ts` first.
       */}
-      <Group
-        title="Affects the icons"
-        note={`Changing either of these redraws all ${ICON_FILENAMES.length} image files.`}
-      >
+      <Group title="Icon files" note={`These settings redraw all ${ICON_FILENAMES.length} icons.`}>
         <ColorField
           label="Icon background"
           value={settings.iconBackground}
@@ -106,8 +103,8 @@ export function SettingsPanel({
 
       {/* Exactly the fields in `ManifestSettings`. None of these touch a pixel. */}
       <Group
-        title="Affects site.webmanifest only"
-        note="Text and colors browsers read when your site is installed or pinned. None of them appear inside an icon — the previews show where each one lands."
+        title="Web app manifest"
+        note="Browsers use these values when your site is installed or pinned. They do not change the icon files."
       >
         <Field label="Name">
           <Input
@@ -151,7 +148,7 @@ export function SettingsPanel({
         <CommittedField
           label="Folder"
           value={bundleName}
-          hint="Folder name inside your output folder. Applies when you click away, and never changes on its own when you edit Name."
+          hint="Name of the folder inside your output folder. Saved when you leave this field. It does not follow Name."
           onCommit={onRename}
         />
       </Group>

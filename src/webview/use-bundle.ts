@@ -48,7 +48,7 @@ function describeRpcFailure(error: unknown): string {
   if (error instanceof Error && /timed out/iu.test(error.message)) {
     return 'Manifesto took too long to finish. Check the output folder and try again.'
   }
-  return 'Manifesto could not finish writing the Asset Bundle. Check the output folder and try again.'
+  return 'Manifesto could not finish writing the icon files. Check the output folder and try again.'
 }
 
 export function useBundle() {
