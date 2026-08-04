@@ -20,6 +20,7 @@
     "icons": "bun run scripts/generate-app-icons.ts",
     "lint": "oxlint",
     "lint:types": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
