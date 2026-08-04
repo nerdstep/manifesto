@@ -53,6 +53,16 @@ bun run dev
 | `bun run check` | Runs formatting, linting, type checking, and tests |
 | `bun run check:package` | Inspects the packaged payload after `dist` |
 
+## Releases
+
+Commits on `main` use the Conventional Commits format. Release Please maintains a release
+pull request containing the next version and changelog. Merging that pull request creates a
+draft GitHub release, builds and checks the Windows installer, attaches the files from
+`artifacts/`, and publishes the release. The initial release is `0.1.0`.
+
+Use `feat:` for user-facing additions and `fix:` for corrections. Other commit types do not
+normally cause a version release by themselves.
+
 ## CLI
 
 The CLI runs the same pipeline without opening the app. It uses the same defaults as the
