@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useState } from 'preact/hooks'
 
-import { DropZone } from './components/DropZone.tsx'
-import { HeadSnippet } from './components/HeadSnippet.tsx'
-import { PipelineStrip } from './components/PipelineStrip.tsx'
-import { InContext } from './components/Results.tsx'
-import { SettingsPanel } from './components/SettingsPanel.tsx'
-import { SourceRow } from './components/SourceRow.tsx'
-import { Terminal } from './components/Terminal.tsx'
+import {
+  DropZone,
+  HeadSnippet,
+  InContext,
+  PipelineStrip,
+  SettingsPanel,
+  SourceRow,
+  Terminal,
+  WindowChrome,
+} from './components/index.ts'
 import { bun } from './rpc.ts'
 import { useBundle } from './use-bundle.ts'
 
@@ -51,56 +54,7 @@ export function App() {
 
   return (
     <div class="flex h-screen min-h-0 flex-col overflow-hidden">
-      <header
-        class="electrobun-webkit-app-region-drag relative z-10 h-9 shrink-0 border-b border-line bg-bg select-none"
-        onDblClick={() => {
-          bun().send.toggleMaximizeWindow()
-        }}
-      >
-        <div class="flex h-full items-center gap-2 px-3 pr-36">
-          <img aria-hidden="true" class="size-4 shrink-0" src="views://mainview/app-icon.png" />
-          <span class="text-sm font-semibold text-muted">Manifesto</span>
-        </div>
-
-        <div class="electrobun-webkit-app-region-no-drag absolute top-0 right-0 flex h-full">
-          <button
-            aria-label="Minimize window"
-            class="flex w-11 items-center justify-center text-muted transition-colors hover:bg-raised hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cyan active:bg-line"
-            onClick={() => {
-              bun().send.minimizeWindow()
-            }}
-            type="button"
-          >
-            <svg aria-hidden="true" class="size-3" viewBox="0 0 12 12">
-              <path d="M2 8.5h8" fill="none" stroke="currentColor" />
-            </svg>
-          </button>
-          <button
-            aria-label="Maximize window"
-            class="flex w-11 items-center justify-center text-muted transition-colors hover:bg-raised hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cyan active:bg-line"
-            onClick={() => {
-              bun().send.toggleMaximizeWindow()
-            }}
-            type="button"
-          >
-            <svg aria-hidden="true" class="size-3" viewBox="0 0 12 12">
-              <rect x="2.25" y="2.25" width="7.5" height="7.5" fill="none" stroke="currentColor" />
-            </svg>
-          </button>
-          <button
-            aria-label="Close window"
-            class="flex w-11 items-center justify-center text-muted transition-colors hover:bg-bad hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cyan active:bg-bad/80"
-            onClick={() => {
-              bun().send.closeWindow()
-            }}
-            type="button"
-          >
-            <svg aria-hidden="true" class="size-3" viewBox="0 0 12 12">
-              <path d="m2.25 2.25 7.5 7.5m0-7.5-7.5 7.5" fill="none" stroke="currentColor" />
-            </svg>
-          </button>
-        </div>
-      </header>
+      <WindowChrome />
 
       <div class="app-viewport min-h-0 flex-1 overflow-y-auto">
         <main class="mx-auto max-w-6xl p-7">

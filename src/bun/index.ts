@@ -5,7 +5,7 @@ import { BrowserView, BrowserWindow, Utils } from 'electrobun/bun'
 import { firstExisting, readWasmBytes } from '../host/wasm.ts'
 import { createPipeline } from '../pipeline/index.ts'
 import type { Pipeline } from '../pipeline/index.ts'
-import type { ManifestoRPC } from '../shared/rpc.ts'
+import { desktopPlatform, supportsCustomWindowChrome, type ManifestoRPC } from '../shared/index.ts'
 import { loadState, saveState, stateFilePath, windowFrame } from './app-state.ts'
 import type { AppState } from './app-state.ts'
 import { chooseOutputRoot, chooseSvg, resolveCollision } from './dialogs.ts'
@@ -120,11 +120,12 @@ const rpc = BrowserView.defineRPC<ManifestoRPC>({
 // --- window ----------------------------------------------------------------
 
 const frame = windowFrame(display)
+const platform = desktopPlatform(process.platform)
 
 export const mainWindow = new BrowserWindow({
   title: 'Manifesto',
   url: 'views://mainview/index.html',
   frame,
   rpc,
-  titleBarStyle: 'hidden',
+  titleBarStyle: supportsCustomWindowChrome(platform) ? 'hidden' : 'default',
 })
