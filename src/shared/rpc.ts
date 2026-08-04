@@ -52,6 +52,9 @@ export type ManifestoRPC = {
     }
     messages: {
       log: { level: 'info' | 'error'; message: string }
+      minimizeWindow: void
+      toggleMaximizeWindow: void
+      closeWindow: void
     }
   }>
   webview: RPCSchema<{

@@ -71,10 +71,20 @@
     color-scheme: dark;
   }
 
-  /* Styled scrollbars remain visible in WebView2. */
-  html {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  html,
+  body {
+    overflow: hidden;
+  }
+
+  /* Keep the content width stable when its viewport gains a scrollbar. */
+  .app-viewport {
     scrollbar-gutter: stable;
-    overflow-y: auto;
   }
 
   ::-webkit-scrollbar {

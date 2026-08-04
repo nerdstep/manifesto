@@ -100,6 +100,19 @@ const rpc = BrowserView.defineRPC<ManifestoRPC>({
       log: ({ level, message }) => {
         console[level === 'error' ? 'error' : 'log'](`[webview] ${message}`)
       },
+
+      minimizeWindow: () => {
+        mainWindow.minimize()
+      },
+
+      toggleMaximizeWindow: () => {
+        if (mainWindow.isMaximized()) mainWindow.unmaximize()
+        else mainWindow.maximize()
+      },
+
+      closeWindow: () => {
+        mainWindow.close()
+      },
     },
   },
 })
@@ -113,4 +126,5 @@ export const mainWindow = new BrowserWindow({
   url: 'views://mainview/index.html',
   frame,
   rpc,
+  titleBarStyle: 'hidden',
 })
