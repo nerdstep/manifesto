@@ -2,7 +2,9 @@ import type { Advisory } from '../../pipeline/index.ts'
 import { describeAdvisory } from '../../shared/advisories.ts'
 
 export function Advisories({ advisories }: { advisories: Advisory[] }) {
-  if (advisories.length === 0) return null
+  if (advisories.length === 0) {
+    return null
+  }
 
   return (
     <section class="mt-5 space-y-2" aria-label="Things worth checking">

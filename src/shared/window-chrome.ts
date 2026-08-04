@@ -9,7 +9,9 @@ export type CustomChromePlatform = (typeof CUSTOM_CHROME_PLATFORMS)[number]
 export function desktopPlatform(value: string): DesktopPlatform {
   const normalized = value.toLowerCase()
 
-  if (normalized === 'win32' || normalized.includes('windows')) return 'windows'
+  if (normalized === 'win32' || normalized.includes('windows')) {
+    return 'windows'
+  }
   if (
     normalized === 'darwin' ||
     normalized.includes('macintosh') ||

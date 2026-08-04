@@ -12,6 +12,8 @@ const electroview = new Electroview({
 
 export function bun() {
   const rpc = electroview.rpc
-  if (rpc === undefined) throw new Error('RPC is not connected')
+  if (rpc === undefined) {
+    throw new Error('RPC is not connected')
+  }
   return rpc
 }

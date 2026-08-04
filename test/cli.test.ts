@@ -11,7 +11,9 @@ import { fixture } from './helpers.ts'
 const roots: string[] = []
 
 afterEach(() => {
-  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true })
+  for (const root of roots.splice(0)) {
+    rmSync(root, { recursive: true, force: true })
+  }
 })
 
 function scenario() {
@@ -31,7 +33,9 @@ async function expectFailure(action: () => Promise<unknown>, message: string): P
     error = caught
   }
   expect(error).toBeInstanceOf(Error)
-  if (error instanceof Error) expect(error.message).toContain(message)
+  if (error instanceof Error) {
+    expect(error.message).toContain(message)
+  }
 }
 
 describe('CLI Bundle writing', () => {

@@ -76,11 +76,21 @@ function Result({
   pending: boolean
   bundle: BundleWire | null
 }) {
-  if (status.kind === 'idle') return <span class="text-dim">waiting for a logo</span>
-  if (status.kind === 'working') return <span class="text-cyan">rendering…</span>
-  if (status.kind === 'failed') return <span class="text-bad">✗ {status.error}</span>
-  if (pending) return <span class="text-cyan">saving…</span>
-  if (bundle === null) return null
+  if (status.kind === 'idle') {
+    return <span class="text-dim">waiting for a logo</span>
+  }
+  if (status.kind === 'working') {
+    return <span class="text-cyan">rendering…</span>
+  }
+  if (status.kind === 'failed') {
+    return <span class="text-bad">✗ {status.error}</span>
+  }
+  if (pending) {
+    return <span class="text-cyan">saving…</span>
+  }
+  if (bundle === null) {
+    return null
+  }
 
   const count = Object.keys(bundle.files).length
 

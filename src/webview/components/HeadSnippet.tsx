@@ -11,7 +11,9 @@ export function HeadSnippet() {
 
   useEffect(
     () => () => {
-      if (resetTimer.current !== null) clearTimeout(resetTimer.current)
+      if (resetTimer.current !== null) {
+        clearTimeout(resetTimer.current)
+      }
     },
     [],
   )
@@ -19,7 +21,9 @@ export function HeadSnippet() {
   async function copy() {
     await bun().request.copyToClipboard({ text: HEAD_SNIPPET })
     setCopied(true)
-    if (resetTimer.current !== null) clearTimeout(resetTimer.current)
+    if (resetTimer.current !== null) {
+      clearTimeout(resetTimer.current)
+    }
     resetTimer.current = setTimeout(() => {
       setCopied(false)
       resetTimer.current = null

@@ -42,14 +42,18 @@ export function App() {
     const previous = outputRoot
     const { path } = await bun().request.chooseOutputRoot()
     setOutputRoot(path)
-    if (path !== previous) regenerate('root-change')
+    if (path !== previous) {
+      regenerate('root-change')
+    }
   }, [outputRoot, regenerate])
 
   const bundle = status.kind === 'done' ? status.bundle : null
   const written = bundle === null ? null : bundle.writtenTo
 
   const reveal = useCallback(async () => {
-    if (written !== null) await bun().request.revealInFolder({ path: written })
+    if (written !== null) {
+      await bun().request.revealInFolder({ path: written })
+    }
   }, [written])
 
   return (

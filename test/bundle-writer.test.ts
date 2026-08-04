@@ -159,7 +159,9 @@ describe('writeBundle', () => {
       renameSync(source, target) {
         if (String(source).includes('manifesto-stage') && String(target).startsWith(dir)) {
           installed += 1
-          if (installed === 2) throw new Error('simulated commit failure')
+          if (installed === 2) {
+            throw new Error('simulated commit failure')
+          }
         }
         renameSync(source, target)
       },
@@ -193,7 +195,9 @@ describe('writeBundle', () => {
       renameSync,
       writeFileSync(path, bytes) {
         staged += 1
-        if (staged === 2) throw new Error('simulated staging failure')
+        if (staged === 2) {
+          throw new Error('simulated staging failure')
+        }
         writeFileSync(path, bytes)
       },
     }

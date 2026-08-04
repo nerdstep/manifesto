@@ -18,7 +18,9 @@ export function markFor(
   dark: NormalizedMark | null,
   background: Hex | null,
 ): NormalizedMark {
-  if (dark === null || background === null) return source
+  if (dark === null || background === null) {
+    return source
+  }
   return isDark(background) ? dark : source
 }
 

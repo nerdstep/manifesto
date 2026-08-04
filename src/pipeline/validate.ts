@@ -39,11 +39,17 @@ function localName(name: string): string {
 function inspect(element: XastElement, into: Findings): void {
   const name = localName(element.name)
 
-  if (TEXT_ELEMENTS.has(name)) into.textElements += 1
-  if (name === 'script') into.scriptElements += 1
+  if (TEXT_ELEMENTS.has(name)) {
+    into.textElements += 1
+  }
+  if (name === 'script') {
+    into.scriptElements += 1
+  }
 
   for (const attribute of Object.keys(element.attributes)) {
-    if (EVENT_ATTRIBUTES.has(localName(attribute))) into.eventAttributes += 1
+    if (EVENT_ATTRIBUTES.has(localName(attribute))) {
+      into.eventAttributes += 1
+    }
   }
 
   if (name === 'image') {
@@ -84,7 +90,9 @@ function sanitizeCss(css: string): { css: string; changed: boolean } {
     /url\(\s*(["']?)([^)]*?)\1\s*\)/giu,
     (match: string, _quote: string, href: string) => {
       const reference = href.trim()
-      if (reference.startsWith('#') || reference.toLowerCase().startsWith('data:')) return match
+      if (reference.startsWith('#') || reference.toLowerCase().startsWith('data:')) {
+        return match
+      }
       changed = true
       return 'none'
     },
@@ -113,14 +121,18 @@ function removeActiveContent(into: Findings): CustomPlugin {
             }
           }
 
-          if (localName(node.name) !== 'style') return
+          if (localName(node.name) !== 'style') {
+            return
+          }
 
           const css = node.children
             .filter((child) => child.type === 'text' || child.type === 'cdata')
             .map((child) => child.value)
             .join('')
           const safe = sanitizeCss(css)
-          if (!safe.changed) return
+          if (!safe.changed) {
+            return
+          }
 
           into.externalStyles += 1
           node.children = [{ type: 'text', value: safe.css }]

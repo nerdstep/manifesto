@@ -17,6 +17,8 @@
   },
 
   "rules": {
+    "curly": ["error", "all"],
+
     // ON, deliberately. `!` asserts something the compiler cannot check, which
     // is the exact thing `noUncheckedIndexedAccess` exists to prevent — using
     // one to silence the other cancels out the setting.

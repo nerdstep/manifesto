@@ -76,7 +76,9 @@ const CHROME_BY_PLATFORM: Record<CustomChromePlatform, ComponentType> = {
 export function WindowChrome({
   platform = desktopPlatform(globalThis.navigator?.userAgent ?? ''),
 }: WindowChromeProps) {
-  if (!supportsCustomWindowChrome(platform)) return null
+  if (!supportsCustomWindowChrome(platform)) {
+    return null
+  }
 
   const Chrome = CHROME_BY_PLATFORM[platform]
   return <Chrome />

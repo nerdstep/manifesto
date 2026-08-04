@@ -37,7 +37,9 @@ for (const size of [16, 20, 24, 32, 40, 48, 64, 128, 256, 512, 1024]) {
 
 function png(size: number): Uint8Array {
   const bytes = pngs.get(size)
-  if (bytes === undefined) throw new Error(`App icon size ${size} was not rendered`)
+  if (bytes === undefined) {
+    throw new Error(`App icon size ${size} was not rendered`)
+  }
   return bytes
 }
 

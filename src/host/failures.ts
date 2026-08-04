@@ -46,7 +46,9 @@ export function describeFailure(error: unknown): string {
 }
 
 export function failureDetail(error: unknown): string {
-  if (!(error instanceof Error)) return String(error)
+  if (!(error instanceof Error)) {
+    return String(error)
+  }
   const cause =
     error.cause instanceof Error ? `; cause: ${error.cause.name}: ${error.cause.message}` : ''
   return `${error.name}: ${error.message}${cause}`

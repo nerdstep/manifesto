@@ -14,7 +14,9 @@ const LIGHT_PREFIX = 'lm'
 const DARK_PREFIX = 'dm'
 
 export function packIco(pngs: Uint8Array[]): Uint8Array {
-  if (pngs.length === 0) throw new Error('packIco() needs at least one image')
+  if (pngs.length === 0) {
+    throw new Error('packIco() needs at least one image')
+  }
   return new Uint8Array(icoEndec.encode(pngs.map((png) => Buffer.from(png))))
 }
 
@@ -27,7 +29,9 @@ function namespaceIds(svg: string, prefix: string): string {
 }
 
 export function buildFaviconSvg(source: NormalizedMark, dark: NormalizedMark | null): string {
-  if (dark === null) return canvas(composeInner(source, FAVICON_SVG_TREATMENT), null)
+  if (dark === null) {
+    return canvas(composeInner(source, FAVICON_SVG_TREATMENT), null)
+  }
 
   const light = namespaceIds(composeInner(source, FAVICON_SVG_TREATMENT), LIGHT_PREFIX)
   const night = namespaceIds(composeInner(dark, FAVICON_SVG_TREATMENT), DARK_PREFIX)

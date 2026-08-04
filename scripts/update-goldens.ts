@@ -23,10 +23,16 @@ const changed = Object.keys(next).filter((k) => k in previous && previous[k] !==
 writeFileSync(GOLDEN_FILE, `${JSON.stringify(next, null, 2)}\n`)
 
 console.log(`Wrote ${Object.keys(next).length} goldens.`)
-if (added.length > 0) console.log(`  added:   ${added.length}`)
-if (removed.length > 0) console.log(`  removed: ${removed.length}`)
+if (added.length > 0) {
+  console.log(`  added:   ${added.length}`)
+}
+if (removed.length > 0) {
+  console.log(`  removed: ${removed.length}`)
+}
 if (changed.length > 0) {
   console.log(`  CHANGED: ${changed.length}`)
-  for (const key of changed) console.log(`    ${key}`)
+  for (const key of changed) {
+    console.log(`    ${key}`)
+  }
   console.log('\nEvery line above is a pixel change. Make sure you meant it.')
 }

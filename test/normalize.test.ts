@@ -48,7 +48,9 @@ describe('measureMark — painted extents', () => {
       expect((measured?.extent.w ?? 0) / (measured?.extent.h ?? 1)).toBeCloseTo(1, 2)
       // The four sharing a 1000x1000 canvas must agree exactly. They differ only in
       // invisible geometry that alpha measurement ignores.
-      if (name !== 'square-tight') expect(measured?.extent).toEqual(reference?.extent)
+      if (name !== 'square-tight') {
+        expect(measured?.extent).toEqual(reference?.extent)
+      }
     }
   })
 

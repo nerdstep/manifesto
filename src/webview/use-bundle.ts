@@ -60,14 +60,18 @@ export function useBundle() {
           revision: mine,
         })
       } catch (error) {
-        if (mine !== ticket.current) return
+        if (mine !== ticket.current) {
+          return
+        }
         setPending(false)
         setStatus({ kind: 'failed', error: describeRpcFailure(error) })
         return
       }
 
       // Ignore responses for older revisions.
-      if (mine !== ticket.current) return
+      if (mine !== ticket.current) {
+        return
+      }
 
       setPending(false)
 
@@ -81,7 +85,9 @@ export function useBundle() {
       // Follow a folder name selected by the collision dialog.
       if (result.bundle.bundleName !== current.current?.bundleName) {
         const latest = current.current
-        if (latest !== null) commit({ ...latest, bundleName: result.bundle.bundleName })
+        if (latest !== null) {
+          commit({ ...latest, bundleName: result.bundle.bundleName })
+        }
       }
     },
     [commit],
@@ -124,13 +130,17 @@ export function useBundle() {
           revision: mine,
         })
       } catch (error) {
-        if (mine !== ticket.current) return
+        if (mine !== ticket.current) {
+          return
+        }
         setPending(false)
         setStatus({ kind: 'failed', error: describeRpcFailure(error) })
         return
       }
 
-      if (mine !== ticket.current) return
+      if (mine !== ticket.current) {
+        return
+      }
       setPending(false)
 
       if (!result.ok) {
@@ -171,18 +181,24 @@ export function useBundle() {
 
   const open = useCallback(async () => {
     const picked = await bun().request.chooseSvg()
-    if (picked === null) return
+    if (picked === null) {
+      return
+    }
     await begin(picked.svg, picked.filename)
   }, [begin])
 
   const patch = useCallback(
     (change: Partial<Settings>) => {
       const latest = current.current
-      if (latest === null) return
+      if (latest === null) {
+        return
+      }
 
       // Color inputs can fire twice for one value. Skip identical settings.
       const settings = { ...latest.settings, ...change }
-      if (isEqual(settings, latest.settings)) return
+      if (isEqual(settings, latest.settings)) {
+        return
+      }
 
       schedule({ ...latest, settings }, 'edit')
     },
@@ -192,7 +208,9 @@ export function useBundle() {
   const rename = useCallback(
     (bundleName: string) => {
       const latest = current.current
-      if (latest === null || bundleName === latest.bundleName || bundleName.length === 0) return
+      if (latest === null || bundleName === latest.bundleName || bundleName.length === 0) {
+        return
+      }
       now({ ...latest, bundleName }, 'rename')
     },
     [now],
@@ -201,7 +219,9 @@ export function useBundle() {
   const setDarkMark = useCallback(
     (darkSvg: string, darkFilename: string) => {
       const latest = current.current
-      if (latest === null) return
+      if (latest === null) {
+        return
+      }
       now({ ...latest, darkSvg, darkFilename }, 'edit')
     },
     [now],
@@ -216,20 +236,26 @@ export function useBundle() {
 
   const chooseDarkMark = useCallback(async () => {
     const picked = await bun().request.chooseSvg()
-    if (picked === null) return
+    if (picked === null) {
+      return
+    }
     setDarkMark(picked.svg, picked.filename)
   }, [setDarkMark])
 
   const clearDarkMark = useCallback(() => {
     const latest = current.current
-    if (latest === null || latest.darkSvg === null) return
+    if (latest === null || latest.darkSvg === null) {
+      return
+    }
     now({ ...latest, darkSvg: null, darkFilename: null }, 'edit')
   }, [now])
 
   const regenerate = useCallback(
     (trigger: GenerateTrigger = 'edit') => {
       const latest = current.current
-      if (latest === null) return
+      if (latest === null) {
+        return
+      }
       now(latest, trigger)
     },
     [now],

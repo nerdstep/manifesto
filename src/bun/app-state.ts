@@ -49,11 +49,15 @@ export function windowFrame(display: {
 /** Treat missing, corrupt, or outdated state as a first launch. */
 export function loadState(path: string, defaultOutputRoot: string): AppState {
   const fallback: AppState = { outputRoot: defaultOutputRoot }
-  if (!existsSync(path)) return fallback
+  if (!existsSync(path)) {
+    return fallback
+  }
 
   try {
     const parsed: unknown = JSON.parse(readFileSync(path, 'utf8'))
-    if (!isPlainObject(parsed)) return fallback
+    if (!isPlainObject(parsed)) {
+      return fallback
+    }
 
     const stored: unknown = parsed.outputRoot
     return {

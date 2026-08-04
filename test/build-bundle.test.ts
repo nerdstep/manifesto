@@ -15,7 +15,9 @@ beforeAll(async () => {
 
 /** PNG magic bytes, so "did it produce a real image" is actually checked. */
 function isPng(bytes: Uint8Array | undefined): boolean {
-  if (bytes === undefined || bytes.length < 8) return false
+  if (bytes === undefined || bytes.length < 8) {
+    return false
+  }
   return bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47
 }
 

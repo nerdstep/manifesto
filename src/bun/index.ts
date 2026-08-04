@@ -106,8 +106,11 @@ const rpc = BrowserView.defineRPC<ManifestoRPC>({
       },
 
       toggleMaximizeWindow: () => {
-        if (mainWindow.isMaximized()) mainWindow.unmaximize()
-        else mainWindow.maximize()
+        if (mainWindow.isMaximized()) {
+          mainWindow.unmaximize()
+        } else {
+          mainWindow.maximize()
+        }
       },
 
       closeWindow: () => {

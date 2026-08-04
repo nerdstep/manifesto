@@ -149,7 +149,9 @@ export function PipelineStrip({ state, bundle }: Props) {
       timers.current.push(
         setTimeout(() => {
           sequenceComplete.current = true
-          if (actualDone.current) setActiveStage(null)
+          if (actualDone.current) {
+            setActiveStage(null)
+          }
         }, STAGES.length * STAGE_DURATION_MS),
       )
       return
@@ -157,7 +159,9 @@ export function PipelineStrip({ state, bundle }: Props) {
 
     if (state === 'done') {
       actualDone.current = true
-      if (sequenceComplete.current) setActiveStage(null)
+      if (sequenceComplete.current) {
+        setActiveStage(null)
+      }
       return
     }
 
@@ -175,8 +179,11 @@ export function PipelineStrip({ state, bundle }: Props) {
 
   const shownActiveStage = activeStage ?? (state === 'working' ? 0 : null)
   let progress = 0
-  if (shownActiveStage !== null) progress = (shownActiveStage + 1) / STAGES.length
-  else if (state === 'done') progress = 1
+  if (shownActiveStage !== null) {
+    progress = (shownActiveStage + 1) / STAGES.length
+  } else if (state === 'done') {
+    progress = 1
+  }
 
   return (
     <section

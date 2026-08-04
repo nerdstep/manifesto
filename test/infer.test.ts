@@ -87,7 +87,9 @@ describe('inferColors', () => {
       let total = 0
       let counted = 0
       for (let i = 0; i + 3 < probe.pixels.length; i += 4) {
-        if ((probe.pixels[i + 3] ?? 0) < 255) continue
+        if ((probe.pixels[i + 3] ?? 0) < 255) {
+          continue
+        }
         total += luminanceOf(
           probe.pixels[i] ?? 0,
           probe.pixels[i + 1] ?? 0,

@@ -151,7 +151,9 @@ describe('buildFaviconSvg — dual embed', () => {
     // Every rewritten reference must resolve to an existing id.
     const refs = [...dual.matchAll(/url\(#([^)]+)\)/gu)].map((m) => m[1])
     expect(refs).toHaveLength(2)
-    for (const ref of refs) expect(ids).toContain(ref)
+    for (const ref of refs) {
+      expect(ids).toContain(ref)
+    }
   })
 
   test('namespaces class names too', () => {

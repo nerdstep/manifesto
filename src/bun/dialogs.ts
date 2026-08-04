@@ -19,7 +19,9 @@ export async function chooseSvg(startingFolder: string): Promise<ChosenSvg | nul
   })
 
   const path = picked[0]
-  if (path === undefined || path.length === 0) return null
+  if (path === undefined || path.length === 0) {
+    return null
+  }
 
   try {
     return { svg: readFileSync(path, 'utf8'), filename: basename(path) }
@@ -58,7 +60,11 @@ export async function resolveCollision(
     cancelId: 2,
   })
 
-  if (response === 0) return keepBoth
-  if (response === 1) return bundleName
+  if (response === 0) {
+    return keepBoth
+  }
+  if (response === 1) {
+    return bundleName
+  }
   return null
 }

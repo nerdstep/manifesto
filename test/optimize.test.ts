@@ -47,7 +47,9 @@ describe('optimize — guards against icon-hostile plugins', () => {
   test('every fixture keeps its viewBox through optimization', () => {
     for (const name of FIXTURES) {
       const source = fixture(name)
-      if (!/viewBox\s*=/u.test(source.replaceAll(/<!--[\s\S]*?-->/gu, ''))) continue
+      if (!/viewBox\s*=/u.test(source.replaceAll(/<!--[\s\S]*?-->/gu, ''))) {
+        continue
+      }
       expect(optimize(source, true).svg).toContain('viewBox')
     }
   })

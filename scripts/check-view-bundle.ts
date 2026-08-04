@@ -72,7 +72,9 @@ if (existsSync(html)) {
 
 if (problems.length > 0) {
   console.error(`View bundle FAILED (${sizeKb} kB):`)
-  for (const problem of problems) console.error(`  - ${problem}`)
+  for (const problem of problems) {
+    console.error(`  - ${problem}`)
+  }
   process.exit(1)
 }
 

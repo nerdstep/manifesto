@@ -92,7 +92,9 @@ export function createGenerate(deps: GenerateDeps) {
     // The manifest name never renames the output folder.
     const requested = bundleName ?? slugify(filename)
     const requestedProblem = bundleNameProblem(requested)
-    if (requestedProblem !== null) return { ok: false, error: requestedProblem }
+    if (requestedProblem !== null) {
+      return { ok: false, error: requestedProblem }
+    }
 
     let found: TargetState
     try {
@@ -133,11 +135,15 @@ export function createGenerate(deps: GenerateDeps) {
       return { ok: false, error: explain(error) }
     }
 
-    if (finalName === null) return { ok: true, bundle: wire(null, requested) }
+    if (finalName === null) {
+      return { ok: true, bundle: wire(null, requested) }
+    }
 
     // Validate names returned by any collision resolver.
     const finalNameProblem = bundleNameProblem(finalName)
-    if (finalNameProblem !== null) return { ok: false, error: finalNameProblem }
+    if (finalNameProblem !== null) {
+      return { ok: false, error: finalNameProblem }
+    }
 
     const target = join(root, finalName)
     try {
@@ -167,7 +173,9 @@ export function createGenerate(deps: GenerateDeps) {
 
   /** Serialize writes and keep only the newest queued request. */
   async function drain(): Promise<void> {
-    if (running) return
+    if (running) {
+      return
+    }
     running = true
 
     while (pending !== null) {

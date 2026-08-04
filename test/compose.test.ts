@@ -13,7 +13,9 @@ beforeAll(async () => {
 })
 
 const maskableSpec = PNG_RENDITIONS.find((r) => r.filename === 'icon-maskable-512.png')
-if (maskableSpec === undefined) throw new Error('icon-maskable-512.png is missing')
+if (maskableSpec === undefined) {
+  throw new Error('icon-maskable-512.png is missing')
+}
 const maskable: Treatment = maskableSpec.treatment
 
 const box = (inset: number): Treatment => ({
@@ -26,7 +28,9 @@ const box = (inset: number): Treatment => ({
 const cache = new Map<FixtureName, NormalizedMark>()
 function mark(name: FixtureName) {
   const existing = cache.get(name)
-  if (existing !== undefined) return existing
+  if (existing !== undefined) {
+    return existing
+  }
   const created = pipeline.normalize(fixture(name))
   cache.set(name, created)
   return created
@@ -149,12 +153,18 @@ describe('compose — Safe Zone', () => {
           (image.pixels[i] ?? 0) > 250 &&
           (image.pixels[i + 1] ?? 0) > 250 &&
           (image.pixels[i + 2] ?? 0) > 250
-        if (isBackdrop) continue
+        if (isBackdrop) {
+          continue
+        }
 
         painted += 1
         const radius = Math.hypot(x + 0.5 - centre, y + 0.5 - centre)
-        if (radius > safeRadius) outside += 1
-        if (radius > maxRadius) maxRadius = radius
+        if (radius > safeRadius) {
+          outside += 1
+        }
+        if (radius > maxRadius) {
+          maxRadius = radius
+        }
       }
     }
 

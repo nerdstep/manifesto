@@ -100,7 +100,9 @@ function renderRenditions(
   const files = new Map<string, Uint8Array>()
 
   for (const { filename, treatment } of PNG_RENDITIONS) {
-    if (filename === null) continue
+    if (filename === null) {
+      continue
+    }
     const background = treatment.background === null ? null : iconBackground
     const mark = markFor(source, dark, background)
     files.set(filename, rasterize(compose(mark, treatment, background), treatment.size))

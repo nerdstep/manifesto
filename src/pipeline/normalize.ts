@@ -21,7 +21,9 @@ function sizeRoot(width: number, height: number): CustomPlugin {
     fn: () => ({
       element: {
         enter: (node, parentNode) => {
-          if (parentNode.type !== 'root' || node.name !== 'svg') return
+          if (parentNode.type !== 'root' || node.name !== 'svg') {
+            return
+          }
           node.attributes.x = '0'
           node.attributes.y = '0'
           node.attributes.width = String(width)
@@ -45,15 +47,27 @@ export function measureMark(svg: string): MarkGeometry | null {
 
   for (let y = 0; y < probe.height; y += 1) {
     for (let x = 0; x < probe.width; x += 1) {
-      if (!isPainted(x, y)) continue
-      if (x < minX) minX = x
-      if (y < minY) minY = y
-      if (x > maxX) maxX = x
-      if (y > maxY) maxY = y
+      if (!isPainted(x, y)) {
+        continue
+      }
+      if (x < minX) {
+        minX = x
+      }
+      if (y < minY) {
+        minY = y
+      }
+      if (x > maxX) {
+        maxX = x
+      }
+      if (y > maxY) {
+        maxY = y
+      }
     }
   }
 
-  if (maxX < 0) return null
+  if (maxX < 0) {
+    return null
+  }
 
   const scaleX = docWidth / probe.width
   const scaleY = docHeight / probe.height
@@ -72,12 +86,16 @@ export function measureMark(svg: string): MarkGeometry | null {
 
   for (let y = minY; y <= maxY; y += 1) {
     for (let x = minX; x <= maxX; x += 1) {
-      if (!isPainted(x, y)) continue
+      if (!isPainted(x, y)) {
+        continue
+      }
       // Include the full pixel area when measuring its radius.
       const dx = (Math.abs(x + 0.5 - centreX) + 0.5) * scaleX
       const dy = (Math.abs(y + 0.5 - centreY) + 0.5) * scaleY
       const radiusSquared = dx * dx + dy * dy
-      if (radiusSquared > maxRadiusSquared) maxRadiusSquared = radiusSquared
+      if (radiusSquared > maxRadiusSquared) {
+        maxRadiusSquared = radiusSquared
+      }
     }
   }
 
@@ -90,7 +108,9 @@ export function isWordmark(aspectRatio: number): boolean {
 
 export function normalize(svg: string): NormalizedMark {
   const geometry = measureMark(svg)
-  if (geometry === null) throw new EmptyMarkError()
+  if (geometry === null) {
+    throw new EmptyMarkError()
+  }
 
   const { width: docWidth, height: docHeight } = documentSize(svg)
 

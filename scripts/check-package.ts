@@ -36,10 +36,14 @@ function fail(message: string): never {
   process.exit(1)
 }
 
-if (!existsSync(RESOURCES)) fail(`No packaged build at ${BUILD}\nRun \`bun run dist\` first.`)
+if (!existsSync(RESOURCES)) {
+  fail(`No packaged build at ${BUILD}\nRun \`bun run dist\` first.`)
+}
 
 const archive = readdirSync(RESOURCES).find((name) => name.endsWith('.tar.zst'))
-if (archive === undefined) fail(`No .tar.zst payload in ${RESOURCES}`)
+if (archive === undefined) {
+  fail(`No .tar.zst payload in ${RESOURCES}`)
+}
 
 const work = mkdtempSync(join(tmpdir(), 'manifesto-pkg-'))
 
@@ -55,12 +59,16 @@ try {
     tar,
     '--no-timing',
   ])
-  if (unzstd.exitCode !== 0) fail(`zstd failed: ${unzstd.stderr.toString()}`)
+  if (unzstd.exitCode !== 0) {
+    fail(`zstd failed: ${unzstd.stderr.toString()}`)
+  }
 
   // `tar -C <abs path>` is the portable form, but Git Bash's tar reads `C:\...` as a
   // remote host. Extract from the work directory with relative paths instead.
   const untar = Bun.spawnSync(['tar', '-xf', 'app.tar'], { cwd: work })
-  if (untar.exitCode !== 0) fail(`tar failed: ${untar.stderr.toString()}`)
+  if (untar.exitCode !== 0) {
+    fail(`tar failed: ${untar.stderr.toString()}`)
+  }
 
   for (const [path, minBytes] of REQUIRED) {
     const full = join(work, path)
@@ -99,7 +107,9 @@ try {
 
   if (problems.length > 0) {
     console.error('Packaged app FAILED:')
-    for (const problem of problems) console.error(`  - ${problem}`)
+    for (const problem of problems) {
+      console.error(`  - ${problem}`)
+    }
     process.exit(1)
   }
 

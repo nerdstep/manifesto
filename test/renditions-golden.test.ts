@@ -49,13 +49,23 @@ function paintedBox(name: FixtureName, treatment: RenditionTreatment) {
         (image.pixels[i] ?? 0) > 250 &&
         (image.pixels[i + 1] ?? 0) > 250 &&
         (image.pixels[i + 2] ?? 0) > 250
-      if ((image.pixels[i + 3] ?? 0) === 0 || opaqueBackdrop) continue
+      if ((image.pixels[i + 3] ?? 0) === 0 || opaqueBackdrop) {
+        continue
+      }
 
       painted += 1
-      if (x < minX) minX = x
-      if (y < minY) minY = y
-      if (x > maxX) maxX = x
-      if (y > maxY) maxY = y
+      if (x < minX) {
+        minX = x
+      }
+      if (y < minY) {
+        minY = y
+      }
+      if (x > maxX) {
+        maxX = x
+      }
+      if (y > maxY) {
+        maxY = y
+      }
     }
   }
 
@@ -163,7 +173,9 @@ describe('normalization equivalence', () => {
     // the assertion that would have caught the getBBox() bug outright.
     const [first, ...rest] = SAME_CANVAS
     expect(first).toBeDefined()
-    if (first === undefined) return
+    if (first === undefined) {
+      return
+    }
 
     for (const { key, treatment } of ALL_RENDITIONS) {
       const background = treatment.background === null ? null : GOLDEN_ICON_BACKGROUND

@@ -27,7 +27,9 @@ beforeAll(async () => {
 })
 
 afterEach(() => {
-  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true })
+  for (const root of roots.splice(0)) {
+    rmSync(root, { recursive: true, force: true })
+  }
 })
 
 function tempRoot(): string {
@@ -114,7 +116,9 @@ describe('generate', () => {
     const { generate } = harness(root)
 
     const result = await generate(request())
-    if (!result.ok) throw new Error(result.error)
+    if (!result.ok) {
+      throw new Error(result.error)
+    }
 
     // Pixel-derived values must cross the host boundary with the bundle.
     expect(result.bundle.settings.name).toBe('Acme')
@@ -129,14 +133,18 @@ describe('generate', () => {
 
     // First drop writes a Sidecar. Then edit the name and write again.
     const first = await generate(request())
-    if (!first.ok) throw new Error(first.error)
+    if (!first.ok) {
+      throw new Error(first.error)
+    }
 
     const chosen: Settings = { ...first.bundle.settings, name: 'What The User Actually Called It' }
     await generate(request({ settings: chosen, bundleName: 'acme-logo', trigger: 'edit' }))
 
     // A fresh drop of the same file must restore the choice, not re-guess "Acme".
     const redrop = await generate(request())
-    if (!redrop.ok) throw new Error(redrop.error)
+    if (!redrop.ok) {
+      throw new Error(redrop.error)
+    }
     expect(redrop.bundle.settings.name).toBe('What The User Actually Called It')
   })
 
@@ -147,7 +155,9 @@ describe('generate', () => {
       const { generate, prompt } = harness(root, 'acme-logo-2')
 
       const result = await generate(request())
-      if (!result.ok) throw new Error(result.error)
+      if (!result.ok) {
+        throw new Error(result.error)
+      }
 
       expect(prompt.calls).toHaveLength(1)
       expect(prompt.calls[0]?.detail).toContain('2026-01-02')
@@ -167,7 +177,9 @@ describe('generate', () => {
       const { generate } = harness(root, null)
 
       const result = await generate(request())
-      if (!result.ok) throw new Error(result.error)
+      if (!result.ok) {
+        throw new Error(result.error)
+      }
 
       expect(result.bundle.writtenTo).toBeNull()
       // A cancelled write must leave the in-memory bundle usable.
@@ -184,7 +196,9 @@ describe('generate', () => {
       const result = await generate(
         request({ settings: defaultSettings, bundleName: 'acme-logo', trigger: 'edit' }),
       )
-      if (!result.ok) throw new Error(result.error)
+      if (!result.ok) {
+        throw new Error(result.error)
+      }
 
       expect(prompt.calls).toHaveLength(0)
       expect(result.bundle.writtenTo).toBeNull()
@@ -222,7 +236,9 @@ describe('generate', () => {
       const { generate, prompt } = harness(root)
 
       const first = await generate(request())
-      if (!first.ok) throw new Error(first.error)
+      if (!first.ok) {
+        throw new Error(first.error)
+      }
 
       const edited = await generate(
         request({
@@ -231,7 +247,9 @@ describe('generate', () => {
           trigger: 'edit',
         }),
       )
-      if (!edited.ok) throw new Error(edited.error)
+      if (!edited.ok) {
+        throw new Error(edited.error)
+      }
 
       expect(prompt.calls).toHaveLength(0)
       expect(edited.bundle.writtenTo).toBe(join(root, 'acme-logo'))
@@ -259,7 +277,9 @@ describe('generate', () => {
     const result = await generate(request({ sourceSvg: fixture('with-text') }))
 
     expect(result.ok).toBe(false)
-    if (result.ok) return
+    if (result.ok) {
+      return
+    }
     expect(result.error).toContain('Convert live text to outlines')
   })
 
@@ -271,7 +291,9 @@ describe('generate', () => {
     const result = await generate(request())
 
     expect(result.ok).toBe(false)
-    if (result.ok) return
+    if (result.ok) {
+      return
+    }
     expect(result.error).toContain('could not write the icon files')
     expect(readFileSync(join(root, 'acme-logo'), 'utf8')).toBe('occupied')
   })
@@ -389,7 +411,9 @@ describe('generate', () => {
     const result = await latest
 
     expect(result.ok).toBe(true)
-    if (!result.ok) return
+    if (!result.ok) {
+      return
+    }
     expect(result.bundle.bundleName).toBe('target-2')
     expect(readFileSync(join(root, 'target-2', 'site.webmanifest'), 'utf8')).toContain('Latest')
   })

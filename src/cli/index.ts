@@ -77,7 +77,9 @@ function isHex(value: string): value is Hex {
 
 function hexFlag(flags: Map<string, string | true>, key: string, fallback: Hex): Hex {
   const value = stringFlag(flags, key)
-  if (value === undefined) return fallback
+  if (value === undefined) {
+    return fallback
+  }
   if (!isHex(value)) {
     throw new Error(`--${key} must be a hex colour like #2E5BFF, got "${value}"`)
   }
@@ -158,13 +160,17 @@ export async function main(argv: string[]): Promise<number> {
   const ordered = [...BUNDLE_FILENAMES].filter((f) => result.files.has(f))
   for (const filename of ordered) {
     const bytes = result.files.get(filename)
-    if (bytes === undefined) continue
+    if (bytes === undefined) {
+      continue
+    }
     console.log(`  ${filename.padEnd(24)} ${String(bytes.length).padStart(7)} bytes`)
   }
   console.log(`  ${SIDECAR_FILENAME.padEnd(24)} recorded settings`)
 
   const missing = authoredFiles.filter((f) => !written.written.includes(f))
-  if (missing.length > 0) console.error(`\n! Missing files\n  ${missing.join(', ')}`)
+  if (missing.length > 0) {
+    console.error(`\n! Missing files\n  ${missing.join(', ')}`)
+  }
 
   console.log(`\nWrote ${written.written.length} files to ${outDir}`)
 

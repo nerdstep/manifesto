@@ -76,7 +76,9 @@ function opaqueSamples(probe: PixelBuffer): Sample[] {
   const samples: Sample[] = []
 
   for (let i = 0; i + 3 < probe.pixels.length; i += 4) {
-    if ((probe.pixels[i + 3] ?? 0) < OPAQUE) continue
+    if ((probe.pixels[i + 3] ?? 0) < OPAQUE) {
+      continue
+    }
     samples.push({
       red: probe.pixels[i] ?? 0,
       green: probe.pixels[i + 1] ?? 0,
@@ -91,8 +93,12 @@ function isBrandable({ red, green, blue }: Sample): boolean {
   const max = Math.max(red, green, blue)
   const min = Math.min(red, green, blue)
 
-  if (max < MIN_CHANNEL_MAX) return false
-  if (min > MAX_CHANNEL_MIN) return false
+  if (max < MIN_CHANNEL_MAX) {
+    return false
+  }
+  if (min > MAX_CHANNEL_MIN) {
+    return false
+  }
   return (max - min) / 255 >= MIN_SATURATION
 }
 
@@ -100,7 +106,9 @@ function dominantColor(samples: Sample[]): Hex | null {
   const buckets = new Map<number, { count: number; red: number; green: number; blue: number }>()
 
   for (const sample of samples) {
-    if (!isBrandable(sample)) continue
+    if (!isBrandable(sample)) {
+      continue
+    }
 
     const key =
       Math.trunc(sample.red / BUCKET) * 1024 +
@@ -117,10 +125,14 @@ function dominantColor(samples: Sample[]): Hex | null {
 
   let winner: { count: number; red: number; green: number; blue: number } | null = null
   for (const bucket of buckets.values()) {
-    if (winner === null || bucket.count > winner.count) winner = bucket
+    if (winner === null || bucket.count > winner.count) {
+      winner = bucket
+    }
   }
 
-  if (winner === null) return null
+  if (winner === null) {
+    return null
+  }
   return hex(winner.red / winner.count, winner.green / winner.count, winner.blue / winner.count)
 }
 
@@ -138,7 +150,9 @@ export function inferColors(probe: PixelBuffer): InferredColors {
   }
 
   let luminanceTotal = 0
-  for (const { red, green, blue } of samples) luminanceTotal += luminanceOf(red, green, blue)
+  for (const { red, green, blue } of samples) {
+    luminanceTotal += luminanceOf(red, green, blue)
+  }
 
   const background = luminanceTotal / samples.length < 0.5 ? LIGHT_BACKGROUND : DARK_BACKGROUND
 

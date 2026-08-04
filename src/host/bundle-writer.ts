@@ -66,11 +66,21 @@ export function slugify(filename: string): string {
 
 /** Validate folder names at the host boundary before inspecting the filesystem. */
 export function bundleNameProblem(name: string): string | null {
-  if (name.length === 0 || name.trim().length === 0) return 'Enter a folder name.'
-  if (name !== name.trim()) return 'Remove the leading or trailing spaces from the folder name.'
-  if (name.length > 100) return 'Use a folder name with 100 characters or fewer.'
-  if (name === '.' || name === '..') return `Choose a folder name other than "${name}".`
-  if (name.endsWith('.')) return 'Remove the trailing period from the folder name.'
+  if (name.length === 0 || name.trim().length === 0) {
+    return 'Enter a folder name.'
+  }
+  if (name !== name.trim()) {
+    return 'Remove the leading or trailing spaces from the folder name.'
+  }
+  if (name.length > 100) {
+    return 'Use a folder name with 100 characters or fewer.'
+  }
+  if (name === '.' || name === '..') {
+    return `Choose a folder name other than "${name}".`
+  }
+  if (name.endsWith('.')) {
+    return 'Remove the trailing period from the folder name.'
+  }
   if (/[<>:"/\\|?*]/u.test(name)) {
     return 'Use a folder name without < > : " / \\ | ? * characters.'
   }
@@ -94,15 +104,21 @@ type ReadSidecar = {
 
 function readSidecar(dir: string): ReadSidecar | null {
   const path = join(dir, SIDECAR_FILENAME)
-  if (!existsSync(path)) return null
+  if (!existsSync(path)) {
+    return null
+  }
 
   try {
     const parsed: unknown = JSON.parse(readFileSync(path, 'utf8'))
-    if (!isPlainObject(parsed)) return null
+    if (!isPlainObject(parsed)) {
+      return null
+    }
 
     // Sidecar values remain unknown until validated.
     const { sourceHash, generatedAt, settings }: Record<string, unknown> = parsed
-    if (typeof sourceHash !== 'string') return null
+    if (typeof sourceHash !== 'string') {
+      return null
+    }
 
     return {
       sourceHash,
@@ -115,7 +131,9 @@ function readSidecar(dir: string): ReadSidecar | null {
 }
 
 function isSettings(value: unknown): value is Settings {
-  if (!isPlainObject(value)) return false
+  if (!isPlainObject(value)) {
+    return false
+  }
   const strings = ['name', 'shortName', 'themeColor', 'iconBackground', 'splashBackground']
   return (
     strings.every((key) => typeof value[key] === 'string') && typeof value.optimizeSvg === 'boolean'
@@ -123,11 +141,17 @@ function isSettings(value: unknown): value is Settings {
 }
 
 export function inspectTarget(dir: string, sourceHash: string): TargetState {
-  if (!existsSync(dir)) return { kind: 'empty' }
-  if (readdirSync(dir).length === 0) return { kind: 'empty' }
+  if (!existsSync(dir)) {
+    return { kind: 'empty' }
+  }
+  if (readdirSync(dir).length === 0) {
+    return { kind: 'empty' }
+  }
 
   const sidecar = readSidecar(dir)
-  if (sidecar === null) return { kind: 'unknown-folder' }
+  if (sidecar === null) {
+    return { kind: 'unknown-folder' }
+  }
 
   return sidecar.sourceHash === sourceHash
     ? { kind: 'same-mark', sidecar }
@@ -136,11 +160,15 @@ export function inspectTarget(dir: string, sourceHash: string): TargetState {
 
 /** Find the first available suffixed folder name. */
 export function nextAvailableName(root: string, base: string): string {
-  if (!existsSync(join(root, base))) return base
+  if (!existsSync(join(root, base))) {
+    return base
+  }
 
   for (let suffix = 2; suffix < 1000; suffix += 1) {
     const candidate = `${base}-${suffix}`
-    if (!existsSync(join(root, candidate))) return candidate
+    if (!existsSync(join(root, candidate))) {
+      return candidate
+    }
   }
 
   throw new Error(`Could not find a free folder name for "${base}" under ${root}`)
@@ -219,8 +247,12 @@ export function writeBundle(
     throw error
   } finally {
     for (const temporary of [staging, backups]) {
-      if (temporary === null) continue
-      if (temporary === backups && preserveBackups) continue
+      if (temporary === null) {
+        continue
+      }
+      if (temporary === backups && preserveBackups) {
+        continue
+      }
       try {
         fileSystem.rmSync(temporary, { force: true, recursive: true })
       } catch (cleanupError) {

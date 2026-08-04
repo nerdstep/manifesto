@@ -69,7 +69,9 @@ describe('webview purity', () => {
       for (const line of source.split('\n')) {
         const match = /^\s*import\s+(?!type\b)[^\n]*?from\s*['"]([^'"]+)['"]/u.exec(line)
         const specifier = match?.[1]
-        if (specifier === undefined) continue
+        if (specifier === undefined) {
+          continue
+        }
 
         expect(
           !specifier.startsWith('node:') && allowed.test(specifier),

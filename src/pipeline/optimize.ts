@@ -14,7 +14,9 @@ export function pixelDriftPercent(before: string, after: string): number {
   const a = rasterizeToPixels(before, DRIFT_CHECK_SIZE)
   const b = rasterizeToPixels(after, DRIFT_CHECK_SIZE)
 
-  if (a.width !== b.width || a.height !== b.height) return 100
+  if (a.width !== b.width || a.height !== b.height) {
+    return 100
+  }
 
   let differing = 0
   for (let i = 0; i < a.pixels.length; i += 4) {
@@ -37,7 +39,9 @@ export type OptimizeResult = {
 
 export function optimize(svg: string, enabled: boolean): OptimizeResult {
   const originalBytes = utf8Bytes(svg)
-  if (!enabled) return { svg, originalBytes, optimizedBytes: originalBytes }
+  if (!enabled) {
+    return { svg, originalBytes, optimizedBytes: originalBytes }
+  }
 
   const { data } = runSvgo(svg, {
     multipass: true,

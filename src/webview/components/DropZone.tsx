@@ -26,7 +26,9 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
   function handleDrop(event: DragEvent) {
     event.preventDefault()
     setOver(false)
-    if (busy) return
+    if (busy) {
+      return
+    }
 
     const file = [...(event.dataTransfer?.files ?? [])].find((f) => /\.svg$/iu.test(f.name))
     if (file === undefined) {
@@ -39,7 +41,9 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
   }
 
   function choose() {
-    if (busy) return
+    if (busy) {
+      return
+    }
     setRejected(false)
     void onChoose()
   }
@@ -57,10 +61,14 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
         aria-describedby={rejected ? 'source-file-status' : undefined}
         onDragOver={(e) => {
           e.preventDefault()
-          if (!busy) setOver(true)
+          if (!busy) {
+            setOver(true)
+          }
         }}
         onDragLeave={(e) => {
-          if (e.relatedTarget === null) setOver(false)
+          if (e.relatedTarget === null) {
+            setOver(false)
+          }
         }}
         onDrop={handleDrop}
         onClick={choose}

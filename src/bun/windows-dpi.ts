@@ -16,7 +16,9 @@ const SM_CXSCREEN = 0
 const SM_CYSCREEN = 1
 
 export function enablePerMonitorDpi(): DisplayInfo {
-  if (process.platform !== 'win32') return UNKNOWN
+  if (process.platform !== 'win32') {
+    return UNKNOWN
+  }
 
   try {
     const user32 = dlopen('user32.dll', {

@@ -78,13 +78,19 @@ export function parseJsonObject(text: string): Record<string, unknown> {
 
 /** Compare RGBA buffers when byte identity is too strict. */
 export function pixelDiff(a: Uint8Array, b: Uint8Array) {
-  if (a.length !== b.length) throw new Error('pixel buffers differ in size')
+  if (a.length !== b.length) {
+    throw new Error('pixel buffers differ in size')
+  }
   let differing = 0
   let maxDelta = 0
   for (let i = 0; i < a.length; i += 4) {
     let d = 0
-    for (let c = 0; c < 4; c += 1) d = Math.max(d, Math.abs((a[i + c] ?? 0) - (b[i + c] ?? 0)))
-    if (d > 0) differing += 1
+    for (let c = 0; c < 4; c += 1) {
+      d = Math.max(d, Math.abs((a[i + c] ?? 0) - (b[i + c] ?? 0)))
+    }
+    if (d > 0) {
+      differing += 1
+    }
     maxDelta = Math.max(maxDelta, d)
   }
   const total = a.length / 4

@@ -56,7 +56,9 @@ export function ColorField({
           }}
           onChange={(event) => {
             const next = event.currentTarget.value
-            if (isHex(next)) onChange(next)
+            if (isHex(next)) {
+              onChange(next)
+            }
           }}
         />
         <Input
@@ -69,7 +71,9 @@ export function ColorField({
           onInput={(event) => {
             const next = event.currentTarget.value
             setDraft(next)
-            if (isHex(next)) onChange(next)
+            if (isHex(next)) {
+              onChange(next)
+            }
           }}
           onBlur={() => {
             setDraft(value)
@@ -112,8 +116,12 @@ export function CommittedField({
           onCommit(draft)
         }}
         onKeyDown={(event) => {
-          if (event.key === 'Enter') event.currentTarget.blur()
-          if (event.key === 'Escape') setDraft(value)
+          if (event.key === 'Enter') {
+            event.currentTarget.blur()
+          }
+          if (event.key === 'Escape') {
+            setDraft(value)
+          }
         }}
       />
       <Note class="mt-1">{hint}</Note>
@@ -154,13 +162,17 @@ export function DarkMarkField({
             setOver(true)
           }}
           onDragLeave={(event) => {
-            if (event.relatedTarget === null) setOver(false)
+            if (event.relatedTarget === null) {
+              setOver(false)
+            }
           }}
           onDrop={(event) => {
             event.preventDefault()
             setOver(false)
             const file = [...(event.dataTransfer?.files ?? [])].find((f) => /\.svg$/iu.test(f.name))
-            if (file !== undefined) onFile(file)
+            if (file !== undefined) {
+              onFile(file)
+            }
           }}
           onClick={onChoose}
           onKeyDown={(event) => {
