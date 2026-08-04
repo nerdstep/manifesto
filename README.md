@@ -36,6 +36,8 @@ acme-logo/
 Manifesto also provides the snippet to paste into your `<head>`. It never reads or changes
 your HTML.
 
+![screenshot](./assets/screenshot.jpg)
+
 ## Install and run
 
 ```sh
