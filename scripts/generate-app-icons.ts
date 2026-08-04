@@ -31,7 +31,9 @@ function render(size: number): Uint8Array {
 }
 
 const pngs = new Map<number, Uint8Array>()
-for (const size of [16, 32, 48, 64, 128, 256, 512, 1024]) pngs.set(size, render(size))
+for (const size of [16, 20, 24, 32, 40, 48, 64, 128, 256, 512, 1024]) {
+  pngs.set(size, render(size))
+}
 
 function png(size: number): Uint8Array {
   const bytes = pngs.get(size)
@@ -39,7 +41,10 @@ function png(size: number): Uint8Array {
   return bytes
 }
 
-const windowsIcon = icoEndec.encode([16, 32, 48, 256].map((size) => Buffer.from(png(size))))
+// Cover Windows' large and small icon metrics at 100%, 125%, 150%, and 200% DPI.
+const windowsIcon = icoEndec.encode(
+  [16, 20, 24, 32, 40, 48, 64, 256].map((size) => Buffer.from(png(size))),
+)
 await writeFile(join(assets, 'app-icon.ico'), windowsIcon)
 await writeFile(join(assets, 'app-icon.png'), png(512))
 

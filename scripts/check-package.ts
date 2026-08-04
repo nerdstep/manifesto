@@ -23,6 +23,7 @@ const REQUIRED: [path: string, minBytes: number][] = [
   ['Manifesto/Resources/app/views/mainview/index.js', 5_000],
   ['Manifesto/Resources/app/views/mainview/index.html', 500],
   ['Manifesto/Resources/app/views/mainview/app.css', 2_000],
+  ['Manifesto/Resources/app/views/mainview/app-icon.png', 1_000],
 ]
 
 /** Above this the 3D engines are back. The slim bundle is ~1.2 MB. */
