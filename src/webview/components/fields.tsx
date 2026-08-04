@@ -170,17 +170,17 @@ export function DarkMarkField({
             }
           }}
           class={cn(
-            'flex min-w-0 flex-1 cursor-pointer items-center rounded-lg border border-dashed px-2.5 py-1.5 text-[13px] h-8',
+            'flex min-w-0 flex-1 cursor-pointer items-center rounded-lg border border-dashed px-2.5 py-1.5 h-8',
             'transition-colors duration-150 ease-signal',
             focusRing,
             over ? 'border-cyan bg-cyan/8 text-ink' : 'border-line text-muted hover:border-cyan',
           )}
         >
-          <span class="truncate font-mono text-xs">{filename ?? 'Drop or click to choose'}</span>
+          <span class="text-code truncate font-mono">{filename ?? 'Drop or click to choose'}</span>
         </div>
         {filename !== null && (
           <Button
-            class="text-xs text-muted hover:text-bad"
+            class="text-muted hover:text-bad"
             aria-label={`Remove the dark-mode logo, ${filename}`}
             onClick={onClear}
           >

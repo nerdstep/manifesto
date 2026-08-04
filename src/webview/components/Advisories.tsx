@@ -9,7 +9,7 @@ export function Advisories({ advisories }: { advisories: Advisory[] }) {
       {advisories.map((advisory, index) => (
         <div
           key={`${advisory.origin ?? 'source'}-${advisory.kind}-${index}`}
-          class="rounded-lg border border-amber/40 bg-amber/8 px-3 py-2.5 text-[13px] text-ink"
+          class="rounded-lg border border-amber/40 bg-amber/8 px-3 py-2.5 text-ink"
         >
           {describeAdvisory(advisory)}
         </div>

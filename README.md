@@ -1,6 +1,6 @@
 # Manifesto
 
-> Drop an SVG, get every icon asset a website needs.
+> Drop an SVG and get every icon asset a website needs.
 
 ![hero](./hero.png)
 

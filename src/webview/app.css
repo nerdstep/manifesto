@@ -19,10 +19,25 @@
   --color-cyan: #1bd6fd;
   --color-amber: #ffc712;
   --color-blue: #4da3ff;
+  --color-violet: #8b7cf6;
+  --color-pink: #e46eb5;
   --color-ok: #4ade80;
   --color-bad: #ff6b6b;
 
   --font-mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  --text-xs: 10px;
+  --text-xs--line-height: 1.4;
+  --text-sm: 11px;
+  --text-sm--line-height: 1.4;
+  --text-code: 12px;
+  --text-code--line-height: 1.6;
+  --text-base: 13px;
+  --text-base--line-height: 1.5;
+  --text-display: 30px;
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 800;
 
   --ease-signal: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -88,6 +103,8 @@
   body {
     background: var(--color-bg);
     color: var(--color-ink);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
   }
 
   @media (prefers-reduced-motion: reduce) {

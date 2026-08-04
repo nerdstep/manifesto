@@ -22,7 +22,7 @@ function TabMock({ src, title, dark }: { src: string; title: string; dark: boole
       <div class="size-4 shrink-0">
         <img src={src} alt="" width={16} height={16} />
       </div>
-      <span class="truncate text-[11px]">{title}</span>
+      <span class="truncate text-sm">{title}</span>
     </div>
   )
 }
@@ -45,7 +45,7 @@ function AndroidBar({
         <div class="size-4 shrink-0">
           <img src={src} alt="" width={16} height={16} />
         </div>
-        <span class="truncate text-[11px]">{title}</span>
+        <span class="truncate text-sm">{title}</span>
       </div>
     </div>
   )
@@ -94,7 +94,7 @@ function IosHome({ png, label }: { png: string; label: string }) {
             height={60}
             class="block size-15 rounded-[22.37%] shadow-lg"
           />
-          <span class="mt-1.5 block max-w-15 truncate text-[10px] text-white">{label}</span>
+          <span class="mt-1.5 block max-w-15 truncate text-xs text-white">{label}</span>
         </div>
       </div>
     </Tile>
@@ -109,7 +109,7 @@ function PwaSplash({ png, background, name }: { png: string; background: string;
       note="Splash background shown while an installed web app starts. The transparent icon-512.png appears on top of it."
     >
       <div
-        class="flex flex-col items-center justify-center gap-3 rounded-lg py-8"
+        class="flex flex-col items-center justify-center gap-3 rounded-lg p-5"
         style={{ background }}
       >
         <img
@@ -119,10 +119,7 @@ function PwaSplash({ png, background, name }: { png: string; background: string;
           height={96}
           class="block size-24"
         />
-        <span
-          class="max-w-full truncate px-4 text-[13px]"
-          style={{ color: contrastInk(background) }}
-        >
+        <span class="max-w-full truncate px-4" style={{ color: contrastInk(background) }}>
           {name}
         </span>
       </div>
@@ -150,7 +147,7 @@ export function Previews({
   const tabSvg = faviconSvg === undefined ? null : decodeUtf8(faviconSvg)
 
   return (
-    <section class="mt-5 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3">
+    <section class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3">
       <SquircleClipPath />
 
       {maskable !== undefined && <AndroidMaskable png={maskable} />}

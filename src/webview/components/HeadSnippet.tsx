@@ -1,9 +1,11 @@
+import { Fragment } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 
+import { HEAD_SNIPPET, HEAD_SNIPPET_TAGS } from '../../shared/bundle.ts'
 import { bun } from '../rpc.ts'
-import { Button } from './ui.tsx'
+import { Button, SectionHeading } from './ui.tsx'
 
-export function HeadSnippet({ snippet }: { snippet: string }) {
+export function HeadSnippet() {
   const [copied, setCopied] = useState(false)
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -15,7 +17,7 @@ export function HeadSnippet({ snippet }: { snippet: string }) {
   )
 
   async function copy() {
-    await bun().request.copyToClipboard({ text: snippet })
+    await bun().request.copyToClipboard({ text: HEAD_SNIPPET })
     setCopied(true)
     if (resetTimer.current !== null) clearTimeout(resetTimer.current)
     resetTimer.current = setTimeout(() => {
@@ -26,21 +28,39 @@ export function HeadSnippet({ snippet }: { snippet: string }) {
 
   return (
     <section>
-      <div class="mb-2 flex items-start justify-between gap-3">
-        <p class="text-[11px] text-dim">
-          Paste these tags into your site's &lt;head&gt;. Manifesto does not edit your HTML.
-        </p>
-        <Button
-          aria-label="Copy the head tags to the clipboard"
-          onClick={() => {
-            void copy()
-          }}
-        >
-          {copied ? 'Copied' : 'Copy'}
-        </Button>
-      </div>
-      <pre class="overflow-x-auto rounded-xl border border-line bg-surface p-3.5 font-mono text-xs text-muted">
-        {snippet}
+      <SectionHeading
+        tone="downstream"
+        note="Paste these tags into your site's <head>. Manifesto does not edit your HTML."
+        meta={
+          <Button
+            aria-label="Copy the head tags to the clipboard"
+            onClick={() => {
+              void copy()
+            }}
+          >
+            {copied ? 'Copied' : 'Copy'}
+          </Button>
+        }
+      >
+        Paste into &lt;head&gt;
+      </SectionHeading>
+      <pre class="text-code overflow-x-auto rounded-xl border border-line bg-surface p-3.5 font-mono text-muted">
+        <code>
+          {HEAD_SNIPPET_TAGS.map(({ name, attributes }, tagIndex) => (
+            <Fragment key={`${name}-${tagIndex}`}>
+              {'<'}
+              <span class="text-blue">{name}</span>
+              {attributes.map(([attribute, value]) => (
+                <Fragment key={attribute}>
+                  {` ${attribute}=`}
+                  <span class="text-amber">{`"${value}"`}</span>
+                </Fragment>
+              ))}
+              {'>'}
+              {tagIndex < HEAD_SNIPPET_TAGS.length - 1 ? '\n' : null}
+            </Fragment>
+          ))}
+        </code>
       </pre>
     </section>
   )

@@ -72,10 +72,10 @@ export function Tile({
       <div class="grid min-h-33 place-items-center rounded-lg bg-bg p-3.5">{children}</div>
       {controls}
       <figcaption class="flex items-baseline justify-between gap-2">
-        <span class="text-[10px] font-bold tracking-widest text-muted uppercase">{title}</span>
-        <span class="shrink-0 font-mono text-[10px] text-dim">{dimensions}</span>
+        <span class="text-xs font-bold tracking-widest text-muted uppercase">{title}</span>
+        <span class="shrink-0 font-mono text-xs text-dim">{dimensions}</span>
       </figcaption>
-      <p class="text-[11px] text-dim">{note}</p>
+      <p class="text-sm text-dim">{note}</p>
     </figure>
   )
 }

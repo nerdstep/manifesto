@@ -21,9 +21,42 @@ export const SIDECAR_FILENAME = 'manifesto.json'
 export const FAVICON_LIGHT_CLASS = 'mfo-light'
 export const FAVICON_DARK_CLASS = 'mfo-dark'
 
-export const HEAD_SNIPPET = `<link rel="icon" href="/favicon.ico" sizes="32x32">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="manifest" href="/site.webmanifest">`
+export const HEAD_SNIPPET_TAGS = [
+  {
+    name: 'link',
+    attributes: [
+      ['rel', 'icon'],
+      ['href', '/favicon.ico'],
+      ['sizes', '32x32'],
+    ],
+  },
+  {
+    name: 'link',
+    attributes: [
+      ['rel', 'icon'],
+      ['href', '/favicon.svg'],
+      ['type', 'image/svg+xml'],
+    ],
+  },
+  {
+    name: 'link',
+    attributes: [
+      ['rel', 'apple-touch-icon'],
+      ['href', '/apple-touch-icon.png'],
+    ],
+  },
+  {
+    name: 'link',
+    attributes: [
+      ['rel', 'manifest'],
+      ['href', '/site.webmanifest'],
+    ],
+  },
+] as const
 
-export const HEAD_SNIPPET_TAG_COUNT = HEAD_SNIPPET.split('\n').length
+export const HEAD_SNIPPET = HEAD_SNIPPET_TAGS.map(
+  ({ name, attributes }) =>
+    `<${name} ${attributes.map(([attribute, value]) => `${attribute}="${value}"`).join(' ')}>`,
+).join('\n')
+
+export const HEAD_SNIPPET_TAG_COUNT = HEAD_SNIPPET_TAGS.length

@@ -3,7 +3,7 @@ import type { ComponentChildren } from 'preact'
 import type { Settings } from '../../pipeline/index.ts'
 import { ICON_FILENAMES } from '../../shared/bundle.ts'
 import { ColorField, CommittedField, DarkMarkField, Field } from './fields.tsx'
-import { Input, Note, SectionLabel } from './ui.tsx'
+import { Button, Caption, Input, SectionHeading } from './ui.tsx'
 import type { Tone } from './ui.tsx'
 
 type Props = {
@@ -15,12 +15,16 @@ type Props = {
   onDarkMark: (file: File) => void
   onChooseDarkMark: () => void
   onClearDarkMark: () => void
+  onChooseOutput: () => void
+  onOpenOutput: () => void
+  canOpenOutput: boolean
+  outputRoot: string
 }
 
 function Group({
   title,
   note,
-  tone = 'upstream',
+  tone = 'settings',
   children,
 }: {
   title: string
@@ -29,12 +33,13 @@ function Group({
   children: ComponentChildren
 }) {
   return (
-    <section class="mt-3 rounded-xl border border-line bg-surface p-4">
-      <header class="mb-3.5">
-        <SectionLabel tone={tone}>{title}</SectionLabel>
-        <Note class="mt-0.5">{note}</Note>
-      </header>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+    <section>
+      <SectionHeading note={note} tone={tone}>
+        {title}
+      </SectionHeading>
+      <div class="grid grid-cols-1 gap-4 rounded-xl border border-line bg-surface p-4 sm:grid-cols-2">
+        {children}
+      </div>
     </section>
   )
 }
@@ -48,6 +53,10 @@ export function SettingsPanel({
   onDarkMark,
   onChooseDarkMark,
   onClearDarkMark,
+  onChooseOutput,
+  onOpenOutput,
+  canOpenOutput,
+  outputRoot,
 }: Props) {
   return (
     <>
@@ -112,9 +121,23 @@ export function SettingsPanel({
         <CommittedField
           label="Folder"
           value={bundleName}
-          hint="Name of the folder inside your output folder. Saved when you leave this field. It does not follow Name."
+          hint="Name of the folder inside your output folder."
           onCommit={onRename}
         />
+        <div class="min-w-0">
+          <Caption class="mb-1.5 block">Output folder</Caption>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <Button onClick={onChooseOutput}>Choose output folder…</Button>
+            {canOpenOutput && <Button onClick={onOpenOutput}>Open folder</Button>}
+          </div>
+          <p
+            class="mt-2 truncate font-mono text-sm text-dim"
+            title={outputRoot}
+            aria-label={`Current output folder: ${outputRoot}`}
+          >
+            {outputRoot}
+          </p>
+        </div>
       </Group>
     </>
   )

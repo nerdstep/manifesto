@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'preact/hooks'
 
 import { DropZone } from './components/DropZone.tsx'
+import { HeadSnippet } from './components/HeadSnippet.tsx'
 import { PipelineStrip } from './components/PipelineStrip.tsx'
-import { InContext, OnDisk } from './components/Results.tsx'
+import { InContext } from './components/Results.tsx'
 import { SettingsPanel } from './components/SettingsPanel.tsx'
 import { SourceRow } from './components/SourceRow.tsx'
 import { Terminal } from './components/Terminal.tsx'
-import { Button } from './components/ui.tsx'
 import { bun } from './rpc.ts'
 import { useBundle } from './use-bundle.ts'
 
@@ -52,10 +52,8 @@ export function App() {
   return (
     <main class="mx-auto max-w-6xl p-7">
       <header class="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-line pb-5">
-        <h1 class="text-[30px] leading-none font-extrabold tracking-[-0.03em] text-ink lowercase">
-          manifesto
-        </h1>
-        <p class="text-[11px] font-semibold tracking-[0.16em] text-blue uppercase">
+        <h1 class="text-display text-ink lowercase">manifesto</h1>
+        <p class="text-sm font-semibold tracking-[0.16em] text-blue uppercase">
           Generate website icons from one SVG
         </p>
       </header>
@@ -87,7 +85,7 @@ export function App() {
       )}
 
       {status.kind === 'failed' && (
-        <p class="mt-4 rounded-lg border border-bad/50 bg-bad/8 px-3 py-2.5 text-[13px] text-ink">
+        <p class="mt-4 rounded-lg border border-bad/50 bg-bad/8 px-3 py-2.5 text-ink">
           {status.error}
         </p>
       )}
@@ -104,17 +102,16 @@ export function App() {
           onDarkMark={(file) => void attachDarkMark(file)}
           onChooseDarkMark={() => void chooseDarkMark()}
           onClearDarkMark={clearDarkMark}
+          onChooseOutput={() => void chooseRoot()}
+          onOpenOutput={() => void reveal()}
+          canOpenOutput={written !== null}
+          outputRoot={outputRoot}
         />
       )}
 
       <Terminal status={status} pending={pending} outputRoot={outputRoot} />
 
-      {bundle !== null && <OnDisk />}
-
-      <div class="mt-3 flex flex-wrap items-center gap-2.5">
-        <Button onClick={() => void chooseRoot()}>Choose output folder…</Button>
-        {written !== null && <Button onClick={() => void reveal()}>Open folder</Button>}
-      </div>
+      {bundle !== null && <HeadSnippet />}
     </main>
   )
 }

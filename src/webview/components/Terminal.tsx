@@ -26,7 +26,7 @@ export function Terminal({
 
   return (
     <section
-      class="mt-6 rounded-xl border border-line bg-surface font-mono text-xs"
+      class="text-code mt-6 rounded-xl border border-line bg-surface font-mono"
       aria-label="Generation status"
     >
       <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 py-3">
@@ -57,7 +57,7 @@ export function Terminal({
               </li>
             ))}
           </ul>
-          <p class="mt-2.5 text-[11px] text-dim">
+          <p class="mt-2.5 text-sm text-dim">
             <span class="text-muted">{SIDECAR_FILENAME}</span> saves these settings for the next
             time you use this logo. You can delete it.
           </p>

@@ -84,10 +84,10 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
         ].join(' ')}
       >
         <div class="mb-3 flex items-center justify-between gap-2.5">
-          <span class="truncate font-mono text-[13px] font-semibold text-ink">
+          <span class="truncate font-mono font-semibold text-ink">
             {loaded ? filename : 'Drop your logo here'}
           </span>
-          <span class="shrink-0 rounded-full bg-cyan/12 px-2 py-0.5 text-[10px] font-bold tracking-widest text-cyan uppercase">
+          <span class="shrink-0 rounded-full bg-cyan/12 px-2 py-0.5 text-xs font-bold tracking-widest text-cyan uppercase">
             SVG
           </span>
         </div>
@@ -101,14 +101,14 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
             />
           ) : (
             <p class="max-w-[38ch] text-center">
-              <span class="block text-[13px] font-semibold text-ink">
+              <span class="block font-semibold text-ink">
                 {busy
                   ? 'Rendering…'
                   : rejected
                     ? "That file isn't an SVG"
                     : 'Drop or click to choose'}
               </span>
-              <span class="mt-1.5 block text-[11px] text-muted">
+              <span class="mt-1.5 block text-sm text-muted">
                 {rejected
                   ? 'Manifesto needs an SVG. Export your logo as SVG and try again.'
                   : `Creates ${ICON_FILENAMES.length} icon files, a web app manifest, and ${HEAD_SNIPPET_TAG_COUNT} tags for your site's <head>.`}

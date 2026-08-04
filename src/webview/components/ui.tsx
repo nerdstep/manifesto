@@ -6,7 +6,13 @@ import { cn } from '../utils/index.ts'
 export const focusRing =
   'outline-none focus-visible:border-cyan focus-visible:ring-3 focus-visible:ring-cyan/30'
 
-export type Tone = 'upstream' | 'downstream'
+export type Tone = 'upstream' | 'settings' | 'downstream'
+
+const sectionHeadingTone = {
+  upstream: 'text-cyan',
+  settings: 'text-pink',
+  downstream: 'text-amber',
+} satisfies Record<Tone, string>
 
 type ButtonProps = JSX.IntrinsicElements['button']
 
@@ -16,7 +22,7 @@ export function Button({ class: klass, className, type, ...rest }: ButtonProps) 
     <button
       type={type ?? 'button'}
       class={cn(
-        'shrink-0 cursor-pointer rounded-lg border border-line bg-raised px-3 py-1.5 text-[13px] text-ink',
+        'shrink-0 cursor-pointer rounded-lg border border-line bg-raised px-3 py-1.5 text-ink',
         'transition-colors duration-150 ease-signal hover:border-line-strong',
         focusRing,
         klass,
@@ -33,7 +39,7 @@ export function Input({ class: klass, className, ...rest }: InputProps) {
   return (
     <input
       class={cn(
-        'w-full rounded-lg border border-line bg-raised px-2.5 py-1.5 text-[13px] text-ink',
+        'w-full rounded-lg border border-line bg-raised px-2.5 py-1.5 text-ink',
         'outline-none transition-colors duration-150 ease-signal focus:border-cyan h-8',
         klass,
         className,
@@ -51,23 +57,27 @@ export function Panel({ class: klass, className, ...rest }: PanelProps) {
   )
 }
 
-export function SectionLabel({
-  tone = 'upstream',
-  class: klass,
+export function SectionHeading({
   children,
-  ...rest
-}: JSX.IntrinsicElements['h2'] & { tone?: Tone; children: ComponentChildren }) {
+  note,
+  meta,
+  tone = 'upstream',
+}: {
+  children: ComponentChildren
+  note?: ComponentChildren
+  meta?: ComponentChildren
+  tone?: Tone
+}) {
   return (
-    <h2
-      class={cn(
-        'text-[11px] font-bold tracking-[0.14em] uppercase',
-        tone === 'downstream' ? 'text-amber' : 'text-cyan',
-        klass,
-      )}
-      {...rest}
-    >
-      {children}
-    </h2>
+    <header class="mt-6 mb-2 flex items-end justify-between gap-3">
+      <div class="min-w-0">
+        <h2 class={cn('text-sm font-bold tracking-[0.14em] uppercase', sectionHeadingTone[tone])}>
+          {children}
+        </h2>
+        {note !== undefined && <p class="mt-0.5 text-sm text-muted">{note}</p>}
+      </div>
+      {meta !== undefined && <div class="shrink-0 font-mono text-sm text-dim">{meta}</div>}
+    </header>
   )
 }
 
@@ -79,7 +89,7 @@ export function Pill({ selected = false, class: klass, children, ...rest }: Pill
       type="button"
       aria-pressed={selected}
       class={cn(
-        'cursor-pointer rounded-full border px-2.5 py-1 text-[10px] capitalize',
+        'cursor-pointer rounded-full border px-2.5 py-1 text-xs capitalize',
         'transition-colors duration-150 ease-signal',
         focusRing,
         selected
@@ -100,7 +110,7 @@ export function Caption({
   ...rest
 }: JSX.IntrinsicElements['span'] & { children: ComponentChildren }) {
   return (
-    <span class={cn('text-[10px] font-bold tracking-widest text-muted uppercase', klass)} {...rest}>
+    <span class={cn('text-xs font-bold tracking-widest text-muted uppercase', klass)} {...rest}>
       {children}
     </span>
   )
@@ -112,7 +122,7 @@ export function Note({
   ...rest
 }: JSX.IntrinsicElements['p'] & { children: ComponentChildren }) {
   return (
-    <p class={cn('text-[11px] text-muted', klass)} {...rest}>
+    <p class={cn('text-sm text-muted', klass)} {...rest}>
       {children}
     </p>
   )
