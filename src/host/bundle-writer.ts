@@ -1,12 +1,3 @@
-/**
- * Writing an Asset Bundle to disk, shared by the desktop shell and the CLI.
- *
- * This is the only place in the app that can lose someone's work, so the collision guard
- * is the point of the module rather than a detail of it. Everything here is synchronous
- * and takes real paths — the tests use real temp directories, because mocking the
- * filesystem would test the mock.
- */
-
 import {
   existsSync,
   mkdirSync,
@@ -24,18 +15,14 @@ import { isPlainObject } from 'es-toolkit'
 import type { BundleResult, Settings } from '../pipeline/index.ts'
 import { SIDECAR_FILENAME } from '../shared/bundle.ts'
 
-/** The `manifesto.json` written inside every Bundle. */
 export type Sidecar = {
-  /** Content hash of the Source Mark. The collision guard turns on this. */
   sourceHash: string
   bundleName: string
   settings: Settings
-  /** Present so a Bundle can explain itself six months later. */
   generatedAt: string
   generator: string
 }
 
-/** Defined in `src/shared/` because the file list in the webview has to name it too. */
 export { SIDECAR_FILENAME }
 
 export type BundleWriterFileSystem = {
@@ -56,25 +43,13 @@ const nativeWriterFileSystem: BundleWriterFileSystem = {
   writeFileSync,
 }
 
-/**
- * What we found where a Bundle is about to be written.
- *
- * `unknown-folder` is deliberately treated as a collision. A directory we did not create
- * might be anything — someone's `public/`, a git worktree — and overwriting it because
- * the name happened to match would be the single worst thing this app could do.
- */
+/** Unknown non-empty folders are collisions because Manifesto cannot safely replace them. */
 export type TargetState =
   | { kind: 'empty' }
   | { kind: 'same-mark'; sidecar: ReadSidecar }
   | { kind: 'different-mark'; sidecar: ReadSidecar }
   | { kind: 'unknown-folder' }
 
-/**
- * A Bundle Name from a filename.
- *
- * Filesystem-safe and lowercase — deliberately independent of the Web App Manifest's
- * `name`, which is a display string with different constraints.
- */
 export function slugify(filename: string): string {
   const stem = filename.replace(/\.[^.]*$/u, '')
   const slug = stem
@@ -89,13 +64,7 @@ export function slugify(filename: string): string {
   return slug.length > 0 ? slug : 'icons'
 }
 
-/**
- * Explain why a user-entered Bundle Name cannot be one directory beneath the Output Root.
- *
- * This is enforced on the host, before any filesystem inspection. The webview is an
- * editor, not a trust boundary: a crafted RPC request must not turn a folder name into a
- * relative path, an absolute path, or a Windows device name.
- */
+/** Validate folder names at the host boundary before inspecting the filesystem. */
 export function bundleNameProblem(name: string): string | null {
   if (name.length === 0 || name.trim().length === 0) return 'Enter a folder name.'
   if (name !== name.trim()) return 'Remove the leading or trailing spaces from the folder name.'
@@ -117,13 +86,6 @@ export function bundleNameProblem(name: string): string | null {
   return null
 }
 
-/**
- * What we are willing to believe about a file on disk.
- *
- * Only `sourceHash` and `generatedAt` are load-bearing, so only those are guaranteed.
- * `settings` stays `unknown` until something actually validates it — a Sidecar could
- * have been hand-edited, or written by an older version with a different shape.
- */
 type ReadSidecar = {
   sourceHash: string
   generatedAt: string
@@ -138,10 +100,7 @@ function readSidecar(dir: string): ReadSidecar | null {
     const parsed: unknown = JSON.parse(readFileSync(path, 'utf8'))
     if (!isPlainObject(parsed)) return null
 
-    // A Sidecar without a usable hash is no better than none: it cannot answer the only
-    // question we ask it, so the folder stays "unknown" and the user gets asked.
-    // Annotated: `isPlainObject` narrows to `Record<PropertyKey, any>`, and these came
-    // off disk, so they must stay unchecked until something checks them.
+    // Sidecar values remain unknown until validated.
     const { sourceHash, generatedAt, settings }: Record<string, unknown> = parsed
     if (typeof sourceHash !== 'string') return null
 
@@ -155,7 +114,6 @@ function readSidecar(dir: string): ReadSidecar | null {
   }
 }
 
-/** Every field a `Settings` needs, checked — this came off disk. */
 function isSettings(value: unknown): value is Settings {
   if (!isPlainObject(value)) return false
   const strings = ['name', 'shortName', 'themeColor', 'iconBackground', 'splashBackground']
@@ -164,7 +122,6 @@ function isSettings(value: unknown): value is Settings {
   )
 }
 
-/** Decide whether writing here is safe. */
 export function inspectTarget(dir: string, sourceHash: string): TargetState {
   if (!existsSync(dir)) return { kind: 'empty' }
   if (readdirSync(dir).length === 0) return { kind: 'empty' }
@@ -177,11 +134,7 @@ export function inspectTarget(dir: string, sourceHash: string): TargetState {
     : { kind: 'different-mark', sidecar }
 }
 
-/**
- * First free `name`, `name-2`, `name-3`… under `root`.
- *
- * Used when the user resolves a collision by keeping both.
- */
+/** Find the first available suffixed folder name. */
 export function nextAvailableName(root: string, base: string): string {
   if (!existsSync(join(root, base))) return base
 
@@ -193,13 +146,7 @@ export function nextAvailableName(root: string, base: string): string {
   throw new Error(`Could not find a free folder name for "${base}" under ${root}`)
 }
 
-/**
- * Write a Bundle and its Sidecar.
- *
- * Only writes the files it authored. Anything else already in the directory is left
- * alone — a Bundle that shrinks should not silently delete what the previous one wrote,
- * and this app never removes a file it cannot account for.
- */
+/** Commit authored files without deleting unrelated files in the target directory. */
 export function writeBundle(
   dir: string,
   bundle: BundleResult,
@@ -225,8 +172,7 @@ export function writeBundle(
     staging = fileSystem.mkdtempSync(join(parent, `.${folder}.manifesto-stage-`))
     backups = fileSystem.mkdtempSync(join(parent, `.${folder}.manifesto-backup-`))
 
-    // Stage every authored byte before touching the destination. The Sidecar is part of
-    // the transaction: it must never describe a set of files that was not committed.
+    // Stage the complete write before changing the destination.
     for (const [filename, bytes] of bundle.files) {
       fileSystem.writeFileSync(join(staging, filename), bytes)
     }
@@ -252,9 +198,7 @@ export function writeBundle(
 
     return { written: authored }
   } catch (error) {
-    // Best-effort rollback keeps a transient disk/permission error from leaving a mixed
-    // Bundle. If rollback itself fails, preserve the original error for the caller and log
-    // the second failure for diagnosis.
+    // Preserve the original error while attempting to restore the previous files.
     for (const target of installed.toReversed()) {
       try {
         fileSystem.rmSync(target, { force: true, recursive: true })
@@ -286,7 +230,6 @@ export function writeBundle(
   }
 }
 
-/** Settings recorded by a previous run, so a re-drop restores choices rather than guessing. */
 export function recallSettings(dir: string): Settings | null {
   const settings = readSidecar(dir)?.settings
   return isSettings(settings) ? settings : null

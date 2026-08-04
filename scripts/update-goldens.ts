@@ -1,11 +1,4 @@
-/**
- * Regenerate `test/golden/renditions.json`.
- *
- * Run deliberately — `bun run goldens` — and never to make a red suite go green. A
- * golden that changed without an intended pipeline change is the suite reporting a bug,
- * which is the only reason the file exists. Read the diff, say what moved and why, then
- * regenerate.
- */
+/** Regenerate goldens only after confirming an intentional output change. */
 
 import { writeFileSync } from 'node:fs'
 
@@ -18,7 +11,7 @@ let previous: Record<string, string> = {}
 try {
   previous = readGoldens()
 } catch {
-  console.log('No existing goldens — creating.')
+  console.log('No existing goldens. Creating them now.')
 }
 
 const next = renderGoldens(pipeline)

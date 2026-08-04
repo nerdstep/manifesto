@@ -1,21 +1,4 @@
-/**
- * Check the packaged app before trusting it.
- *
- * `bun test` and `check:bundle` both run against source or against the dev build. Neither
- * can see the thing that actually ships, and the packaged layout is where this app's
- * assumptions are most exposed:
- *
- *   - `resvg.wasm` is resolved with `join(import.meta.dir, '..', 'resvg.wasm')`. That
- *     holds only while the entrypoint runs from `Resources/app/bun/index.js`. Turn on
- *     `useAsar` and the launcher extracts the entrypoint to a **temp file** before running
- *     it, `import.meta.dir` becomes the OS temp directory, and the pipeline cannot
- *     initialise. The app would start and then fail on the first drop.
- *   - `electrobun/bun` re-exports `three` and `@babylonjs/core`. A bundler plugin drops
- *     them; if that plugin ever silently stops matching, the payload grows by 8 MB and
- *     nothing else complains.
- *
- * Run: `bun run dist && bun run check:package`
- */
+/** Validate the packaged layout, required files, and bundle size. */
 
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'

@@ -1,22 +1,3 @@
-/**
- * The source pane: the way into the app, and the upstream end of the Signal Path.
- *
- * The `preventDefault` that stops the webview opening the file already ran inline in
- * index.html, before this bundle loaded — see the comment there. This component only
- * decides what to do with a drop that has already been intercepted.
- *
- * ## Why the pane itself is the button
- *
- * A drop cannot be performed without a pointer, so for as long as dropping was the only
- * way in, the whole app was unreachable by keyboard. The obvious remedy is a "Choose a
- * file" button, but that adds a second control for the one thing this screen does, next to
- * a target the size of the screen. So the target *is* the control: `role="button"` is
- * honest here, Enter and Space activate it, and nothing was added to look at.
- *
- * The 2px dashed border is the only one in the system. It is the single place the
- * interface says *put something here*.
- */
-
 import { useState } from 'preact/hooks'
 
 import { HEAD_SNIPPET_TAG_COUNT, ICON_FILENAMES } from '../../shared/bundle.ts'
@@ -24,26 +5,15 @@ import { Caption } from './ui.tsx'
 
 type Props = {
   onFile: (file: File) => Promise<void>
-  /** Opens the native file picker. The keyboard and click route in. */
   onChoose: () => Promise<void>
   busy: boolean
-  /** The Source Mark once one exists, so the pane shows what it is holding. */
   filename: string | null
   sourceSvg: string | null
 }
 
 /**
- * The Source Mark as an `<img>`, deliberately.
- *
- * This is the user's file exactly as authored — it has not been through `validate()`,
- * which is the stage that strips `<script>` elements and `on*` handlers, and that stage
- * runs on the Bun side. Inlining it with `dangerouslySetInnerHTML` would execute an
- * `onload` attribute if the file carried one.
- *
- * SVG inside `<img>` renders in the browser's secure static mode: no scripts, no external
- * fetches, no interaction. So the pane can show the true original rather than the
- * sanitized-and-normalized `favicon.svg`, which is the *output* and would be a small lie
- * in a pane labelled with the source filename.
+ * Keep unvalidated SVG outside the application DOM. An image document cannot run scripts
+ * or event handlers from the source file.
  */
 function sourceUri(svg: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
@@ -95,9 +65,7 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
         onDrop={handleDrop}
         onClick={choose}
         onKeyDown={(e) => {
-          // The two keys a `role="button"` is required to answer to. Space is prevented
-          // because its default is scrolling the page, which would fire the picker and jump
-          // the view at the same time.
+          // Prevent Space from scrolling while it activates the drop zone.
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
             choose()
@@ -124,11 +92,6 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
           </span>
         </div>
 
-        {/*
-        A measured field. This is the one grid background in the system, and it is here
-        because the pane is depicting a vector editor's canvas — a measurement surface,
-        the same justification the Safe Zone ring has. See DESIGN.md.
-      */}
         <div class="signal-grid grid min-h-40 grow place-items-center rounded-lg bg-bg p-4">
           {sourceSvg !== null && !busy ? (
             <img

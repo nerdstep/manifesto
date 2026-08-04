@@ -1,28 +1,9 @@
 @import 'tailwindcss';
 
-/*
- * Sources to scan for class names. Explicit rather than relying on auto-detection, so
- * moving a component does not silently drop its styles from the build.
- */
+/* Keep source paths explicit so moved components retain generated styles. */
 @source './';
 
-/*
- * The Signal Path palette. See DESIGN.md — every value here was sampled out of hero.png
- * with a PNG decoder, then adapted for a surface that gets stared at.
- *
- * Two accents, and they mean DIRECTION rather than importance:
- *
- *   cyan   upstream — the Source Mark, the running stage, focus, the Safe Zone ring
- *   amber  downstream — what landed on disk, where it landed, and what to check about it
- *
- * Nothing else is saturated, which is the only reason those two read as signal.
- *
- * Dark-first, and dark-only for now: there is no `prefers-color-scheme` block because a
- * light counterpart is not specified. The near-black ground is load-bearing, not a
- * preference — on a light ground the same two accents become decoration.
- */
 @theme {
-  /* Three planes. Close in luminance by design; the 1px border does the separating. */
   --color-bg: #04070e;
   --color-surface: #111c30;
   --color-raised: #1b2740;
@@ -30,8 +11,7 @@
   --color-line: #243350;
   --color-line-strong: #33456a;
 
-  /* Every one of these clears WCAG AA on all three planes. Worst case: dim on raised,
-     4.87:1, used at 10px. Measure any new colour against --color-raised. */
+  /* Text colors meet WCAG AA on all three surfaces. */
   --color-ink: #f5f6f7;
   --color-muted: #93a4c2;
   --color-dim: #8494b4;
@@ -44,37 +24,11 @@
 
   --font-mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
 
-  /* Exponential ease-out. No bounce, no elastic, anywhere. */
   --ease-signal: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @layer components {
-  /*
-   * The measured field behind the Source Mark.
-   *
-   * The only grid background in the system. It is legitimate here because this pane
-   * depicts a vector editor's canvas — a measurement surface, the same justification the
-   * Safe Zone ring has. A grid anywhere else is decoration. See DESIGN.md.
-   *
-   * Written here rather than as an arbitrary utility so the colour resolves through the
-   * theme variable and stays readable.
-   */
-  /*
-   * The Safe Zone overlay: dim everything a launcher may crop, leave the guaranteed circle
-   * clear.
-   *
-   * This replaced a dashed ring. A hairline had to stay legible against artwork of unknown
-   * colour on a background inference sets to either #FFFFFF or #111111, and no accent
-   * survives both — cyan measures 1.74:1 on white, amber 1.56. Backing the dashes with a
-   * dark ring worked and looked like a selection marquee.
-   *
-   * Dimming the at-risk region instead solves the contrast problem by not having one: a
-   * translucent black reads on anything. It also says more. A ring marks a boundary; this
-   * marks the area you can actually lose, which is the question being asked.
-   *
-   * `closest-side` makes 100% of the gradient equal half the box, so the Safe Zone's 40%-of-
-   * width radius is 80% of that. The 1% ramp is anti-aliasing, not a soft edge.
-   */
+  /* `closest-side` maps the 40% safe radius to 80% of the gradient radius. */
   .safe-zone-scrim {
     background: rgb(0 0 0 / 0.55);
     -webkit-mask-image: radial-gradient(circle closest-side, transparent 79%, #000 80%);
@@ -102,16 +56,7 @@
     color-scheme: dark;
   }
 
-  /*
-   * Reserve the scrollbar gutter unconditionally, and draw the scrollbar ourselves.
-   *
-   * `overflow-y: scroll` alone was not enough. Edge — and so WebView2 — ships *fluent
-   * overlay scrollbars* by default: they occupy no space and stay invisible until you
-   * scroll or hover the edge, so a page that has plenty to scroll looks like it has none.
-   *
-   * Styling `::-webkit-scrollbar` opts the whole document out of overlay behaviour and
-   * back into a classic, always-present scrollbar.
-   */
+  /* Styled scrollbars remain visible in WebView2. */
   html {
     scrollbar-gutter: stable;
     overflow-y: auto;
@@ -145,11 +90,6 @@
     color: var(--color-ink);
   }
 
-  /*
-   * Motion carries state here — a stage running, a control taking focus — so the
-   * reduced-motion path keeps the outcome and drops the choreography rather than
-   * removing the feedback.
-   */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

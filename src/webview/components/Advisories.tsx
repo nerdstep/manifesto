@@ -1,11 +1,3 @@
-/**
- * Advisories: things worth knowing that do not stop generation.
- *
- * Wording lives in `src/shared/advisories.ts` so the app and the CLI say the same thing
- * about the same file. Every one names an action — the user decides, and a warning they
- * cannot act on is noise.
- */
-
 import type { Advisory } from '../../pipeline/index.ts'
 import { describeAdvisory } from '../../shared/advisories.ts'
 

@@ -1,17 +1,4 @@
-/**
- * The regression net for the whole pipeline.
- *
- * This app's entire output is pixels, and pixels are what you cannot eyeball reliably:
- * a 4px Safe Zone error looks fine in a preview and clips someone's logo on a Pixel.
- * Every file `buildBundle` emits is hashed, so anything that moves a byte fails loudly.
- *
- * If a golden fails, that is the suite doing its job. Read the diff, work out what
- * moved and why, and only then run `bun run goldens`.
- *
- * The geometry tests below are a different instrument. They assert *properties* — the
- * mark lands in the same place at the same size — through the pipeline's internal seam,
- * because a hash tells you something changed but never what.
- */
+/** Compare every generated file with committed hashes and geometry properties. */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { existsSync } from 'node:fs'
@@ -30,7 +17,7 @@ import {
 import type { FixtureName } from './helpers.ts'
 import { EQUIVALENT_FIXTURES, fixture, pixelDiff, testPipeline } from './helpers.ts'
 
-/** The four fixtures sharing a 1000x1000 canvas — identical but for invisible extras. */
+/** Fixtures that differ only by invisible elements. */
 const SAME_CANVAS: FixtureName[] = EQUIVALENT_FIXTURES.filter((n) => n !== 'square-tight')
 
 type RenditionTreatment = (typeof ALL_RENDITIONS)[number]['treatment']
@@ -88,7 +75,7 @@ describe('golden renditions', () => {
     const actual = renderGoldens(pipeline)
 
     // Compare whole maps so a missing or extra Rendition fails as loudly as a changed
-    // one — a silently dropped icon is the worse bug.
+    // one. Missing and extra Renditions must also fail.
     expect(Object.keys(actual).toSorted()).toEqual(Object.keys(expected).toSorted())
     for (const [key, hash] of Object.entries(actual)) {
       expect(hash, `pixels changed for ${key}`).toBe(expected[key] ?? '')
@@ -118,8 +105,7 @@ describe('golden renditions', () => {
   })
 
   test('the Dark Mark path is covered', () => {
-    // Zero of the previous 84 hashes involved a Dark Mark, so `markFor` and the
-    // dual-embed favicon.svg had no regression cover at all.
+    // Dark Mark output needs separate regression coverage.
     const goldens = renderGoldens(pipeline)
     const darkKeys = Object.keys(goldens).filter((k) => k.includes('/dark-on-dark/'))
 
@@ -146,18 +132,7 @@ describe('golden renditions', () => {
   })
 })
 
-/**
- * The Normalization contract: one mark, five exports, same icons.
- *
- * Byte-identity is NOT achievable and asking for it would be wrong. The alpha probe is
- * 1024px across, so a 1000-unit document quantizes to ~0.98 units per probe pixel and
- * `320/1000 x 1024 = 327.68` does not land on a pixel boundary. (Phase 0 reported
- * byte-identity only because that fixture's geometry happened to land exactly on
- * boundaries — luck, not a property.)
- *
- * So these assert what actually matters: the mark lands in the same place, at the same
- * size, to within a pixel.
- */
+/** Assert equivalent geometry within the alpha probe's one-pixel precision. */
 describe('normalization equivalence', () => {
   for (const { key, treatment } of ALL_RENDITIONS) {
     test(`${key}: five exports of one mark land within a pixel`, () => {
@@ -174,8 +149,7 @@ describe('normalization equivalence', () => {
           ).toBeLessThanOrEqual(1)
         }
 
-        // Area is the stronger check: it catches a mark that is the right size but
-        // subtly deformed, which matching edges alone would miss.
+        // Area catches deformation that matching edges alone would miss.
         const areaRatio = actual.painted / reference.painted
         expect(areaRatio, `${name} ${key} painted area`).toBeGreaterThan(0.97)
         expect(areaRatio, `${name} ${key} painted area`).toBeLessThan(1.03)

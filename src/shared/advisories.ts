@@ -1,29 +1,7 @@
-/**
- * What each Advisory says to the user.
- *
- * One definition for both surfaces. The app and the CLI previously carried their own
- * wording for the same six conditions, which is how two descriptions of one fact drift
- * apart until they disagree.
- *
- * **Value-import-free** so the webview can use it. `import type` is fine — it erases.
- *
- * Every message follows the same shape, in this order:
- *
- *   1. what is true of the file,
- *   2. what will go wrong because of it,
- *   3. what to do about it.
- *
- * The consequence comes before the mechanism because the consequence is what the reader
- * is deciding about. And every message ends in an action — an advisory the reader cannot
- * act on is noise, and none of these block generation.
- *
- * Deliberately free of anything surface-specific ("check the previews", `--no-optimize`),
- * so the same sentence is true in a window and in a terminal.
- */
+/** Shared advisory wording for the app and CLI. Keep this module value-import-free. */
 
 import type { Advisory } from '../pipeline/types.ts'
 
-/** `1 script` / `2 scripts`, without the `(s)` that means the writer gave up. */
 function count(n: number, singular: string, plural = `${singular}s`): string {
   return `${n} ${n === 1 ? singular : plural}`
 }
@@ -82,7 +60,6 @@ export function describeAdvisory(advisory: Advisory): string {
       )
 
     default: {
-      // Exhaustiveness: adding an Advisory kind without a message fails to compile.
       const unhandled: never = advisory
       return JSON.stringify(unhandled)
     }

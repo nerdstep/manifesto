@@ -1,10 +1,3 @@
-/**
- * App-level persistence.
- *
- * The only real requirement: a corrupt or missing state file must never stop the app
- * opening. The worst acceptable outcome is a wrongly-sized window, once.
- */
-
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -83,13 +76,7 @@ describe('saveState', () => {
 
 describe('windowFrame', () => {
   test('scales the intended CSS size to physical pixels', () => {
-    // The whole point of making the process DPI-aware: frames stop being virtualized, so
-    // the app has to do this multiplication itself or the window comes out 1/scale too
-    // small on every scaled display.
-    //
-    // A 4K panel, deliberately: this asserts the *scaling*, so the display has to be big
-    // enough that the 90% clamp does not bind. On a 1440-tall screen the intended height
-    // now exceeds the clamp, which is the clamp working — and is what the next test is for.
+    // Use a large display so the clamp does not hide the DPI scaling result.
     const frame = windowFrame({ scale: 1.5, width: 3840, height: 2160 })
 
     expect(frame.width).toBe(DEFAULT_WINDOW_CSS.width * 1.5)

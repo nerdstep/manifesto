@@ -1,11 +1,3 @@
-/**
- * Normalization — the stage that decides where the mark is.
- *
- * The load-bearing test is `EQUIVALENT_FIXTURES`: the same mark, exported five
- * different ways, must be measured the same. Getting this wrong is not a subtle bug —
- * a mark rendering at 13.4% of a Rendition instead of 80.6%, silently.
- */
-
 import { beforeAll, describe, expect, test } from 'bun:test'
 
 import type { Pipeline } from '../src/pipeline/index.ts'
@@ -18,7 +10,6 @@ beforeAll(async () => {
   pipeline = await testPipeline()
 })
 
-/** Probe quantization: one probe pixel is ~1/1024 of the longest side. */
 const QUANTIZATION_TOLERANCE = 0.005
 
 describe('measureMark — painted extents', () => {
@@ -31,7 +22,7 @@ describe('measureMark — painted extents', () => {
   test('a padded export finds the mark, not the canvas', () => {
     // The mark occupies 320,320 360x360 of a 1000x1000 canvas. The probe is 1024px
     // across that canvas, so one probe pixel is ~0.98 units and the measurement can
-    // only be that accurate — `320/1000 * 1024 = 327.68` is not a pixel boundary.
+    // only be that accurate. `320/1000 * 1024 = 327.68` is not a pixel boundary.
     // Antialiased edges also count as painted, which biases extents outward slightly.
     const onePixel = 1000 / 1024
     const { extent } = pipeline.measureMark(fixture('square-padded')) ?? { extent: null }
@@ -45,9 +36,7 @@ describe('measureMark — painted extents', () => {
   })
 
   test('invisible geometry does not inflate the measurement', () => {
-    // This is the whole reason the alpha channel is used instead of getBBox(), which
-    // reports 0,0 1000x1000 for all three of these. Figma and Illustrator emit exactly
-    // such a rect to lock an export frame.
+    // Alpha bounds ignore invisible export frames that `getBBox()` includes.
     const reference = pipeline.measureMark(fixture('square-padded'))
     expect(reference).not.toBeNull()
 
@@ -57,8 +46,8 @@ describe('measureMark — painted extents', () => {
       // Compare as a fraction of the mark's own size, so the 60-unit and 1000-unit
       // documents are comparable.
       expect((measured?.extent.w ?? 0) / (measured?.extent.h ?? 1)).toBeCloseTo(1, 2)
-      // The four sharing a 1000x1000 canvas must agree exactly — they differ only in
-      // invisible geometry, which is precisely what getBBox() could not see.
+      // The four sharing a 1000x1000 canvas must agree exactly. They differ only in
+      // invisible geometry that alpha measurement ignores.
       if (name !== 'square-tight') expect(measured?.extent).toEqual(reference?.extent)
     }
   })
@@ -81,7 +70,7 @@ describe('measureMark — painted extents', () => {
 describe('measureMark — maxRadius', () => {
   test('a mark painting into its corners reports its half-diagonal', () => {
     // The staircase touches all four bounding-box corners, so its furthest painted
-    // pixel is at the corner: 30 * sqrt(2) for a 60-unit mark.
+    // pixel is at the corner, or 30 * sqrt(2) for a 60-unit mark.
     const geometry = pipeline.measureMark(fixture('square-tight'))
     expect(geometry?.maxRadius).toBeCloseTo(30 * Math.SQRT2, 0)
   })
@@ -109,7 +98,7 @@ describe('measureMark — maxRadius', () => {
 
 describe('normalize', () => {
   test('throws EmptyMarkError rather than producing a blank icon', () => {
-    // The worst possible failure here is succeeding: a valid-looking, empty PNG.
+    // Empty artwork must fail instead of producing a valid-looking PNG.
     for (const name of EMPTY_FIXTURES) {
       expect(() => pipeline.normalize(fixture(name))).toThrow(EmptyMarkError)
     }

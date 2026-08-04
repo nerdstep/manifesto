@@ -1,11 +1,3 @@
-/**
- * The drop→disk operation, and the two policies inside it that could lose someone's work.
- *
- * The collision prompt is injected, so these run against a stub that records what it was
- * asked and answers however the test wants. Before `createGenerate` existed, this policy
- * could only be exercised by clicking a native modal — which is to say, not at all.
- */
-
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import {
   existsSync,
@@ -124,8 +116,7 @@ describe('generate', () => {
     const result = await generate(request())
     if (!result.ok) throw new Error(result.error)
 
-    // The panel has no other way to learn these — inference reads pixels, which only the
-    // Bun side can do.
+    // Pixel-derived values must cross the host boundary with the bundle.
     expect(result.bundle.settings.name).toBe('Acme')
     expect(result.bundle.bundleName).toBe('acme-logo')
     expect(result.bundle.writtenTo).toBe(join(root, 'acme-logo'))
@@ -163,8 +154,7 @@ describe('generate', () => {
       expect(result.bundle.bundleName).toBe('acme-logo-2')
       expect(result.bundle.writtenTo).toBe(join(root, 'acme-logo-2'))
 
-      // The original is untouched. This is the one thing in the app that could destroy
-      // someone's work.
+      // A collision must never modify the existing directory.
       const sidecar = parseJsonObject(
         readFileSync(join(root, 'acme-logo', SIDECAR_FILENAME), 'utf8'),
       )
@@ -180,16 +170,13 @@ describe('generate', () => {
       if (!result.ok) throw new Error(result.error)
 
       expect(result.bundle.writtenTo).toBeNull()
-      // The panel keeps working on a Bundle that is not on disk — that is what makes a
-      // cancelled drop recoverable rather than a dead end.
+      // A cancelled write must leave the in-memory bundle usable.
       expect(Object.keys(result.bundle.files).length).toBeGreaterThan(0)
       expect(existsSync(join(root, 'acme-logo', 'site.webmanifest'))).toBe(false)
     })
 
     test('an edit NEVER prompts — it declines to write instead', async () => {
-      // The load-bearing one. An edit can arrive for every colour-picker event while it is
-      // dragged; a modal on each would make the app unusable, and auto-replacing someone
-      // else's folder would be worse.
+      // Routine edits must neither show a modal nor replace another source's folder.
       const root = tempRoot()
       occupyWithOtherMark(root, 'acme-logo')
       const { generate, prompt } = harness(root, 'acme-logo-2')
@@ -230,8 +217,7 @@ describe('generate', () => {
     })
 
     test('editing after a successful drop writes without asking', async () => {
-      // The whole policy only works because a successful write leaves a Sidecar with our
-      // hash, so every subsequent edit sees `same-mark` and flows.
+      // A successful write leaves the Sidecar needed by subsequent edits.
       const root = tempRoot()
       const { generate, prompt } = harness(root)
 

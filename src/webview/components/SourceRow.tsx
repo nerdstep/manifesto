@@ -1,18 +1,3 @@
-/**
- * What SVGO did to the Source Mark, and whether it was safe.
- *
- * The toggle lives here rather than in the settings panel because this is the only place
- * the user has evidence to decide with. "Optimize SVG" next to a byte delta and a
- * pixel-drift verdict is a decision; the same checkbox in a list of colours is a shrug.
- *
- * The verdict is not a claim that the markup is unchanged — it certainly is. It is a
- * claim about *pixels*, made by rendering both versions and comparing them, because
- * SVGO's classic breakages all produce valid SVG and only show up when drawn.
- *
- * The filename is not repeated here: the source pane above already names it, and saying
- * it twice on one screen is how a layout starts to feel padded.
- */
-
 import type { Advisory } from '../../pipeline/index.ts'
 import { Panel } from './ui.tsx'
 

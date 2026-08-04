@@ -1,21 +1,7 @@
-/**
- * The downstream end of the Signal Path: the command, the result, and what it wrote.
- *
- * The file list used to be its own card with its own heading, one section below this one —
- * so "7 files written" and the seven filenames were separated by a card boundary and a
- * gap, saying the same thing twice in two voices. A terminal that reports a build and then
- * prints what it produced is one thought, and it is the shape this readout was already
- * borrowing.
- *
- * A polite live region: it updates after the host accepts the newest edit, and interrupting someone
- * mid-word to say "saved" is worse than telling them a moment later.
- */
-
 import { BUNDLE_FILENAMES, SIDECAR_FILENAME } from '../../shared/bundle.ts'
 import type { BundleWire } from '../../shared/rpc.ts'
 import type { Status } from '../use-bundle.ts'
 
-/** base64 is 4 characters per 3 bytes — close enough for a size column. */
 function decodedBytes(base64: string): number {
   return Math.floor((base64.length * 3) / 4)
 }
@@ -35,7 +21,6 @@ export function Terminal({
 }) {
   const bundle = status.kind === 'done' ? status.bundle : null
 
-  // Listed in the documented order, so the UI reads the way the docs do.
   const written =
     bundle === null ? [] : [...BUNDLE_FILENAMES].filter((name) => name in bundle.files)
 
@@ -99,10 +84,6 @@ function Result({
 
   const count = Object.keys(bundle.files).length
 
-  // `writtenTo === null` has exactly one cause: the target folder holds files Manifesto
-  // did not write, and the user either declined to resolve it or the change was a
-  // routine edit that is never allowed to prompt. Both are the same situation and both
-  // have the same two ways out.
   return bundle.writtenTo === null ? (
     <span class="text-bad">
       ✗ Nothing saved. <span class="text-ink">{bundle.bundleName}</span> already contains files

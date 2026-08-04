@@ -1,15 +1,3 @@
-/**
- * Inference: the settings the panel opens with.
- *
- * Colour inference is tested through the real rasterizer against real fixtures, because
- * the thing it can get wrong is a *pixel* fact. A hand-built `PixelBuffer` would prove
- * the histogram works and tell us nothing about whether an antialiased edge or a
- * premultiplied channel moves the answer — which is the only interesting question.
- *
- * The name heuristic used to live in the CLI. It moved here when the panel needed it,
- * because two guesses about the same filename that disagree is worse than either.
- */
-
 import { beforeAll, describe, expect, test } from 'bun:test'
 
 import {
@@ -54,8 +42,7 @@ describe('inferNames', () => {
   })
 
   test('does not invent a name for an unhelpful filename', () => {
-    // `Untitled-1.svg` yielding `Untitled 1` is correct: it is obviously wrong on
-    // screen, which is the point — the user sees it and fixes it.
+    // Keep a visible fallback that the user can correct.
     expect(inferNames('Untitled-1.svg').name).toBe('Untitled 1')
   })
 
@@ -65,16 +52,14 @@ describe('inferNames', () => {
 
   test('short name keeps a short name whole and shortens a long one to one word', () => {
     expect(inferNames('acme.svg').shortName).toBe('Acme')
-    // `Northwind Trading` is 17 characters — too long for a home screen label.
+    // `Northwind Trading` exceeds the home screen label limit.
     expect(inferNames('northwind-trading-logo.svg').shortName).toBe('Northwind')
   })
 })
 
 describe('inferColors', () => {
   test('takes the dominant saturated colour as the Theme Color', () => {
-    // `multicolor` is a large #2E5BFF field plus a small #FF8A3D circle. Exact, not
-    // approximate: bucketing reports the bucket's mean, so it must not shift a colour
-    // that is entirely one value.
+    // A solid color should survive bucketing without shifting.
     expect(colorsOf('multicolor').themeColor).toBe('#2E5BFF')
   })
 
@@ -87,8 +72,7 @@ describe('inferColors', () => {
   })
 
   test('chooses an Icon Background the mark can be seen against', () => {
-    // The whole point: `light-mark` on a white background is a white mark on white in
-    // apple-touch-icon and icon-maskable-512, both of which must be opaque.
+    // Near-white marks need a dark background in opaque Renditions.
     const light = colorsOf('light-mark')
     expect(light.iconBackground).toBe('#111111')
     expect(colorsOf('monochrome').iconBackground).toBe('#FFFFFF')
@@ -151,8 +135,7 @@ describe('inferSettings', () => {
   })
 
   test('produces settings a Bundle can actually be built from', () => {
-    // Inference is only useful if its output is valid input. This is the join between
-    // the two halves of the app and nothing else asserts it.
+    // Inferred values must satisfy the pipeline's input validation.
     const svg = fixture('square-tight')
     const bundle = pipeline.buildBundle(svg, null, pipeline.inferSettings(svg, 'acme-logo.svg'))
     expect(bundle.files.size).toBeGreaterThan(0)

@@ -1,12 +1,3 @@
-/**
- * The app shell, arranged along the Signal Path: source at the top, the pipeline beneath
- * it, then everything that came out the other side.
- *
- * All the session logic — request ordering, the drop→panel handoff — lives in
- * `useBundle`. What is left here is layout and the two things that are genuinely the
- * shell's own: the Output Root and opening the folder.
- */
-
 import { useCallback, useEffect, useState } from 'preact/hooks'
 
 import { DropZone } from './components/DropZone.tsx'
@@ -39,8 +30,7 @@ export function App() {
     void (async () => {
       const { path } = await bun().request.getOutputRoot()
       setOutputRoot(path)
-      // Logged only after a round-trip succeeds, so it means "the channel works"
-      // rather than "a message was queued at something that may not be listening".
+      // Log readiness only after the RPC round trip succeeds.
       bun().send.log({ level: 'info', message: 'webview ready' })
     })()
   }, [])
@@ -60,14 +50,8 @@ export function App() {
   }, [written])
 
   return (
-    // `max-w-6xl`, not 5xl: the source pane and the pipeline share a row, and five stages
-    // plus four arrows need 544px. At 5xl the strip got 540 and wrapped "Export" onto a
-    // row of its own. Widening the window alone would not have helped — the max-width was
-    // the binding constraint.
     <main class="mx-auto max-w-6xl p-7">
       <header class="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-line pb-5">
-        {/* Solid fill. The brand asset's wordmark carries a gradient; at UI sizes
-            `background-clip: text` turns to mud, and it is a tell besides. */}
         <h1 class="text-[30px] leading-none font-extrabold tracking-[-0.03em] text-ink lowercase">
           manifesto
         </h1>
@@ -76,11 +60,6 @@ export function App() {
         </p>
       </header>
 
-      {/*
-        Source and pipeline share a row, left to right, because that is the product: one
-        file in, five named stages, artefacts out. Stacked on narrow windows, where the
-        arrow of the layout would be lost anyway.
-      */}
       <div class="mt-5 grid items-stretch gap-4 lg:grid-cols-[minmax(300px,380px)_1fr]">
         <DropZone
           onFile={drop}
@@ -113,7 +92,6 @@ export function App() {
         </p>
       )}
 
-      {/* Icons first, then the controls that change them, then what landed. */}
       {bundle !== null && <InContext bundle={bundle} />}
 
       {session !== null && (
@@ -135,11 +113,7 @@ export function App() {
 
       <div class="mt-3 flex flex-wrap items-center gap-2.5">
         <Button onClick={() => void chooseRoot()}>Choose output folder…</Button>
-        {written !== null && (
-          // "Reveal" is a macOS word. This opens Explorer with the folder selected, and
-          // "Open folder" is true of that on every platform.
-          <Button onClick={() => void reveal()}>Open folder</Button>
-        )}
+        {written !== null && <Button onClick={() => void reveal()}>Open folder</Button>}
       </div>
     </main>
   )

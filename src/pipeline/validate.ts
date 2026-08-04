@@ -1,22 +1,4 @@
-/**
- * Stage 2 — inspect the Source Mark, remove what must not ship, and report the rest.
- *
- * Parsing is done by SVGO's XML parser via a custom collector plugin, not by regex.
- * Script removal is a correctness-critical edit to a file we then write to the user's
- * web root, and regex XML parsing is the classic way to get that subtly wrong.
- *
- * Scope, settled in Phase 0:
- *
- * - `<script>` and `on*` handlers are STRIPPED, always, regardless of the optimize
- *   toggle. A `favicon.svg` opened directly in a browser executes its scripts.
- * - `<text>` raises an advisory. resvg renders text blank without font buffers. If text
- *   is ALL the mark contains, Normalization's empty-mark guard turns it into a hard
- *   error, which is correct — the advisory is for a mark that is part glyph, part text.
- * - Unresolvable `<image href>` raises an advisory and nothing more. resvg-wasm never
- *   resolves remote refs (spike 0.1 verified zero `fetch` calls with `fetch` trapped),
- *   and the alpha scan ignores unpainted geometry, so there is nothing to defend
- *   against and nothing to correct.
- */
+/** Remove active SVG content and report content that may not render. */
 
 import { _collections, optimize as runSvgo } from 'svgo/browser'
 import type { CustomPlugin, XastElement, XastParent } from 'svgo/browser'
@@ -24,14 +6,9 @@ import type { CustomPlugin, XastElement, XastParent } from 'svgo/browser'
 import type { Advisory } from './types.ts'
 import { InvalidSvgError } from './types.ts'
 
-/** Text containers. `<tspan>` lives inside `<text>`, so counting it would double up. */
 const TEXT_ELEMENTS = new Set(['text', 'textPath'])
 
-/**
- * Every event-handler attribute, taken from SVGO's own collections rather than a
- * hand-written list — it is the same source `removeScripts` strips from, so detection
- * and removal can never drift apart.
- */
+/** Use SVGO's event list so detection matches its removal behavior. */
 const EVENT_ATTRIBUTES = new Set<string>([
   ...(_collections.attrsGroups.animationEvent ?? []),
   ...(_collections.attrsGroups.documentEvent ?? []),
@@ -41,7 +18,6 @@ const EVENT_ATTRIBUTES = new Set<string>([
 ])
 
 export type ValidationResult = {
-  /** The mark with `<script>` elements and event handlers removed. */
   sanitized: string
   advisories: Advisory[]
 }
@@ -55,7 +31,6 @@ type Findings = {
   externalStyles: number
 }
 
-/** Drop an XML namespace prefix: `svg:text` -> `text`. */
 function localName(name: string): string {
   const colon = name.indexOf(':')
   return colon === -1 ? name : name.slice(colon + 1)
@@ -73,15 +48,14 @@ function inspect(element: XastElement, into: Findings): void {
 
   if (name === 'image') {
     const href = element.attributes.href ?? element.attributes['xlink:href']
-    // Anything that isn't inline data is unresolvable here — not just remote URLs.
-    // A relative path has no base to resolve against either.
+    // Relative and remote images have no resolvable base in the pipeline.
     if (href !== undefined && href !== '' && !href.startsWith('data:')) {
       into.unresolvableImages.push(href)
     }
   }
 }
 
-/** Records what the document contains. Must run before `removeScripts` edits it. */
+/** Collect findings before `removeScripts` changes the document. */
 function collector(into: Findings): CustomPlugin {
   return {
     name: 'manifesto-collect',
@@ -95,12 +69,11 @@ function collector(into: Findings): CustomPlugin {
   }
 }
 
-/** Remove one node without mutating the array a visitor is currently indexing. */
+/** Replace the child array so adjacent nodes are not skipped by the visitor. */
 function detach(node: XastElement, parentNode: XastParent): void {
   parentNode.children = parentNode.children.filter((child) => child !== node)
 }
 
-/** Remove only CSS constructs that can fetch another resource; keep local styling intact. */
 function sanitizeCss(css: string): { css: string; changed: boolean } {
   let changed = false
   const withoutImports = css.replaceAll(/@import\b[^;]*(?:;|$)/giu, () => {
@@ -119,7 +92,6 @@ function sanitizeCss(css: string): { css: string; changed: boolean } {
   return { css: sanitized, changed }
 }
 
-/** Remove content that can execute or load active content in a browser document. */
 function removeActiveContent(into: Findings): CustomPlugin {
   return {
     name: 'manifesto-remove-active-content',
@@ -183,9 +155,7 @@ export function validate(svg: string): ValidationResult {
   const scriptsRemoved = findings.scriptElements + findings.eventAttributes
   const activeContentRemoved = findings.foreignObjects + findings.externalStyles
 
-  // Only hand back SVGO's re-serialized output if something actually had to go.
-  // Otherwise the Source Mark passes through byte-for-byte, so a user who turned
-  // optimization off gets exactly the file they dropped.
+  // Preserve the original bytes when sanitization makes no changes.
   const sanitized = scriptsRemoved + activeContentRemoved > 0 ? stripped : svg
 
   const advisories: Advisory[] = []

@@ -1,16 +1,8 @@
-/**
- * Stage 2 — validation.
- *
- * Two properties carry the weight here: nothing executable survives into a file we
- * write to someone's web root, and a mark that needed no edits comes back untouched.
- */
-
 import { describe, expect, test } from 'bun:test'
 
 import { validate } from '../src/pipeline/validate.ts'
 import { FIXTURES, fixture } from './helpers.ts'
 
-/** Fixtures that should produce no advisories at all. */
 const CLEAN_FIXTURES = FIXTURES.filter(
   (n) => !['with-script', 'with-text', 'external-image'].includes(n),
 )
@@ -26,7 +18,7 @@ describe('validate — sanitization', () => {
   })
 
   test('keeps the artwork while removing the scripting', () => {
-    // Stripping must be surgical: the mark itself has to survive intact.
+    // Sanitization must preserve the mark itself.
     const { sanitized } = validate(fixture('with-script'))
     expect(sanitized).toContain('M0 0 H40 V20 H20 V40 H60 V60 H0 Z')
     expect(sanitized).toContain('#2E5BFF')

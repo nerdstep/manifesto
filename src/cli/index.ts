@@ -1,14 +1,3 @@
-/**
- * Manifesto CLI.
- *
- * Outside `src/pipeline/`, so this is a layer that may touch the filesystem — it reads
- * the mark, supplies the WASM bytes, and writes the Asset Bundle. All the real work
- * happens in the pure pipeline.
- *
- * It exists mainly so the pipeline is drivable before there is a window, but it is
- * genuinely useful on its own and there is no reason to delete it later.
- */
-
 import { existsSync, readFileSync } from 'node:fs'
 import { basename, extname, join, resolve } from 'node:path'
 
@@ -44,7 +33,6 @@ Options
 The CLI uses the same defaults as the app and produces the same files.
 `.trim()
 
-/** Parse `--flag value` pairs and positional arguments. */
 function parseArgs(argv: string[]) {
   const positional: string[] = []
   const flags = new Map<string, string | true>()
@@ -128,16 +116,13 @@ export async function main(argv: string[]): Promise<number> {
   const pipeline = await createPipeline(resvgWasmBytes())
   const sourceSvg = readFileSync(input, 'utf8')
 
-  // Inference supplies every default, so a flag overrides exactly one field and nothing
-  // else moves. This is the same call the panel opens with.
   const inferred = pipeline.inferSettings(sourceSvg, input)
   const explicitName = stringFlag(flags, 'name')
   const iconBackground = hexFlag(flags, 'bg', inferred.iconBackground)
 
   const settings: Settings = {
     name: explicitName ?? inferred.name,
-    // A given `--name` wins over an inferred Short Name: the user has said what this is
-    // called, and shortening their answer for them would be worse than repeating it.
+    // An explicit name also becomes the short name unless `--short` is set.
     shortName: stringFlag(flags, 'short') ?? explicitName ?? inferred.shortName,
     themeColor: hexFlag(flags, 'theme', inferred.themeColor),
     iconBackground,
@@ -170,7 +155,6 @@ export async function main(argv: string[]): Promise<number> {
     throw new BundleWriteError(error)
   }
 
-  // Write in the documented order so the listing reads the way the docs do.
   const ordered = [...BUNDLE_FILENAMES].filter((f) => result.files.has(f))
   for (const filename of ordered) {
     const bytes = result.files.get(filename)
@@ -199,12 +183,6 @@ export async function main(argv: string[]): Promise<number> {
   return 0
 }
 
-/**
- * Only run when executed directly.
- *
- * Without this, importing anything from here — a test importing `nameFromFilename`,
- * say — runs the whole program as a side effect of the import.
- */
 if (import.meta.main) {
   try {
     process.exitCode = await main(process.argv.slice(2))
@@ -214,10 +192,6 @@ if (import.meta.main) {
   }
 }
 
-/**
- * The same sentence the app shows, plus the raw cause — which a terminal is the right
- * place for and a window is not.
- */
 function reportFailure(error: unknown): void {
   console.error(`\n${describeFailure(error)}`)
   console.error(`\n  ${failureDetail(error)}`)

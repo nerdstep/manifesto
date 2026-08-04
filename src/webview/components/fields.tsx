@@ -1,15 +1,3 @@
-/**
- * The individual input controls the settings panel is built from.
- *
- * Two of them behave differently from a plain controlled input, and both differences are
- * deliberate:
- *
- * - **CommittedField** applies on blur or Enter, not on every keystroke. It names a
- *   folder, and renaming a folder per character would leave a trail of directories.
- * - **ColorField** keeps a local draft, because `#2E5` is a legal thing to have typed
- *   halfway to `#2E5BFF` and must not be committed or reformatted underneath the cursor.
- */
-
 import type { ComponentChildren } from 'preact'
 import { useEffect, useState } from 'preact/hooks'
 
@@ -30,21 +18,7 @@ function isHex(value: string): value is Hex {
   return /^#[0-9a-f]{6}$/iu.test(value)
 }
 
-/**
- * A colour swatch and its hex, either of which edits the other.
- *
- * The swatch commits on `change`, not on `input`.
- *
- * On Windows the swatch opens a native modal picker, and Chromium fires `input`
- * continuously as the user moves around inside it — dozens of events before they have
- * decided anything. Regenerating on each one is visibly bouncy and writes a folder full
- * of files for every colour the pointer passes over. `change` fires when the dialog is
- * dismissed, which is exactly "the mouse is no longer down".
- *
- * `input` still runs, but only into the local draft, so the swatch and hex stay live
- * while the picker is open. The distinction is between *showing* a colour and
- * *committing* to it.
- */
+/** Keep picker input local until the native color dialog commits its final value. */
 export function ColorField({
   label,
   value,
@@ -56,8 +30,7 @@ export function ColorField({
 }) {
   const [draft, setDraft] = useState<string>(value)
 
-  // Follow the committed value when it changes from outside this field — a Sidecar
-  // recall, or a fresh drop. Typing does not go through here, so the cursor is safe.
+  // Sync values loaded from a Sidecar or a new source file.
   useEffect(() => {
     setDraft(value)
   }, [value])
@@ -92,15 +65,12 @@ export function ColorField({
           value={draft}
           spellcheck={false}
           class="font-mono uppercase"
-          // Typing is already discrete — each keystroke is a decision — so a valid hex
-          // commits immediately. It is the dragging that needed holding back.
+          // Commit complete hex values without reformatting partial input.
           onInput={(event) => {
             const next = event.currentTarget.value
             setDraft(next)
             if (isHex(next)) onChange(next)
           }}
-          // Whatever half-typed text is left over is not a colour. Snap back rather than
-          // leaving the field showing something the Bundle does not contain.
           onBlur={() => {
             setDraft(value)
           }}
@@ -151,13 +121,7 @@ export function CommittedField({
   )
 }
 
-/**
- * The second mark, used wherever the Icon Background is dark.
- *
- * Behaves exactly like the source pane, and for the same reason: it is a drop target, so
- * without an activate-to-choose path it is pointer-only. It had neither that nor a hover
- * state, which also left it looking inert next to every other control on the panel.
- */
+/** Keyboard-accessible drop target for the optional dark-mode logo. */
 export function DarkMarkField({
   filename,
   onFile,
@@ -200,7 +164,6 @@ export function DarkMarkField({
           }}
           onClick={onChoose}
           onKeyDown={(event) => {
-            // Space is prevented because its default is scrolling the page.
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault()
               onChoose()
@@ -218,7 +181,6 @@ export function DarkMarkField({
         {filename !== null && (
           <Button
             class="text-xs text-muted hover:text-bad"
-            // "Remove" alone is ambiguous once a screen reader reads it out of context.
             aria-label={`Remove the dark-mode logo, ${filename}`}
             onClick={onClear}
           >

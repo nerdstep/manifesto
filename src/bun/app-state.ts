@@ -1,15 +1,3 @@
-/**
- * The small amount of state that outlives a session.
- *
- * Deliberately not where Bundle settings live — those go in each Bundle's Sidecar, so a
- * Bundle explains itself and this app holds no hidden database that can go stale when a
- * folder moves. What is left is genuinely app-level, and after the window frame stopped
- * being stored that is exactly one thing: where to write.
- *
- * The window geometry lives here too, but as a computation rather than as state — see
- * `windowFrame()`.
- */
-
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 
@@ -21,32 +9,13 @@ export type AppState = {
   outputRoot: string
 }
 
-/**
- * The window we want, in CSS pixels — the units the layout was designed against.
- *
- * Not persisted. A stored frame was only ever the first-run default read straight back:
- * `BrowserWindow` exposes `close`/`created`/`hidden` and no resize or move event, so
- * nothing ever updated it. Keeping it gave the impression the app remembered a window size
- * it had never once observed, and it blocked this default from ever taking effect for
- * anyone who had already launched the app.
- */
 export const DEFAULT_WINDOW_CSS = { width: 1280, height: 880 }
 
-/** Never take up more than this much of the display, so the window always fits. */
 const MAX_SCREEN_FRACTION = 0.9
 
-/** Used when the display cannot be measured, e.g. off Windows. */
 const FALLBACK_POSITION = { x: 120, y: 90 }
 
-/**
- * The frame to open at, in **physical** pixels.
- *
- * Physical because `enablePerMonitorDpi()` has made the process DPI-aware by the time this
- * is used — before that, Windows virtualized these numbers and silently stretched the
- * result. `scale` converts the CSS size above into the physical one that produces it.
- *
- * Pure, so the clamping and centring are testable without a display.
- */
+/** Convert the desired CSS size to a centered physical-pixel frame. */
 export function windowFrame(display: {
   scale: number
   width: number
@@ -59,8 +28,7 @@ export function windowFrame(display: {
     height: Math.round(DEFAULT_WINDOW_CSS.height * scale),
   }
 
-  // A 1080p display at 150% has less room than the CSS size implies, so the intended
-  // window would open taller than the screen and lose its bottom edge behind the taskbar.
+  // Clamp the scaled window so it fits on high-DPI displays.
   const width =
     display.width > 0
       ? Math.min(wanted.width, Math.round(display.width * MAX_SCREEN_FRACTION))
@@ -78,15 +46,7 @@ export function windowFrame(display: {
   }
 }
 
-/**
- * Read state, falling back to defaults on anything unexpected.
- *
- * A corrupt state file must never stop the app opening — the worst case is that the Output
- * Root reverts to the default once.
- *
- * A `window` key written by an older version is ignored rather than migrated. It only ever
- * held the default it was created with.
- */
+/** Treat missing, corrupt, or outdated state as a first launch. */
 export function loadState(path: string, defaultOutputRoot: string): AppState {
   const fallback: AppState = { outputRoot: defaultOutputRoot }
   if (!existsSync(path)) return fallback
@@ -95,8 +55,6 @@ export function loadState(path: string, defaultOutputRoot: string): AppState {
     const parsed: unknown = JSON.parse(readFileSync(path, 'utf8'))
     if (!isPlainObject(parsed)) return fallback
 
-    // `isPlainObject` narrows to `Record<PropertyKey, any>`, so the annotation is what
-    // keeps this an unchecked value that has to be proven rather than an implicit `any`.
     const stored: unknown = parsed.outputRoot
     return {
       outputRoot: typeof stored === 'string' && stored.length > 0 ? stored : defaultOutputRoot,

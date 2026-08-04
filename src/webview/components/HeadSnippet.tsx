@@ -3,12 +3,6 @@ import { useEffect, useRef, useState } from 'preact/hooks'
 import { bun } from '../rpc.ts'
 import { Button } from './ui.tsx'
 
-/**
- * The one part of the last mile that stays manual.
- *
- * The `<link>` tags cannot be written to disk usefully — they go inside an existing
- * `<head>`. The app deliberately never parses or rewrites the user's HTML.
- */
 export function HeadSnippet({ snippet }: { snippet: string }) {
   const [copied, setCopied] = useState(false)
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -30,7 +24,6 @@ export function HeadSnippet({ snippet }: { snippet: string }) {
     }, 1600)
   }
 
-  // The heading is `Results`', so that every downstream section is titled the same way.
   return (
     <section>
       <div class="mb-2 flex items-start justify-between gap-3">

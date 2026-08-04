@@ -1,21 +1,4 @@
-/**
- * The golden net.
- *
- * Shared between the golden test and the script that regenerates it, so the two can
- * never disagree about what they are hashing.
- *
- * ## Hash what the app ships
- *
- * These hash `buildBundle`'s own output map. An earlier version reimplemented the render
- * loop — `normalize` → `compose` → `rasterize` — which skipped `validate`, `optimize` and
- * `markFor` entirely. The hashes still matched, but only because SVGO happens to be
- * pixel-neutral on these fixtures: a property of the fixtures, not of the design. The day
- * optimization moved a pixel, the goldens would have kept passing while the app shipped
- * something else.
- *
- * Hashing the real output also covers `favicon.ico`, `favicon.svg` and `site.webmanifest`,
- * which the render loop could not reach at all.
- */
+/** Shared golden generation used by the test and update script. */
 
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
@@ -27,10 +10,7 @@ import type { Hex, Settings } from '../src/pipeline/types.ts'
 import type { FixtureName } from './helpers.ts'
 import { EMPTY_FIXTURES, FIXTURES, fixture } from './helpers.ts'
 
-/**
- * Fixed so a golden change always means a pipeline change, never a settings change.
- * Deliberately not `defaultSettings` — that one is free to evolve with the tests.
- */
+/** Keep golden settings independent from settings used by other tests. */
 export const GOLDEN_SETTINGS: Settings = {
   name: 'Golden',
   shortName: 'Golden',
@@ -51,12 +31,7 @@ export const RENDERABLE_FIXTURES = FIXTURES.filter((name) => !EMPTY_FIXTURES.inc
 /** A representative subset, for scenarios that would otherwise multiply the file. */
 const REPRESENTATIVE: FixtureName[] = ['square-tight', 'multicolor', 'wordmark']
 
-/**
- * The input combinations the goldens cover.
- *
- * `dark-on-dark` exists because nothing previously covered `markFor` or the dual-embed
- * `favicon.svg` — zero of the old 84 hashes involved a Dark Mark.
- */
+/** Input combinations covered by the golden hashes. */
 export const GOLDEN_SCENARIOS: {
   key: string
   fixtures: readonly FixtureName[]
@@ -78,8 +53,7 @@ export const GOLDEN_SCENARIOS: {
     settings: { ...GOLDEN_SETTINGS, iconBackground: '#111111' },
   },
   {
-    // Proves the optimize toggle is a real branch: if these matched `default`, SVGO
-    // would be doing nothing and the drift check would have nothing to guard.
+    // This scenario confirms that the optimize toggle changes output.
     key: 'unoptimized',
     fixtures: REPRESENTATIVE,
     dark: null,
@@ -87,18 +61,13 @@ export const GOLDEN_SCENARIOS: {
   },
 ]
 
-/** Every Rendition, with a stable key — used by the geometry property tests. */
+/** Every Rendition with a stable key for geometry tests. */
 export const ALL_RENDITIONS = [
   ...ICO_MEMBERS.map((r) => ({ key: `ico-${r.treatment.size}`, treatment: r.treatment })),
   ...PNG_RENDITIONS.map((r) => ({ key: r.filename ?? '', treatment: r.treatment })),
 ]
 
-/**
- * Read the golden file, validating as it goes.
- *
- * `JSON.parse` returns `any`, and casting it would mean a corrupt goldens file
- * presents as a confusing assertion failure instead of a clear one.
- */
+/** Read and validate golden hashes without leaking `any`. */
 export function readGoldens(path: string = GOLDEN_FILE): Record<string, string> {
   const parsed: unknown = JSON.parse(readFileSync(path, 'utf8'))
 

@@ -1,9 +1,4 @@
-/**
- * The `buildBundle` seam.
- *
- * Phase 3 renders the PNG Renditions; `favicon.ico`, `favicon.svg` and
- * `site.webmanifest` arrive in Phase 4.
- */
+/** Exercise the complete output bundle. */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 
@@ -140,7 +135,7 @@ describe('buildBundle', () => {
   })
 
   test('a mark that paints nothing fails loudly', () => {
-    // Succeeding here would ship a valid-looking, empty icon — the worst outcome.
+    // Empty artwork must not produce a valid-looking icon bundle.
     for (const name of EMPTY_FIXTURES) {
       let thrown: unknown = null
       try {
@@ -212,8 +207,7 @@ describe('hashSource', () => {
   })
 
   test('distinguishes marks that share a filename', () => {
-    // The Sidecar collision guard depends on this: two different logo.svg files from
-    // two different projects must not silently overwrite each other.
+    // Different source files must have different Sidecar hashes.
     expect(hashSource(fixture('monochrome'))).not.toBe(hashSource(fixture('multicolor')))
   })
 })

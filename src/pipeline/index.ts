@@ -1,28 +1,4 @@
-/**
- * The Asset Bundle pipeline.
- *
- * This module and everything it imports must stay free of `node:fs`, `bun`, Electrobun,
- * and anything under `src/bun` or `src/webview`. `test/pipeline-purity.test.ts` enforces
- * it, because the whole test strategy depends on it: this app's output is pixels, and a
- * 4px Safe Zone error looks fine in a preview while clipping someone's logo on a Pixel.
- * Fixtures plus golden hashes catch that — but only if the pipeline runs headless.
- *
- * ## Getting a pipeline
- *
- * Everything that rasterizes is reachable only through `createPipeline()`:
- *
- * ```ts
- * const pipeline = await createPipeline(wasmBytes)
- * pipeline.buildBundle(sourceSvg, null, settings)
- * ```
- *
- * You cannot obtain `buildBundle` without having awaited initialisation, so "call this
- * first" is unrepresentable rather than merely documented. The caller supplies the WASM
- * bytes; that is how this stays free of `fs`.
- *
- * The purely computational parts — `compose`, `validate`, `optimize`, the manifest and
- * ICO builders — are ordinary exports, because they need no rasterizer.
- */
+/** Keep the pipeline headless and free of filesystem or UI dependencies. */
 
 import { createHash } from 'node:crypto'
 
@@ -48,7 +24,6 @@ import type {
 } from './types.ts'
 import { validate } from './validate.ts'
 
-// --- pure surface: no rasterizer, safe to import directly --------------------
 export { buildFaviconSvg, buildWebManifest, HEAD_SNIPPET, packIco } from './assemble.ts'
 export {
   canvas,
@@ -64,8 +39,7 @@ export type { InferredColors, InferredNames } from './infer.ts'
 export { inferColors, INFERENCE_PROBE_SIZE, inferNames } from './infer.ts'
 export type { NormalizedMark } from './normalize.ts'
 export { isWordmark } from './normalize.ts'
-// `pixelDriftPercent` is deliberately NOT re-exported: it rasterizes, so it is reachable
-// only through `createPipeline()`. `test/pipeline-purity.test.ts` enforces that.
+// Rasterizing functions are exposed only through `createPipeline()`.
 export { optimize } from './optimize.ts'
 export type { PixelBuffer } from './rasterize.ts'
 export {
@@ -84,12 +58,10 @@ export { validate } from './validate.ts'
 
 const encoder = new TextEncoder()
 
-/** Content hash of a Source Mark, for the Sidecar's collision guard. */
 export function hashSource(svg: string): string {
   return createHash('sha256').update(svg, 'utf8').digest('hex')
 }
 
-/** Prepare a mark: sanitize, optionally optimize, then Normalize. */
 function prepare(svg: string, optimizeSvg: boolean) {
   const { sanitized, advisories } = validate(svg)
   const optimized = optimize(sanitized, optimizeSvg)
@@ -119,12 +91,7 @@ function markAdvisories(
   return advisories
 }
 
-/**
- * Render every PNG Rendition, plus the ICO members.
- *
- * Each is rasterized from its own wrapper document at final dimensions. No image is
- * ever resampled.
- */
+/** Render each output directly at its final dimensions. */
 function renderRenditions(
   source: NormalizedMark,
   dark: NormalizedMark | null,
@@ -146,25 +113,12 @@ function renderRenditions(
   return { files, icoMembers }
 }
 
-/**
- * Rasterize a Source Mark — everything in an Asset Bundle except `site.webmanifest`.
- *
- * This is the expensive half. Hold the result across panel edits and a metadata change
- * costs a JSON rewrite instead of six renders.
- *
- * Synchronous: every stage — resvg, SVGO, ico-endec — is synchronous once the WASM is
- * loaded, and loading is `createPipeline()`'s job. There is nothing left to await.
- *
- * @throws {EmptyMarkError} when the mark paints nothing renderable.
- * @throws {InvalidSvgError} when the mark cannot be parsed.
- */
+/** Render all image files without the web app manifest. */
 function render(sourceSvg: string, darkSvg: string | null, settings: RenderSettings): RenderedMark {
   const source = prepare(sourceSvg, settings.optimizeSvg)
   const advisories: Advisory[] = markAdvisories(source, settings.optimizeSvg)
 
-  // A Dark Mark is the user's second input, so it gets the same treatment as the first
-  // — but its advisories are about a file the panel presents separately, so they are
-  // not merged into the Source Mark's list.
+  // Validate and optimize both source files with the same settings.
   let dark: NormalizedMark | null = null
   if (darkSvg !== null) {
     const preparedDark = prepare(darkSvg, settings.optimizeSvg)
@@ -186,16 +140,7 @@ function render(sourceSvg: string, darkSvg: string | null, settings: RenderSetti
   }
 }
 
-/**
- * Complete an Asset Bundle by writing `site.webmanifest`.
- *
- * The cheap half, and the only thing that crosses the render/metadata seam. Rendered
- * bytes are reused as-is, never re-rasterized — which keeps repeated metadata edits cheap
- * while the host coalesces colour-picker work.
- *
- * Does not mutate `rendered`, so one `RenderedMark` can be completed repeatedly as the
- * user edits.
- */
+/** Add metadata without mutating or rerendering the image files. */
 function withManifest(rendered: RenderedMark, settings: ManifestSettings): BundleResult {
   const files = new Map<string, Uint8Array>([
     ...rendered.files,
@@ -204,19 +149,6 @@ function withManifest(rendered: RenderedMark, settings: ManifestSettings): Bundl
   return { ...rendered, files }
 }
 
-/**
- * Everything the panel opens with, guessed from the mark and its filename.
- *
- * The whole of inference behind one call: the caller supplies an SVG and a filename and
- * gets a complete `Settings` back, with no obligation to know that names come from string
- * work and colours come from a 64px raster.
- *
- * `optimizeSvg` defaults on. It is the only setting here that is a policy rather than a
- * guess — SVGO is worth having, and the drift advisory plus the panel's toggle are how
- * the user finds out when it was not.
- *
- * @throws {InvalidSvgError} when the mark cannot be parsed.
- */
 function inferSettings(sourceSvg: string, filename: string): Settings {
   return {
     ...inferNames(filename),
@@ -225,35 +157,17 @@ function inferSettings(sourceSvg: string, filename: string): Settings {
   }
 }
 
-/**
- * Build a complete Asset Bundle from a Source Mark — the one-shot form.
- *
- * Exactly `withManifest(render(...), ...)`. Use the two steps directly when you intend
- * to reuse the rendered half.
- */
 function buildBundle(sourceSvg: string, darkSvg: string | null, settings: Settings): BundleResult {
   return withManifest(render(sourceSvg, darkSvg, settings), settings)
 }
 
-/**
- * Everything that needs a rasterizer.
- *
- * `buildBundle` is the external interface. The rest is this module's **internal seam** —
- * private to the implementation, exposed so the module's own tests can measure geometry
- * and Safe Zone compliance directly. Those tests caught the `inset: 0.2` Safe Zone bug;
- * routing them through `buildBundle` would have hidden it behind six image files.
- */
 export type Pipeline = {
-  /** The one-shot form: `withManifest(render(...), ...)`. */
   buildBundle(sourceSvg: string, darkSvg: string | null, settings: Settings): BundleResult
 
-  /** The expensive half. Hold the result to make metadata edits cheap. */
   render(sourceSvg: string, darkSvg: string | null, settings: RenderSettings): RenderedMark
 
-  /** The cheap half. Reuses rendered bytes; never rasterizes. */
   withManifest(rendered: RenderedMark, settings: ManifestSettings): BundleResult
 
-  /** What the panel opens with. Rasterizes a small probe to read the mark's colours. */
   inferSettings(sourceSvg: string, filename: string): Settings
 
   /** @internal */ normalize(svg: string): NormalizedMark
@@ -263,16 +177,7 @@ export type Pipeline = {
   /** @internal */ pixelDriftPercent(before: string, after: string): number
 }
 
-/**
- * Initialise resvg and hand back the pipeline.
- *
- * Idempotent: resvg's WASM module is process-global, so repeated calls reuse the first
- * initialisation rather than throwing. Passing different bytes the second time has no
- * effect — there is only ever one rasterizer.
- *
- * @param wasm `@resvg/resvg-wasm`'s `index_bg.wasm`. The pipeline never reads it from
- * disk itself; that is how it stays free of `fs`.
- */
+/** Initialize process-global resvg state and return the rasterizing API. */
 export async function createPipeline(wasm: ArrayBuffer | Uint8Array): Promise<Pipeline> {
   await initializeOnce(wasm)
 

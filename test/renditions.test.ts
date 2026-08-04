@@ -1,8 +1,3 @@
-/**
- * The Rendition table encodes platform requirements, not preferences. These tests are
- * here so a future "tidy-up" cannot quietly break iOS or Android.
- */
-
 import { describe, expect, test } from 'bun:test'
 
 import {
@@ -47,7 +42,7 @@ describe('rendition table', () => {
     expect(maskable?.treatment.background).toBe('iconBackground')
     // Must be a circle fit, not a box inset. A box of side 0.6 has a half-diagonal of
     // 0.424 against a safe radius of 0.4, so any mark painting into its own corners is
-    // clipped — measured at 217.1 vs 204.8 on the staircase fixture.
+    // clipped. The staircase fixture measures 217.1 against a 204.8 limit.
     expect(maskable?.treatment.fit).toEqual({ mode: 'circle', diameter: SAFE_ZONE_DIAMETER })
   })
 
@@ -67,7 +62,7 @@ describe('rendition table', () => {
   })
 
   test('there are separate any and maskable files at 512', () => {
-    // "purpose: any maskable" on one file is an anti-pattern: the maskable padding
+    // With "purpose: any maskable", maskable padding
     // survives into any slots and the logo renders 20% smaller than its neighbours.
     const at512 = PNG_RENDITIONS.filter((r) => r.treatment.size === 512)
     expect(at512).toHaveLength(2)

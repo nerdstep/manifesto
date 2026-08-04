@@ -1,15 +1,3 @@
-/**
- * The pipeline must never reach for the filesystem, the shell, or the UI.
- *
- * This is not style policing. The entire test strategy for this app rests on the
- * pipeline running headless: its output is pixels, and a 4px Safe Zone error looks fine
- * in a preview while clipping someone's logo on a Pixel. Fixtures plus golden hashes
- * catch that — but only if `buildBundle` can run without a window.
- *
- * The day someone adds `import { readFileSync } from "node:fs"` to load a font, this
- * test is what stops the whole strategy quietly collapsing.
- */
-
 import { describe, expect, test } from 'bun:test'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -70,9 +58,7 @@ describe('pipeline purity', () => {
   })
 
   test('nothing that rasterizes is reachable without createPipeline', async () => {
-    // The point of the factory: you cannot obtain a rasterizing function without
-    // having awaited initialisation, so "call this first" is unrepresentable rather
-    // than merely documented. If these reappear on the barrel, that guarantee is void.
+    // Rasterizing functions must remain behind the asynchronous factory.
     const mod: Record<string, unknown> = await import('../src/pipeline/index.ts')
 
     for (const name of [

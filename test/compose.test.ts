@@ -1,13 +1,3 @@
-/**
- * Composition — vector-space Treatments.
- *
- * Most of these are string assertions, which is the point: composition is pure, so its
- * correctness can be checked without rendering anything.
- *
- * The Safe Zone tests DO render, because "is the mark inside the circle" is a question
- * about pixels and eyeballing it is exactly how the inset-0.2 bug survived Phase 0.
- */
-
 import { beforeAll, describe, expect, test } from 'bun:test'
 
 import { compose, isDark, markFor, relativeLuminance, scaleFor } from '../src/pipeline/compose.ts'
@@ -32,14 +22,7 @@ const box = (inset: number): Treatment => ({
   fit: { mode: 'box', inset },
 })
 
-/**
- * Normalize on demand, memoized.
- *
- * This is now an optimization, not a workaround: `normalize` costs ~7 ms and these
- * suites ask for the same marks repeatedly. The pipeline no longer carries an ordering
- * constraint — but Bun still runs `describe` bodies during collection, before
- * `beforeAll`, so `pipeline` is only bound inside a test.
- */
+/** Memoize normalization after `beforeAll` initializes the pipeline. */
 const cache = new Map<FixtureName, NormalizedMark>()
 function mark(name: FixtureName) {
   const existing = cache.get(name)
@@ -100,7 +83,7 @@ describe('scaleFor', () => {
   test('circle fit shrinks a mark that paints its own corners', () => {
     // For a mark filling its square bounding box, the furthest painted pixel is the
     // corner at s·√2/2. So circleFit = 0.8/√2 and boxFit(0.2) = 0.6, giving a ratio of
-    // 0.8/(0.6·√2) = 0.943 — the 5.7% that inset 0.2 was silently clipping.
+    // 0.8/(0.6·√2) = 0.943. An inset of 0.2 clips the remaining 5.7%.
     const m = mark('square-tight')
     const asBox = scaleFor(m, { mode: 'box', inset: 0.2 })
     const asCircle = scaleFor(m, { mode: 'circle', diameter: SAFE_ZONE_DIAMETER })
@@ -110,9 +93,7 @@ describe('scaleFor', () => {
   })
 
   test('an elongated mark is scaled UP by the circle fit, not down', () => {
-    // A wordmark's furthest painted pixel sits near half its width, so it can fill more
-    // of the safe circle than a square inset would ever allow. Fitting to the circle is
-    // not a penalty — it is the correct measurement.
+    // A wordmark can fill more of the safe circle than a square inset permits.
     const m = mark('wordmark')
     expect(scaleFor(m, { mode: 'circle', diameter: SAFE_ZONE_DIAMETER })).toBeGreaterThan(
       scaleFor(m, { mode: 'box', inset: 0.2 }),

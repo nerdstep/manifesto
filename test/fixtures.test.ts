@@ -1,20 +1,11 @@
-/**
- * The fixtures are the contract the pipeline is tested against, so they get tested too.
- *
- * A fixture that quietly stops exercising what its name claims is worse than no fixture
- * at all — it turns a green suite into false confidence.
- */
-
 import { describe, expect, test } from 'bun:test'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { EMPTY_FIXTURES, EQUIVALENT_FIXTURES, FIXTURE_DIR, FIXTURES, fixture } from './helpers.ts'
 
-/** Elements that actually put ink on the canvas. */
 const PAINTED_ELEMENT = /<(path|circle|rect|polygon|ellipse|line|polyline)\b/u
 
-/** Distinct hex colours mentioned in a document. */
 const colours = (svg: string) => new Set(svg.match(/#[0-9A-Fa-f]{6}/gu) ?? [])
 
 describe('fixtures', () => {
@@ -29,7 +20,7 @@ describe('fixtures', () => {
   }
 
   test('the equivalence set all paint the same mark', () => {
-    // Same path data, same fill — only the canvas and the invisible extras differ.
+    // Only the canvas and invisible elements differ.
     for (const name of EQUIVALENT_FIXTURES) {
       const svg = fixture(name)
       expect(svg).toContain('M0 0 H40 V20 H20 V40 H60 V60 H0 Z')
@@ -77,7 +68,7 @@ describe('fixtures', () => {
   })
 
   test('no-viewbox really has no viewBox', () => {
-    // Check markup, not prose — the fixture's own comment mentions viewBox.
+    // Ignore the fixture comment when checking its markup.
     const markup = fixture('no-viewbox').replaceAll(/<!--[\s\S]*?-->/gu, '')
     expect(markup).not.toMatch(/viewBox\s*=/u)
     expect(markup).toContain('width="60"')

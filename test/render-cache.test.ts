@@ -1,14 +1,3 @@
-/**
- * The render cache: what a rapidly edited panel is allowed to skip.
- *
- * Tested with a counting stub rather than the real rasterizer. The property being checked
- * is "which changes cause a render", which is entirely about the cache key — running
- * resvg here would add 60 ms per case and prove nothing extra.
- *
- * `test/incremental.test.ts` covers the other half: that reusing a `RenderedMark` really
- * does produce byte-identical files.
- */
-
 import { describe, expect, test } from 'bun:test'
 
 import { createRenderCache } from '../src/bun/render-cache.ts'
@@ -40,8 +29,7 @@ describe('createRenderCache', () => {
     const second = cached('<svg/>', null, RENDER)
 
     expect(stub.calls()).toBe(1)
-    // The same object, not an equal one — that identity is what makes the metadata path
-    // free rather than merely cheap.
+    // Object identity confirms that metadata edits skip rendering.
     expect(second).toBe(first)
   })
 
@@ -72,8 +60,7 @@ describe('createRenderCache', () => {
   })
 
   test('holds one entry, so alternating inputs always render', () => {
-    // Documented behaviour, not an accident: a second entry would keep megabytes of PNG
-    // bytes alive to serve a re-drop that has to re-read the file anyway.
+    // Retain only the active source's rendered bytes.
     const stub = counting()
     const cached = createRenderCache(stub.render)
 

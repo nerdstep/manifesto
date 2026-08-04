@@ -1,7 +1,3 @@
-/**
- * Shared test helpers. Tests may touch the filesystem freely — the pipeline may not.
- */
-
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -11,7 +7,6 @@ import type { Settings } from '../src/pipeline/types.ts'
 
 export const FIXTURE_DIR = join(import.meta.dir, 'fixtures')
 
-/** Every fixture name, without the `.svg`. */
 export const FIXTURES = [
   'square-tight',
   'square-padded',
@@ -50,13 +45,7 @@ export function fixture(name: FixtureName): string {
   return readFileSync(join(FIXTURE_DIR, `${name}.svg`), 'utf8')
 }
 
-/**
- * resvg's WASM bytes. The pipeline never reads these itself — callers supply them,
- * which is how `src/pipeline/` stays free of the filesystem.
- *
- * `readFileSync` may return a Buffer that is a view into a larger pooled
- * ArrayBuffer, so slice to this file's own bytes rather than handing over the pool.
- */
+/** Load an isolated copy of resvg's WASM bytes for the filesystem-free pipeline. */
 export function resvgWasm(): ArrayBuffer {
   const buf = readFileSync(
     join(import.meta.dir, '..', 'node_modules', '@resvg', 'resvg-wasm', 'index_bg.wasm'),
@@ -64,12 +53,7 @@ export function resvgWasm(): ArrayBuffer {
   return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)
 }
 
-/**
- * The pipeline, for tests.
- *
- * `createPipeline` is idempotent, so every suite can await this without coordinating —
- * which is the whole point of the change that introduced it.
- */
+/** Return the shared, idempotently initialized test pipeline. */
 export function testPipeline(): Promise<Pipeline> {
   return createPipeline(resvgWasm())
 }
@@ -83,12 +67,7 @@ export const defaultSettings: Settings = {
   optimizeSvg: true,
 }
 
-/**
- * Parse JSON as a plain record.
- *
- * `JSON.parse` returns `any`, which would spread untyped values through the very
- * assertions meant to be checking them.
- */
+/** Parse JSON without leaking `any` into assertions. */
 export function parseJsonObject(text: string): Record<string, unknown> {
   const parsed: unknown = JSON.parse(text)
   if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
@@ -97,13 +76,7 @@ export function parseJsonObject(text: string): Record<string, unknown> {
   return Object.fromEntries(Object.entries(parsed))
 }
 
-/**
- * Compare two RGBA buffers. Used wherever byte-identity is too strict.
- *
- * Reads use `?? 0` rather than `!`: the lengths are checked above and `i + c` is in
- * range by construction, so the fallback is unreachable — but it is checked rather
- * than asserted, which is the whole point of `noUncheckedIndexedAccess`.
- */
+/** Compare RGBA buffers when byte identity is too strict. */
 export function pixelDiff(a: Uint8Array, b: Uint8Array) {
   if (a.length !== b.length) throw new Error('pixel buffers differ in size')
   let differing = 0

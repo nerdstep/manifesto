@@ -1,14 +1,3 @@
-/**
- * The render/metadata seam.
- *
- * The panel sends edits immediately, so it must know which edits require
- * rasterizing. That knowledge is a type — `RenderSettings` vs `ManifestSettings` — and
- * these tests are what make the split true rather than merely declared.
- *
- * The load-bearing assertion is that a metadata change produces byte-identical Renditions.
- * If that ever stops holding, the panel is silently re-rendering on every keystroke.
- */
-
 import { beforeAll, describe, expect, test } from 'bun:test'
 
 import type { Pipeline } from '../src/pipeline/index.ts'
@@ -44,8 +33,7 @@ describe('render — the expensive half', () => {
   })
 
   test('carries the advisories, which are all render-derived', () => {
-    // wordmark, text elements, scripts removed, SVGO drift — every advisory comes from
-    // the render pass, so none of them can change on a metadata edit.
+    // Metadata edits cannot change render-derived advisories.
     const rendered = pipeline.render(fixture('wordmark'), null, renderSettings)
     expect(rendered.advisories.some((a) => a.kind === 'wordmark')).toBe(true)
   })
@@ -80,8 +68,7 @@ describe('withManifest — the cheap half', () => {
 
 describe('the seam holds', () => {
   test('a metadata edit changes nothing but the manifest — byte for byte', () => {
-    // This is the whole point. If it fails, rapid metadata edits are re-rasterizing on
-    // every keystroke and nobody would notice except by feel.
+    // Rapid metadata edits must not trigger rasterization.
     const rendered = pipeline.render(fixture('multicolor'), null, renderSettings)
 
     const before = pipeline.withManifest(rendered, manifestSettings)
@@ -102,8 +89,7 @@ describe('the seam holds', () => {
   })
 
   test('a pixel-affecting edit does change the Renditions', () => {
-    // The converse. If this passed trivially, the partition would be putting things on
-    // the cheap side that belong on the expensive one.
+    // Pixel-affecting edits must invalidate the rendered files.
     const source = fixture('square-tight')
 
     const onWhite = pipeline.render(source, null, { ...renderSettings, iconBackground: '#FFFFFF' })
@@ -115,8 +101,7 @@ describe('the seam holds', () => {
   })
 
   test('optimizeSvg is on the pixel-affecting side, and belongs there', () => {
-    // docs/design-v1.md once listed only Icon Background and Dark Mark as pixel-affecting.
-    // `optimizeSvg` feeds SVGO and changes favicon.svg's bytes, so it is a render input.
+    // `optimizeSvg` changes favicon.svg bytes, so it is a render input.
     const source = fixture('square-padded')
 
     const optimized = pipeline.render(source, null, { ...renderSettings, optimizeSvg: true })

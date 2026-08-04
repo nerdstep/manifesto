@@ -1,11 +1,3 @@
-/**
- * Stage 3 — optimization.
- *
- * The interesting tests here are the two guards against SVGO plugins that are wrong for
- * icons. Both failures are silent: the file still parses, still looks right at 512px,
- * and is broken in a way you only notice in production.
- */
-
 import { describe, expect, test } from 'bun:test'
 
 import { optimize } from '../src/pipeline/optimize.ts'
@@ -42,7 +34,7 @@ describe('optimize — the toggle', () => {
 describe('optimize — guards against icon-hostile plugins', () => {
   test('viewBox survives, even when width/height duplicate it', () => {
     // `removeViewBox` drops viewBox when it matches width/height. For an icon that is
-    // fatal — the mark stops scaling, and Normalization nests this document inside a
+    // fatal. The mark stops scaling, and Normalization nests this document inside a
     // sized viewport with nothing to scale against. SVGO v4 dropped the plugin from
     // preset-default; this test is what notices if that ever changes.
     const svg =
@@ -63,7 +55,7 @@ describe('optimize — guards against icon-hostile plugins', () => {
   test('referenced ids are preserved', () => {
     // `cleanupIds` renames and prunes ids. Its classic failure is two gradients that
     // shared an id after export being collapsed into one, silently recolouring part of
-    // the mark — a wrong icon that raises no error anywhere.
+    // the mark without raising an error.
     const svg =
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">' +
       '<defs><linearGradient id="brandGradient"><stop offset="0" stop-color="#2E5BFF"/>' +
@@ -83,7 +75,7 @@ describe('optimize — output stays usable', () => {
     expect(result.trimEnd().endsWith('</svg>')).toBe(true)
     // SVGO lower-cases hex colours and may rewrite them to shorthand or a keyword, so
     // compare case-insensitively. This is also why colour inference reads rendered
-    // pixels rather than markup — see Phase 6.
+    // pixels rather than markup.
     expect(result.toLowerCase()).toContain('#2e5bff')
   })
 

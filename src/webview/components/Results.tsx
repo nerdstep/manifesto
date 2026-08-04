@@ -1,20 +1,3 @@
-/**
- * Everything downstream of a successful generation, in two halves.
- *
- * They are two components rather than one because the settings panel sits *between* them:
- * you look at the icons, then reach for the controls that change them, then check what
- * landed. Previews above settings is the whole reason for the split — a panel of colour
- * fields above the thing they colour is a form, not a workbench.
- *
- * They are not one component with the panel passed as a child, because the panel must
- * survive a failed edit. `session` outlives `bundle`: if a regeneration fails, the Bundle
- * is gone but the settings that caused it are still on screen and still editable. Nesting
- * the panel here would make it vanish exactly when it is needed.
- *
- * Every heading is amber. That is the Signal Path doing its job: cyan above is what you
- * are still deciding, amber below is what already exists on disk.
- */
-
 import { HEAD_SNIPPET } from '../../shared/bundle.ts'
 import type { BundleWire } from '../../shared/rpc.ts'
 import { Advisories } from './Advisories.tsx'
@@ -31,15 +14,10 @@ function Heading({ children, count }: { children: string; count?: string }) {
   )
 }
 
-/** The icons, in the contexts that decide whether they work. Sits above the settings. */
 export function InContext({ bundle }: { bundle: BundleWire }) {
   return (
     <>
-      {/*
-        Pixel drift is deliberately excluded: the Source Mark row already reports it,
-        beside the byte delta it is a trade-off against and the toggle that turns it off.
-        Repeating it here would be the same warning twice with less context.
-      */}
+      {/* Pixel drift is shown beside the optimization toggle. */}
       <Advisories
         advisories={bundle.advisories.filter((advisory) => advisory.kind !== 'svgo-pixel-drift')}
       />
@@ -56,12 +34,6 @@ export function InContext({ bundle }: { bundle: BundleWire }) {
   )
 }
 
-/**
- * The last mile. Sits below the terminal, which now carries the file listing itself.
- *
- * Takes no Bundle: the snippet has no variable parts. It stays a component rather than
- * being inlined so the downstream sections keep one heading treatment.
- */
 export function OnDisk() {
   return (
     <>

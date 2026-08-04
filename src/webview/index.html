@@ -5,7 +5,6 @@
     <title>Manifesto</title>
     <link rel="stylesheet" href="views://mainview/app.css" />
     <style>
-      /* Only what must exist before Tailwind loads: the crash box. */
       #crash {
         display: none;
         margin: 18px;
@@ -24,21 +23,7 @@
   <body>
     <div id="crash"></div>
 
-    <!--
-      Bootstrap safety net, inline and before the module.
-
-      Two jobs the module cannot do for itself:
-
-      1. Report its own failure to load. An error handler declared inside the bundle is
-         never registered if the bundle throws while loading — which is exactly what
-         happened twice in Phase 5, once from a stray value import pulling node:crypto in,
-         once from top-level await in what is served as a classic script. Both presented
-         as "drag and drop doesn't work".
-
-      2. Cancel the webview's default file-drop behaviour immediately. Without this, a
-         window whose module is broken opens dropped files instead of showing the error,
-         hiding the real fault behind a confusing one.
-    -->
+    <!-- Register failure and drop guards before loading the application bundle. -->
     <script>
       ;(function () {
         var crash = document.getElementById('crash')

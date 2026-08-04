@@ -1,11 +1,3 @@
-/**
- * The disk layer.
- *
- * This is the only code in the app that can destroy someone's work, so the collision
- * guard gets the most attention. Real temp directories throughout — mocking the
- * filesystem here would test the mock.
- */
-
 import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import {
   existsSync,
@@ -266,8 +258,7 @@ describe('inspectTarget — the collision guard', () => {
   })
 
   test('a folder we did not create is a collision', () => {
-    // It could be anything — someone's public/, a git worktree. Overwriting it because
-    // the name matched would be the worst thing this app could do.
+    // Never overwrite a directory the application did not create.
     const dir = join(root, 'public')
     mkdirSync(dir)
     writeFileSync(join(dir, 'index.html'), '<!doctype html>')

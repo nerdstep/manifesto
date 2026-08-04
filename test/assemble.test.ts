@@ -1,12 +1,3 @@
-/**
- * Assembly — the files that are not simply rasterized.
- *
- * The tests that matter most here are the ones checking that separately-generated
- * things still agree: the Head Snippet against the emitted filenames, the manifest
- * against the Rendition table, and the two embedded marks against each other's ids.
- * Each of those failures is silent in production.
- */
-
 import { beforeAll, describe, expect, test } from 'bun:test'
 
 import icoEndec from 'ico-endec'
@@ -45,7 +36,7 @@ const GRADIENT_MARK =
 
 const GRADIENT_MARK_DARK = GRADIENT_MARK.replace('#2E5BFF', '#101010')
 
-/** Called from inside tests: `pipeline` is only bound once `beforeAll` has run. */
+/** Called inside tests after `beforeAll` has initialized `pipeline`. */
 function icoOf(name: FixtureName) {
   const mark = pipeline.normalize(fixture(name))
   return packIco(
@@ -69,8 +60,7 @@ describe('packIco', () => {
   })
 
   test('embeds PNG streams, not BMP', () => {
-    // Modern ICO embeds PNG directly. BMP would also work but is larger and has no
-    // bitmask support, and this is what Phase 0 verified ico-endec does.
+    // Modern ICO files embed PNG directly. BMP is larger and lacks bitmask support.
     const entries = icoEndec.decode(Buffer.from(icoOf('square-tight')))
     expect(entries.map((e) => e.imageType)).toEqual(['png', 'png', 'png'])
   })
@@ -100,8 +90,7 @@ describe('buildFaviconSvg — single mark', () => {
   })
 
   test('is normalized like the raster Renditions, not left as-dropped', () => {
-    // A padded export must not produce a full-bleed .ico and a tiny .svg — the favicon
-    // would visibly change depending on which file the browser picked.
+    // Every favicon format must use the same normalized geometry.
     const padded = buildFaviconSvg(pipeline.normalize(fixture('square-padded')), null)
     const tight = buildFaviconSvg(pipeline.normalize(fixture('square-tight')), null)
 
@@ -141,9 +130,7 @@ describe('buildFaviconSvg — dual embed', () => {
   })
 
   test('both marks are actually present', () => {
-    // Lower-cased: this path receives the mark unoptimized, so colours keep whatever
-    // casing the author used. SVGO would normalise them, but the optimize toggle is
-    // the user's to turn off.
+    // Unoptimized marks retain the author's original color casing.
     const svg = dualFavicon().toLowerCase()
     expect(svg).toContain('#2e5bff') // source mark
     expect(svg).toContain('#f4f6f8') // dark mark
@@ -151,8 +138,7 @@ describe('buildFaviconSvg — dual embed', () => {
 
   test('namespaces ids so the two marks cannot collide', () => {
     // Two Figma exports may both contain `id="paint0_linear"`. In one document the
-    // duplicate is ignored and BOTH marks render with the first gradient — nothing
-    // errors, the icon is just quietly wrong in dark mode.
+    // browser may ignore the duplicate and render both marks with one gradient.
     const dual = buildFaviconSvg(
       pipeline.normalize(GRADIENT_MARK),
       pipeline.normalize(GRADIENT_MARK_DARK),
@@ -162,7 +148,7 @@ describe('buildFaviconSvg — dual embed', () => {
     expect(ids).toHaveLength(2)
     expect(new Set(ids).size, `ids collided: ${ids.join(', ')}`).toBe(2)
 
-    // And every reference must still resolve to an id that exists.
+    // Every rewritten reference must resolve to an existing id.
     const refs = [...dual.matchAll(/url\(#([^)]+)\)/gu)].map((m) => m[1])
     expect(refs).toHaveLength(2)
     for (const ref of refs) expect(ids).toContain(ref)
@@ -180,8 +166,7 @@ describe('buildFaviconSvg — dual embed', () => {
 })
 
 describe('buildWebManifest', () => {
-  // Not lazy-guarded for the rasterizer's sake — this one is pure — but kept as a
-  // function so it is obvious nothing here depends on render state.
+  // Manifest generation is independent from render state.
   const manifest = parseJsonObject(buildWebManifest(defaultSettings))
 
   test('carries the panel fields', () => {
@@ -220,8 +205,7 @@ describe('buildWebManifest', () => {
   })
 
   test('never uses the "any maskable" anti-pattern', () => {
-    // Chrome DevTools warns on it: the maskable padding survives into `any` slots and
-    // the logo renders 20% smaller than every other icon on the home screen.
+    // Maskable padding makes icons rendered in `any` slots appear too small.
     expect(buildWebManifest(defaultSettings)).not.toContain('any maskable')
   })
 
