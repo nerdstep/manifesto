@@ -1,6 +1,8 @@
 import type { BunPlugin } from 'bun'
 import type { ElectrobunConfig } from 'electrobun/bun'
 
+import pkg from './package.json' with { type: 'json' }
+
 /**
  * Keep two 3D engines out of the main-process bundle.
  *
@@ -36,10 +38,12 @@ const config: ElectrobunConfig = {
   app: {
     name: 'Manifesto',
     identifier: 'dev.manifesto.app',
-    version: '0.1.0',
-    description: 'Drop an SVG, get every icon asset a website needs.',
+    version: pkg.version,
+    description: pkg.description,
   },
   build: {
+    mac: { icons: 'assets/app-icon.iconset' },
+    linux: { icon: 'assets/app-icon.png' },
     bun: { entrypoint: 'src/bun/index.ts', plugins: [dropUnusedEngines] },
     views: {
       mainview: {
@@ -65,6 +69,10 @@ const config: ElectrobunConfig = {
       // `import.meta.dir`, never `process.cwd()` — cwd is `bin/`, not the app root.
       'node_modules/@resvg/resvg-wasm/index_bg.wasm': 'resvg.wasm',
     },
+  },
+  scripts: {
+    postBuild: 'scripts/embed-windows-icons.ts',
+    postPackage: 'scripts/embed-windows-icons.ts',
   },
 }
 

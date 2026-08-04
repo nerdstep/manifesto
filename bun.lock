@@ -11,6 +11,7 @@
         "es-toolkit": "^1.50.0",
         "ico-endec": "^0.1.6",
         "lucide-preact": "^1.28.0",
+        "rcedit": "^4.0.1",
         "svgo": "^4.0.2",
         "tailwind-merge": "^3.6.0",
       },

@@ -17,6 +17,7 @@ const ZSTD = join(
 
 /** Files that must be in the payload, with the smallest size that could be real. */
 const REQUIRED: [path: string, minBytes: number][] = [
+  ['Manifesto/Resources/app.ico', 1_000],
   ['Manifesto/Resources/app/resvg.wasm', 2_000_000],
   ['Manifesto/Resources/app/bun/index.js', 100_000],
   ['Manifesto/Resources/app/views/mainview/index.js', 5_000],
