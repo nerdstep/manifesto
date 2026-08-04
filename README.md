@@ -2,7 +2,7 @@
 
 > Drop an SVG and get every icon asset a website needs.
 
-![hero](./hero.png)
+![hero](./assets/hero.jpg)
 
 A Windows desktop app for generating website icons. Drop in an SVG and Manifesto creates
 six icon files, a web app manifest, and the four `<head>` tags that reference them. It also
