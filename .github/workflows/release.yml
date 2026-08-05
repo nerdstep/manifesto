@@ -19,16 +19,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -51,7 +47,7 @@ jobs:
     steps:
       - name: Run Release Please
         id: release
-        uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@v5
 
   build_release:
     name: Build ${{ matrix.name }}
@@ -68,7 +64,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Check out release
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.release_please.outputs.release_sha }}
 
@@ -88,7 +84,7 @@ jobs:
         run: bun run check:package
 
       - name: Collect release assets
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: artifacts/*
@@ -106,7 +102,7 @@ jobs:
       contents: write
     steps:
       - name: Download release assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: manifesto-*
           path: release-assets
