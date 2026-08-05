@@ -21,6 +21,7 @@
     "lint": "oxlint",
     "lint:types": "oxlint --type-aware",
     "lint:fix": "oxlint --fix",
+    "lint:package": "publint",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
@@ -42,6 +43,7 @@
     "oxlint": "^1.76.0",
     "oxlint-tsgolint": "^7.0.2001",
     "preact": "^10.29.8",
+    "publint": "^0.3.23",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "whatwg-mimetype": "3.0.0"

@@ -48,6 +48,10 @@ jobs:
       - name: Run Release Please
         id: release
         uses: googleapis/release-please-action@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
 
   build_release:
     name: Build ${{ matrix.name }}
@@ -110,7 +114,7 @@ jobs:
 
       - name: Upload assets and publish draft
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ needs.release_please.outputs.tag_name }}
         run: |
           gh release upload "$RELEASE_TAG" release-assets/* --clobber
