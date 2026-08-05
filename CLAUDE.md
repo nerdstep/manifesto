@@ -6,6 +6,22 @@ owning the window and every filesystem touch, a Preact + Tailwind webview with n
 Read [README.md](./README.md) for what it does and how to run it. This file is the part
 that is not obvious from the code.
 
+## Agent skills
+
+### Issue tracker
+
+Issues and specs are tracked as local Markdown under `.scratch/`; external PRs are not a
+triage surface. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The canonical triage labels use their default names. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This is a single-context repository with `CONTEXT.md` and `docs/adr/` at the root. See
+`docs/agents/domain.md`.
+
 ## Design context
 
 | Read this | Before |

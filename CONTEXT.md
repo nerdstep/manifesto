@@ -21,6 +21,11 @@ The complete set of derived files produced from one Source Mark — the icons, t
 Web App Manifest, and the Head Snippet. The unit the user copies into their site.
 _Avoid_: output, results, favicon pack, export
 
+**Asset Bundle Session**:
+The span of work on one Source Mark, beginning when it is opened and ending when another
+Source Mark replaces it. Edits and generation attempts during that span belong together.
+_Avoid_: browser session, app session, document session
+
 **Rendition**:
 One derived image file within an Asset Bundle, at a specific size and with a specific
 treatment applied. `apple-touch-icon.png` and `icon-512.png` are two Renditions of the
