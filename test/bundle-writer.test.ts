@@ -15,7 +15,6 @@ import {
   bundleNameProblem,
   type BundleWriterFileSystem,
   inspectTarget,
-  nextAvailableName,
   recallSettings,
   SIDECAR_FILENAME,
   slugify,
@@ -285,20 +284,6 @@ describe('inspectTarget — the collision guard', () => {
     writeFileSync(join(dir, SIDECAR_FILENAME), JSON.stringify({ bundleName: 'acme' }))
 
     expect(inspectTarget(dir, 'abc').kind).toBe('unknown-folder')
-  })
-})
-
-describe('nextAvailableName', () => {
-  test('returns the name itself when free', () => {
-    expect(nextAvailableName(root, 'acme')).toBe('acme')
-  })
-
-  test('suffixes from 2 upward', () => {
-    mkdirSync(join(root, 'acme'))
-    expect(nextAvailableName(root, 'acme')).toBe('acme-2')
-
-    mkdirSync(join(root, 'acme-2'))
-    expect(nextAvailableName(root, 'acme')).toBe('acme-3')
   })
 })
 

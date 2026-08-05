@@ -16,28 +16,49 @@ export type BundleWire = {
   settings: Settings
 }
 
-/**
- * Drops, renames, and root changes may open a collision dialog. Routine edits never do.
- */
-export type GenerateTrigger = 'drop' | 'rename' | 'edit' | 'root-change'
-
-export type GenerateRequest = {
-  sessionId?: string
-  revision?: number
+export type AssetBundleSessionDesired = {
   sourceSvg: string
   filename: string
   darkSvg: string | null
+  darkFilename: string | null
   settings: Settings | null
-  bundleName: string | null
-  trigger: GenerateTrigger
+  bundleName: string
+  outputRoot: string
 }
 
-export type GenerateResult = { ok: true; bundle: BundleWire } | { ok: false; error: string }
+export type AssetBundleSessionAttempt =
+  | { kind: 'idle' }
+  | { kind: 'working'; previousError: string | null }
+  | { kind: 'failed'; error: string }
+
+export type AssetBundleSessionSnapshot = {
+  desired: AssetBundleSessionDesired | null
+  attempt: AssetBundleSessionAttempt
+  committed: BundleWire | null
+  matchesDesired: boolean
+  recoveryNotice: string | null
+}
+
+export type AssetBundleIntent =
+  | {
+      kind: 'open-source'
+      sourceSvg: string
+      filename: string
+    }
+  | { kind: 'patch-settings'; change: Partial<Settings> }
+  | { kind: 'commit-bundle-name'; bundleName: string }
+  | { kind: 'set-dark-mark'; darkSvg: string; darkFilename: string }
+  | { kind: 'clear-dark-mark' }
+  | { kind: 'change-output-root'; outputRoot: string }
+  | { kind: 'retry' }
+
+export type AcceptIntentResult = { ok: true } | { ok: false; error: string }
 
 export type ManifestoRPC = {
   bun: RPCSchema<{
     requests: {
-      generate: { params: GenerateRequest; response: GenerateResult }
+      acceptAssetBundleIntent: { params: AssetBundleIntent; response: AcceptIntentResult }
+      publishAssetBundleSession: { params: void; response: { ok: true } }
       /** Returns SVG text so the webview remains filesystem-free. */
       chooseSvg: {
         params: void
@@ -59,6 +80,8 @@ export type ManifestoRPC = {
   }>
   webview: RPCSchema<{
     requests: Record<string, never>
-    messages: Record<string, never>
+    messages: {
+      assetBundleSessionChanged: AssetBundleSessionSnapshot
+    }
   }>
 }

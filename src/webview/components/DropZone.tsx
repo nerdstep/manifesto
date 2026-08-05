@@ -101,7 +101,7 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
         </div>
 
         <div class="signal-grid grid min-h-40 grow place-items-center rounded-lg bg-bg p-4">
-          {sourceSvg !== null && !busy ? (
+          {sourceSvg !== null && !busy && !rejected ? (
             <img
               src={sourceUri(sourceSvg)}
               alt={`${filename ?? 'The logo'}, as supplied`}
@@ -109,7 +109,7 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
             />
           ) : (
             <p class="max-w-[38ch] text-center">
-              <span class="block font-semibold text-ink">
+              <span class={`block font-semibold ${rejected ? 'text-bad' : 'text-ink'}`}>
                 {busy
                   ? 'Rendering…'
                   : rejected

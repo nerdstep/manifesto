@@ -1,6 +1,5 @@
 import { BUNDLE_FILENAMES, SIDECAR_FILENAME } from '../../shared/bundle.ts'
-import type { BundleWire } from '../../shared/rpc.ts'
-import type { Status } from '../use-bundle.ts'
+import type { AssetBundleSessionSnapshot, BundleWire } from '../../shared/rpc.ts'
 
 function decodedBytes(base64: string): number {
   return Math.floor((base64.length * 3) / 4)
@@ -11,15 +10,13 @@ function formatBytes(bytes: number): string {
 }
 
 export function Terminal({
-  status,
-  pending,
+  snapshot,
   outputRoot,
 }: {
-  status: Status
-  pending: boolean
+  snapshot: AssetBundleSessionSnapshot
   outputRoot: string
 }) {
-  const bundle = status.kind === 'done' ? status.bundle : null
+  const bundle = snapshot.committed
 
   const written =
     bundle === null ? [] : [...BUNDLE_FILENAMES].filter((name) => name in bundle.files)
@@ -38,7 +35,7 @@ export function Terminal({
           │
         </span>
         <span class="min-w-0" role="status" aria-live="polite" aria-atomic="true">
-          <Result status={status} pending={pending} bundle={bundle} />
+          <Result snapshot={snapshot} bundle={bundle} />
         </span>
         <span class="ml-auto truncate text-muted" title={bundle?.writtenTo ?? outputRoot}>
           {bundle?.writtenTo ?? outputRoot}
@@ -68,25 +65,20 @@ export function Terminal({
 }
 
 function Result({
-  status,
-  pending,
+  snapshot,
   bundle,
 }: {
-  status: Status
-  pending: boolean
+  snapshot: AssetBundleSessionSnapshot
   bundle: BundleWire | null
 }) {
-  if (status.kind === 'idle') {
+  if (snapshot.desired === null) {
     return <span class="text-dim">waiting for a logo</span>
   }
-  if (status.kind === 'working') {
-    return <span class="text-cyan">rendering…</span>
+  if (snapshot.attempt.kind === 'failed') {
+    return <span class="text-bad">✗ {snapshot.attempt.error}</span>
   }
-  if (status.kind === 'failed') {
-    return <span class="text-bad">✗ {status.error}</span>
-  }
-  if (pending) {
-    return <span class="text-cyan">saving…</span>
+  if (snapshot.attempt.kind === 'working') {
+    return <span class="text-cyan">{bundle === null ? 'rendering…' : 'saving…'}</span>
   }
   if (bundle === null) {
     return null
@@ -94,12 +86,5 @@ function Result({
 
   const count = Object.keys(bundle.files).length
 
-  return bundle.writtenTo === null ? (
-    <span class="text-bad">
-      ✗ Nothing saved. <span class="text-ink">{bundle.bundleName}</span> already contains files
-      Manifesto did not create. Rename the folder or choose another output folder.
-    </span>
-  ) : (
-    <span class="text-ok">✓ {count} files written</span>
-  )
+  return <span class="text-ok">✓ {count} files written</span>
 }

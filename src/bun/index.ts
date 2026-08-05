@@ -8,8 +8,11 @@ import type { Pipeline } from '../pipeline/index.ts'
 import { desktopPlatform, supportsCustomWindowChrome, type ManifestoRPC } from '../shared/index.ts'
 import { loadState, saveState, stateFilePath, windowFrame } from './app-state.ts'
 import type { AppState } from './app-state.ts'
-import { chooseOutputRoot, chooseSvg, resolveCollision } from './dialogs.ts'
-import { createGenerate } from './generate.ts'
+import {
+  createAssetBundleSession,
+  createAssetBundleSessionRpcAdapter,
+} from './asset-bundle-session.ts'
+import { chooseOutputRoot, chooseSvg } from './dialogs.ts'
 import { createRenderCache } from './render-cache.ts'
 import { enablePerMonitorDpi } from './windows-dpi.ts'
 
@@ -44,12 +47,15 @@ console.log('[manifesto] output root:', state.outputRoot)
 
 // --- helpers ---------------------------------------------------------------
 
-const generate = createGenerate({
+const session = createAssetBundleSession({
   pipeline,
   render: renderCached,
   outputRoot: () => state.outputRoot,
-  resolveCollision,
+  publish(snapshot) {
+    mainWindow.webview.rpc?.proxy.send.assetBundleSessionChanged(snapshot)
+  },
 })
+const sessionRpc = createAssetBundleSessionRpcAdapter(session)
 
 // --- rpc -------------------------------------------------------------------
 
@@ -57,7 +63,9 @@ const rpc = BrowserView.defineRPC<ManifestoRPC>({
   maxRequestTime: 120_000,
   handlers: {
     requests: {
-      generate,
+      acceptAssetBundleIntent: (intent) => sessionRpc.acceptAssetBundleIntent(intent),
+
+      publishAssetBundleSession: () => sessionRpc.publishAssetBundleSession(),
 
       chooseSvg: () => chooseSvg(state.outputRoot),
 
@@ -68,6 +76,7 @@ const rpc = BrowserView.defineRPC<ManifestoRPC>({
         if (chosen !== null) {
           state.outputRoot = chosen
           saveState(STATE_PATH, state)
+          session.accept({ kind: 'change-output-root', outputRoot: chosen })
         }
         return { path: state.outputRoot }
       },

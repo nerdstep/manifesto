@@ -1,6 +1,7 @@
 import type { ComponentChildren } from 'preact'
 
 import type { Settings } from '../../pipeline/index.ts'
+import { bundleNameProblem } from '../../shared/bundle-name.ts'
 import { ICON_FILENAMES } from '../../shared/bundle.ts'
 import { ColorField, CommittedField, DarkMarkField, Field } from './fields.tsx'
 import { Button, Caption, Input, SectionHeading } from './ui.tsx'
@@ -19,6 +20,7 @@ type Props = {
   onOpenOutput: () => void
   canOpenOutput: boolean
   outputRoot: string
+  recoveryNotice: string | null
 }
 
 function Group({
@@ -57,6 +59,7 @@ export function SettingsPanel({
   onOpenOutput,
   canOpenOutput,
   outputRoot,
+  recoveryNotice,
 }: Props) {
   return (
     <>
@@ -122,6 +125,8 @@ export function SettingsPanel({
           label="Folder"
           value={bundleName}
           hint="Name of the folder inside your output folder."
+          validate={bundleNameProblem}
+          notice={recoveryNotice}
           onCommit={onRename}
         />
         <div class="min-w-0">

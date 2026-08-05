@@ -1,24 +1,25 @@
 import { useCallback, useEffect, useState } from 'preact/hooks'
 
 import {
+  Button,
   DropZone,
   HeadSnippet,
   InContext,
   PipelineStrip,
+  SessionRecoveryNotice,
   SettingsPanel,
   SourceRow,
   Terminal,
   WindowChrome,
 } from './components/index.ts'
 import { bun } from './rpc.ts'
-import { useBundle } from './use-bundle.ts'
+import { useAssetBundleSession } from './use-asset-bundle-session-runtime.ts'
 
 export function App() {
   const [outputRoot, setOutputRoot] = useState('Loading...')
   const {
-    status,
-    session,
-    pending,
+    snapshot,
+    intentError,
     drop,
     open,
     patch,
@@ -26,8 +27,8 @@ export function App() {
     attachDarkMark,
     chooseDarkMark,
     clearDarkMark,
-    regenerate,
-  } = useBundle()
+    retry,
+  } = useAssetBundleSession()
 
   useEffect(() => {
     void (async () => {
@@ -39,16 +40,26 @@ export function App() {
   }, [])
 
   const chooseRoot = useCallback(async () => {
-    const previous = outputRoot
     const { path } = await bun().request.chooseOutputRoot()
     setOutputRoot(path)
-    if (path !== previous) {
-      regenerate('root-change')
-    }
-  }, [outputRoot, regenerate])
+  }, [])
 
-  const bundle = status.kind === 'done' ? status.bundle : null
+  const session = snapshot.desired
+  const bundle = snapshot.committed
   const written = bundle === null ? null : bundle.writtenTo
+  const shownOutputRoot = session?.outputRoot ?? outputRoot
+  const attemptError =
+    snapshot.attempt.kind === 'failed'
+      ? snapshot.attempt.error
+      : snapshot.attempt.kind === 'working'
+        ? snapshot.attempt.previousError
+        : null
+
+  useEffect(() => {
+    if (bundle !== null) {
+      void bun().request.refreshViewport()
+    }
+  }, [bundle])
 
   const reveal = useCallback(async () => {
     if (written !== null) {
@@ -73,17 +84,21 @@ export function App() {
             <DropZone
               onFile={drop}
               onChoose={open}
-              busy={status.kind === 'working'}
+              busy={snapshot.attempt.kind === 'working' && bundle === null}
               filename={session?.filename ?? null}
               sourceSvg={session?.sourceSvg ?? null}
             />
             <PipelineStrip
-              state={status.kind === 'working' ? 'working' : bundle === null ? 'idle' : 'done'}
+              state={
+                snapshot.attempt.kind === 'working' ? 'working' : bundle === null ? 'idle' : 'done'
+              }
               bundle={bundle}
             />
           </div>
 
-          {session !== null && bundle !== null && (
+          <SessionRecoveryNotice notice={snapshot.recoveryNotice} />
+
+          {session?.settings !== null && session !== null && bundle !== null && (
             <SourceRow
               originalBytes={bundle.originalBytes}
               optimizedBytes={bundle.optimizedBytes}
@@ -95,32 +110,38 @@ export function App() {
             />
           )}
 
-          {status.kind === 'failed' && (
+          {(attemptError !== null || intentError !== null) && (
             <p class="mt-4 rounded-lg border border-bad/50 bg-bad/8 px-3 py-2.5 text-ink">
-              {status.error}
+              {attemptError ?? intentError}
+              {snapshot.attempt.kind === 'failed' && (
+                <Button class="ml-2 underline" type="button" onClick={retry}>
+                  Try again
+                </Button>
+              )}
             </p>
           )}
 
           {bundle !== null && <InContext bundle={bundle} />}
 
-          {session !== null && (
+          {session?.settings !== null && session !== null && (
             <SettingsPanel
               settings={session.settings}
               bundleName={session.bundleName}
               darkFilename={session.darkFilename}
               onPatch={patch}
-              onRename={rename}
+              onRename={(name) => void rename(name)}
               onDarkMark={(file) => void attachDarkMark(file)}
               onChooseDarkMark={() => void chooseDarkMark()}
               onClearDarkMark={clearDarkMark}
               onChooseOutput={() => void chooseRoot()}
               onOpenOutput={() => void reveal()}
               canOpenOutput={written !== null}
-              outputRoot={outputRoot}
+              outputRoot={shownOutputRoot}
+              recoveryNotice={snapshot.recoveryNotice}
             />
           )}
 
-          <Terminal status={status} pending={pending} outputRoot={outputRoot} />
+          <Terminal snapshot={snapshot} outputRoot={shownOutputRoot} />
 
           {bundle !== null && <HeadSnippet />}
         </main>

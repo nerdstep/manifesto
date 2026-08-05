@@ -3,7 +3,6 @@ import { basename } from 'node:path'
 
 import { Utils } from 'electrobun/bun'
 
-import { nextAvailableName } from '../host/bundle-writer.ts'
 import { failureDetail } from '../host/failures.ts'
 
 export type ChosenSvg = { svg: string; filename: string }
@@ -41,30 +40,4 @@ export async function chooseOutputRoot(startingFolder: string): Promise<string |
 
   const chosen = picked[0]
   return chosen !== undefined && chosen.length > 0 ? chosen : null
-}
-
-export async function resolveCollision(
-  root: string,
-  bundleName: string,
-  detail: string,
-): Promise<string | null> {
-  const keepBoth = nextAvailableName(root, bundleName)
-
-  const { response } = await Utils.showMessageBox({
-    type: 'question',
-    title: 'Folder already exists',
-    message: `"${bundleName}" is already in your output folder.`,
-    detail: `${detail}\n\nOverwrite replaces the icon files. Other files in the folder are left alone.`,
-    buttons: [`Save as "${keepBoth}"`, 'Overwrite', 'Cancel'],
-    defaultId: 0,
-    cancelId: 2,
-  })
-
-  if (response === 0) {
-    return keepBoth
-  }
-  if (response === 1) {
-    return bundleName
-  }
-  return null
 }

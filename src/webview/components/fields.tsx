@@ -89,18 +89,32 @@ export function CommittedField({
   label,
   value,
   hint,
+  validate,
+  notice,
   onCommit,
 }: {
   label: string
   value: string
   hint: string
+  validate?: (next: string) => string | null
+  notice?: string | null
   onCommit: (next: string) => void
 }) {
   const [draft, setDraft] = useState(value)
+  const [problem, setProblem] = useState<string | null>(null)
 
   useEffect(() => {
     setDraft(value)
+    setProblem(null)
   }, [value])
+
+  const commit = () => {
+    const nextProblem = validate?.(draft) ?? null
+    setProblem(nextProblem)
+    if (nextProblem === null) {
+      onCommit(draft)
+    }
+  }
 
   return (
     <Field label={label}>
@@ -113,7 +127,7 @@ export function CommittedField({
           setDraft(event.currentTarget.value)
         }}
         onBlur={() => {
-          onCommit(draft)
+          commit()
         }}
         onKeyDown={(event) => {
           if (event.key === 'Enter') {
@@ -121,10 +135,13 @@ export function CommittedField({
           }
           if (event.key === 'Escape') {
             setDraft(value)
+            setProblem(null)
           }
         }}
+        aria-invalid={problem !== null}
       />
-      <Note class="mt-1">{hint}</Note>
+      <Note class={`mt-1 ${problem === null ? '' : 'text-bad'}`}>{problem ?? hint}</Note>
+      {notice !== null && notice !== undefined && <Note class="mt-1 text-muted">{notice}</Note>}
     </Field>
   )
 }

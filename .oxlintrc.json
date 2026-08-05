@@ -90,6 +90,13 @@
 
   "overrides": [
     {
+      "files": ["test/**"],
+      "rules": {
+        "eslint/max-lines": "off",
+        "import/max-dependencies": "off"
+      }
+    },
+    {
       // `src/webview/**`, not `src/webview/**/*.ts` — the previous glob silently excluded
       // every `.tsx` file, which is all of the components.
       "files": ["src/webview/**"],
