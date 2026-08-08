@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/nerdstep/manifesto/compare/v0.2.0...v0.2.1) (2026-08-08)
+
+
+### Bug Fixes
+
+* **release:** create the tag with the draft, not at publish ([#8](https://github.com/nerdstep/manifesto/issues/8)) ([02bc5dd](https://github.com/nerdstep/manifesto/commit/02bc5dde6105d8262a93ba64b1f6c3b7623a7ce1))
+
 ## 0.2.0 (2026-08-08)
 
 
