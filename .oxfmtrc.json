@@ -8,5 +8,5 @@
   "sortImports": true,
   "sortPackageJson": true,
 
-  "ignorePatterns": ["**/*.md", "test/fixtures/**", "build/**"]
+  "ignorePatterns": ["**/*.md", "test/fixtures/**", "build/**", ".release-please-manifest.json"]
 }
