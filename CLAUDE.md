@@ -68,6 +68,14 @@ you have decided the output *should* change.
 before saying anything is done. `bun run app` additionally checks the built view bundle,
 which catches what lint cannot — bulk arriving from dependencies.
 
+**Release plumbing is `chore:` or `ci:`, never `fix:` or `feat:`.** Release Please reads
+these commits, so `fix:` cuts a patch and `feat:` a minor. A workflow, `release-please-config.json`,
+or `.oxfmtrc.json` change that ships no application code still produced a spurious 0.2.1
+this way. Ask whether the change alters what users run: if it only alters how the project is
+built, checked, or released, it is not a `fix`. `docs:` is safe — non-releasable, no
+changelog entry. There is no correcting this after the fact; `main` sets `non_fast_forward`
+and `required_linear_history`, so the version is cut and stays cut.
+
 **No non-null assertions.** `noUncheckedIndexedAccess` is on and `!` cancels it out. For
 indexed reads into pixel buffers write `buf[i] ?? 0` — the fallback is unreachable when the
 index is in range by construction, and for an alpha probe it also happens to mean exactly
