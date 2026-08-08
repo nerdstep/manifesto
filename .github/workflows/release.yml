@@ -112,6 +112,9 @@ jobs:
       - name: Upload assets and publish draft
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This job never checks out the repository, so gh has no git remote to
+          # infer the target from and fails with "not a git repository".
+          GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ needs.release_please.outputs.tag_name }}
         run: |
           gh release upload "$RELEASE_TAG" release-assets/* --clobber
