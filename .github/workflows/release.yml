@@ -52,6 +52,7 @@ jobs:
       # also mints a signed release attestation. Without this the create-release
       # call fails with "Resource not accessible by integration".
       attestations: write
+      id-token: write
     steps:
       - name: Run Release Please
         id: release
