@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/nerdstep/manifesto/compare/v0.2.1...v0.3.0) (2026-08-24)
+
+
+### Features
+
+* upgrade to Electrobun v2 ([#10](https://github.com/nerdstep/manifesto/issues/10)) ([2efdcda](https://github.com/nerdstep/manifesto/commit/2efdcda4c2e83ea92b22eb5d8a54fb1775bc03f6))
+
 ## [0.2.1](https://github.com/nerdstep/manifesto/compare/v0.2.0...v0.2.1) (2026-08-08)
 
 
