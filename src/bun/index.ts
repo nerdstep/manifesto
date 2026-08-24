@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 
-import { BrowserView, BrowserWindow, Utils } from 'electrobun/bun'
+import { BrowserView, BrowserWindow, Screen, Utils } from 'electrobun/main'
 
 import { firstExisting, readWasmBytes } from '../host/wasm.ts'
 import { createPipeline } from '../pipeline/index.ts'
@@ -14,13 +14,16 @@ import {
 } from './asset-bundle-session.ts'
 import { chooseOutputRoot, chooseSvg } from './dialogs.ts'
 import { createRenderCache } from './render-cache.ts'
-import { enablePerMonitorDpi } from './windows-dpi.ts'
 
 // --- startup ---------------------------------------------------------------
 
-// DPI awareness must be set before any window or device context exists.
-const display = enablePerMonitorDpi()
-console.log(`[manifesto] display: ${display.width}x${display.height} at ${display.scale}x`)
+// Electrobun sets per-monitor DPI awareness itself, before this file runs, so the work
+// area arrives in points and needs no conversion.
+const display = Screen.getPrimaryDisplay()
+console.log(
+  `[manifesto] display: ${display.bounds.width}x${display.bounds.height} points ` +
+    `at ${display.scaleFactor}x`,
+)
 
 const STATE_PATH = stateFilePath(Utils.paths.appData)
 const state: AppState = loadState(STATE_PATH, join(Utils.paths.downloads, 'manifesto'))
@@ -131,7 +134,7 @@ const rpc = BrowserView.defineRPC<ManifestoRPC>({
 
 // --- window ----------------------------------------------------------------
 
-const frame = windowFrame(display)
+const frame = windowFrame(display.workArea)
 const platform = desktopPlatform(process.platform)
 
 export const mainWindow = new BrowserWindow({

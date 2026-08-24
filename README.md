@@ -45,11 +45,15 @@ bun install
 bun run dev
 ```
 
+The first build downloads the Electrobun toolchain — Hutch, and the SDK it projects into
+`.hutch/` — into a shared store outside the repo. That step needs network access; later
+builds do not.
+
 | Command | What it does |
 | --- | --- |
 | `bun run dev` | Builds, checks, and launches the app |
 | `bun run dev:watch` | Launches the Electrobun watcher without the bundle check |
-| `bun run dist` | Creates an unsigned Windows installer |
+| `bun run dist` | Creates an unsigned Windows installer — run it from PowerShell, not Git Bash |
 | `bun run check` | Runs formatting, linting, type checking, and tests |
 | `bun run check:package` | Inspects the packaged payload after `dist` |
 

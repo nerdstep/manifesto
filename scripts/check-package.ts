@@ -1,19 +1,19 @@
 /** Validate the packaged layout, required files, and bundle size. */
 
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs'
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 const BUILD = join(import.meta.dir, '..', 'build', 'stable-win-x64', 'Manifesto')
 const RESOURCES = join(BUILD, 'Resources')
-const ZSTD = join(
-  import.meta.dir,
-  '..',
-  'node_modules',
-  'electrobun',
-  'dist-win-x64',
-  'zig-zstd.exe',
-)
 
 /** Files that must be in the payload, with the smallest size that could be real. */
 const REQUIRED: [path: string, minBytes: number][] = [
@@ -26,7 +26,7 @@ const REQUIRED: [path: string, minBytes: number][] = [
   ['Manifesto/Resources/app/views/mainview/app-icon.png', 1_000],
 ]
 
-/** Above this the 3D engines are back. The slim bundle is ~1.2 MB. */
+/** A ceiling on bulk arriving from dependencies. The bundle is ~1.3 MB. */
 const BUN_BUNDLE_LIMIT_MB = 3
 
 const problems: string[] = []
@@ -50,17 +50,15 @@ const work = mkdtempSync(join(tmpdir(), 'manifesto-pkg-'))
 try {
   const tar = join(work, 'app.tar')
 
-  const unzstd = Bun.spawnSync([
-    ZSTD,
-    'decompress',
-    '-i',
-    join(RESOURCES, archive),
-    '-o',
-    tar,
-    '--no-timing',
-  ])
-  if (unzstd.exitCode !== 0) {
-    fail(`zstd failed: ${unzstd.stderr.toString()}`)
+  // Bun decompresses zstd itself. The v1 script shelled out to the `zig-zstd.exe` that
+  // shipped inside `node_modules/electrobun`; Electrobun 2 has no such directory, and
+  // the stable build keeps its copy inside the payload we are trying to open.
+  try {
+    writeFileSync(tar, Bun.zstdDecompressSync(readFileSync(join(RESOURCES, archive))))
+  } catch (error) {
+    fail(
+      `could not decompress ${archive}: ${error instanceof Error ? error.message : String(error)}`,
+    )
   }
 
   // `tar -C <abs path>` is the portable form, but Git Bash's tar reads `C:\...` as a
@@ -97,11 +95,8 @@ try {
     if (sizeMb > BUN_BUNDLE_LIMIT_MB) {
       problems.push(
         `bun/index.js is ${sizeMb.toFixed(1)} MB, over the ${BUN_BUNDLE_LIMIT_MB} MB limit — ` +
-          `the three.js / babylon plugin in electrobun.config.ts has stopped matching`,
+          `a dependency has pulled bulk into the main process`,
       )
-    }
-    if (readFileSync(bundlePath, 'utf8').includes('@babylonjs')) {
-      problems.push('bun/index.js still references @babylonjs')
     }
   }
 

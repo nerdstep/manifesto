@@ -1,38 +1,6 @@
-import type { BunPlugin } from 'bun'
-import type { ElectrobunConfig } from 'electrobun/bun'
+import type { ElectrobunConfig } from 'electrobun'
 
 import pkg from './package.json' with { type: 'json' }
-
-/**
- * Keep two 3D engines out of the main-process bundle.
- *
- * `electrobun/bun` re-exports `three` and `@babylonjs/core` as a convenience for people
- * building 3D apps. Nothing inside Electrobun uses them — they are imported at the top of
- * its barrel and only re-exported — but both packages have side effects, so the bundler
- * cannot drop them, and importing `BrowserWindow` costs **9.7 MB** of WebXR and WebGPU
- * shader code this app will never call.
- *
- * Resolving them to an empty module is safe precisely because the only thing that ever
- * touches them is the re-export: `Electrobun.three` becomes an empty namespace, and
- * nothing here reads it. If a future version of Electrobun starts using them internally,
- * this breaks loudly at startup rather than quietly — which is the right failure.
- *
- * `external` would not work: the imports are evaluated at load time and the packages are
- * not shipped with the app, so it would fail on launch instead of at build.
- */
-const dropUnusedEngines: BunPlugin = {
-  name: 'manifesto-drop-3d-engines',
-  setup(build) {
-    build.onResolve({ filter: /^(?:three|@babylonjs\/core)$/u }, () => ({
-      path: 'manifesto-unused-engine',
-      namespace: 'manifesto-stub',
-    }))
-    build.onLoad({ filter: /.*/u, namespace: 'manifesto-stub' }, () => ({
-      contents: 'export default {}',
-      loader: 'js',
-    }))
-  },
-}
 
 const config: ElectrobunConfig = {
   app: {
@@ -45,17 +13,27 @@ const config: ElectrobunConfig = {
     mac: { icons: 'assets/app-icon.iconset' },
     linux: { icon: 'assets/app-icon.png' },
     win: { icon: 'assets/app-icon.ico' },
-    bun: { entrypoint: 'src/bun/index.ts', plugins: [dropUnusedEngines] },
+    // Electrobun 2 defaults the main process to Cottontail. This app stays on Bun:
+    // `src/bun/windows-dpi.ts` calls user32 through `bun:ffi`, and its failure mode is
+    // silent — the try/catch returns an unscaled display and Windows bitmap-stretches
+    // the UI. Moving to Cottontail is a separate change with its own DPI check.
+    mainProcess: 'bun',
+    bun: { entrypoint: 'src/bun/index.ts' },
     views: {
       mainview: {
         entrypoint: 'src/webview/index.tsx',
-        // Everything after `entrypoint` is spread straight into `Bun.build`, so these
-        // are Bun bundler options.
+        // Everything after `entrypoint` is forwarded to the bundler, so these are
+        // bundler options.
         //
-        // `jsx` must be set here, not left to tsconfig: Electrobun invokes Bun.build
-        // from its own root, so the project's `jsxImportSource` is not picked up and
-        // JSX resolves against `react/jsx-runtime`, which is not installed.
-        jsx: { runtime: 'automatic', importSource: 'preact' },
+        // JSX is deliberately absent: Electrobun 2 reads the project's tsconfig, so
+        // `jsxImportSource: 'preact'` reaches the view build on its own. v1 needed the
+        // pairing spelled out here; `scripts/check-view-bundle.ts` is what would
+        // notice if the built view ever resolved against React again.
+        //
+        // The view is loaded with `<script src>`, not as a module. Say so rather than
+        // inheriting a default: as ESM, the bundle's top-level syntax stops parsing
+        // and the drop guards die with it.
+        format: 'iife',
         // Preact ships dev-only branches behind NODE_ENV; without the define they stay
         // in and the bundle is roughly three times larger.
         define: { 'process.env.NODE_ENV': JSON.stringify('production') },

@@ -1,6 +1,6 @@
 /** RPC is JSON, so generated file bytes cross the boundary as base64 strings. */
 
-import type { RPCSchema } from 'electrobun/bun'
+import type { RPCSchema } from 'electrobun/main'
 
 import type { Advisory, Settings } from '../pipeline/index.ts'
 

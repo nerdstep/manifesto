@@ -21,7 +21,20 @@
     "verbatimModuleSyntax": true,
     "allowImportingTsExtensions": true,
 
-    "types": ["bun"]
+    "types": ["bun"],
+
+    // Hutch projects the Electrobun SDK into `.hutch/devkit`, and the npm package is a
+    // bootstrap that exports only an error — so without this mapping every
+    // `electrobun/*` import fails to resolve.
+    //
+    // The devkit generates its own tsconfig for this, but it maps with `baseUrl`, which
+    // TypeScript 7 removed. These paths are the same targets written relative to this
+    // file; `test/devkit-paths.test.ts` holds them to the devkit's export map.
+    "paths": {
+      "electrobun": ["./.hutch/devkit/api/sdks/main/index.ts"],
+      "electrobun/main": ["./.hutch/devkit/api/sdks/main/index.ts"],
+      "electrobun/view": ["./.hutch/devkit/api/browser/index.ts"]
+    }
   },
-  "include": ["src", "test", "scripts", "docs/reference"]
+  "include": ["src", "test", "scripts", "docs/reference", "electrobun.config.ts", "hutch.config.ts"]
 }

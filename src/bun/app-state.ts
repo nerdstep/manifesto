@@ -11,36 +11,36 @@ export type AppState = {
 
 export const DEFAULT_WINDOW_CSS = { width: 1280, height: 880 }
 
-const MAX_SCREEN_FRACTION = 0.9
-
 const FALLBACK_POSITION = { x: 120, y: 90 }
 
-/** Convert the desired CSS size to a centered physical-pixel frame. */
-export function windowFrame(display: {
-  scale: number
-  width: number
-  height: number
-}): WindowFrame {
-  const scale = display.scale > 0 ? display.scale : 1
+/** The usable region of a display, as `Screen.getPrimaryDisplay()` reports it. */
+export type WorkArea = { x: number; y: number; width: number; height: number }
 
-  const wanted = {
-    width: Math.round(DEFAULT_WINDOW_CSS.width * scale),
-    height: Math.round(DEFAULT_WINDOW_CSS.height * scale),
+/**
+ * Centre the intended size in the display's work area.
+ *
+ * Both are in points, which is what `BrowserWindow` expects — Electrobun applies the
+ * display scale itself. Scaling the size by the device pixel ratio here instead applies
+ * it twice, and a 1280x880 window opens at 2880x1980 physical with its content laid out
+ * at 1920x1320 CSS pixels.
+ *
+ * The work area excludes the taskbar and starts at its own origin, so a taskbar on any
+ * edge — or a primary display that is not at (0, 0) — is handled by arithmetic rather
+ * than by leaving a margin and hoping.
+ */
+export function windowFrame(workArea: WorkArea): WindowFrame {
+  if (workArea.width <= 0 || workArea.height <= 0) {
+    // Screen reports zeroes when it cannot measure the display. A window in a
+    // known-good place beats a window sized from nonsense.
+    return { ...FALLBACK_POSITION, ...DEFAULT_WINDOW_CSS }
   }
 
-  // Clamp the scaled window so it fits on high-DPI displays.
-  const width =
-    display.width > 0
-      ? Math.min(wanted.width, Math.round(display.width * MAX_SCREEN_FRACTION))
-      : wanted.width
-  const height =
-    display.height > 0
-      ? Math.min(wanted.height, Math.round(display.height * MAX_SCREEN_FRACTION))
-      : wanted.height
+  const width = Math.min(DEFAULT_WINDOW_CSS.width, workArea.width)
+  const height = Math.min(DEFAULT_WINDOW_CSS.height, workArea.height)
 
   return {
-    x: display.width > 0 ? Math.round((display.width - width) / 2) : FALLBACK_POSITION.x,
-    y: display.height > 0 ? Math.round((display.height - height) / 2) : FALLBACK_POSITION.y,
+    x: workArea.x + Math.round((workArea.width - width) / 2),
+    y: workArea.y + Math.round((workArea.height - height) / 2),
     width,
     height,
   }
