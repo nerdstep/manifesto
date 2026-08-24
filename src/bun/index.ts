@@ -6,6 +6,7 @@ import { firstExisting, readWasmBytes } from '../host/wasm.ts'
 import { createPipeline } from '../pipeline/index.ts'
 import type { Pipeline } from '../pipeline/index.ts'
 import { desktopPlatform, supportsCustomWindowChrome, type ManifestoRPC } from '../shared/index.ts'
+import type { WindowPlacement } from '../shared/window-frame.ts'
 import { loadState, saveState, stateFilePath, windowFrame } from './app-state.ts'
 import type { AppState } from './app-state.ts'
 import {
@@ -106,6 +107,14 @@ const rpc = BrowserView.defineRPC<ManifestoRPC>({
 
         return { ok: true }
       },
+
+      // The annotation is load-bearing: `mainWindow` is declared below and takes `rpc` as
+      // an option, so a handler whose return type is inferred *from* `mainWindow` closes
+      // the circle and TypeScript gives up on all three (TS7022/TS7023).
+      getWindowPlacement: (): WindowPlacement => ({
+        ...mainWindow.getFrame(),
+        maximized: mainWindow.isMaximized(),
+      }),
     },
 
     messages: {
@@ -127,6 +136,10 @@ const rpc = BrowserView.defineRPC<ManifestoRPC>({
 
       closeWindow: () => {
         mainWindow.close()
+      },
+
+      setWindowFrame: ({ x, y, width, height }) => {
+        mainWindow.setFrame(x, y, width, height)
       },
     },
   },

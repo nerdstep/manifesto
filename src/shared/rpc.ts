@@ -3,6 +3,7 @@
 import type { RPCSchema } from 'electrobun/main'
 
 import type { Advisory, ColorPair, Settings } from '../pipeline/index.ts'
+import type { WindowFrame, WindowPlacement } from './window-frame.ts'
 
 export type BundleWire = {
   /** Maps filenames to base64 bytes. */
@@ -75,12 +76,16 @@ export type ManifestoRPC = {
       copyToClipboard: { params: { text: string }; response: { ok: boolean } }
       /** Force WebView2 to repaint its scrollbar after the document height changes. */
       refreshViewport: { params: void; response: { ok: boolean } }
+      /** The frame a resize drag starts from, in points. */
+      getWindowPlacement: { params: void; response: WindowPlacement }
     }
     messages: {
       log: { level: 'info' | 'error'; message: string }
       minimizeWindow: void
       toggleMaximizeWindow: void
       closeWindow: void
+      /** A message, not a request: a resize drag emits one per frame and never awaits. */
+      setWindowFrame: WindowFrame
     }
   }>
   webview: RPCSchema<{

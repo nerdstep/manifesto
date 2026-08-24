@@ -113,6 +113,11 @@ components:
     typography: "{typography.code}"
     rounded: "{rounded.card}"
     padding: "13px 16px"
+  status-bar:
+    backgroundColor: "{colors.bg}"
+    textColor: "{colors.muted}"
+    typography: "{typography.body}"
+    padding: "0 12px"
 ---
 
 <!-- markdownlint-disable MD024 MD025 MD026 MD036 -->
@@ -353,6 +358,29 @@ future overlay drawn on top of user artwork needs the same treatment.
 
 Used for the launcher-mask picker. Transparent, 1px Line, pill radius, 10px text.
 Unselected is Dim; selected is Signal Cyan text and border. `aria-pressed` carries the state.
+
+### Status Bar
+
+The one line that survives scrolling: a 32px bar pinned under the scroll region, Ground
+background, 1px top border, no radius. A state dot, the state as Body in Muted sentence
+case, the Source Mark's filename and the destination as Code in Dim. It adds no type role
+— the bar is Body beside Code, which is what the Terminal Line already pairs.
+
+- **The dot is the only colour**: Line Strong waiting, Signal Cyan running, Confirmed Green
+  written, Refusal Red failed. The label stays Muted at every state, which keeps the bar
+  inside the Signal Scarcity Rule — four states would otherwise put a saturated word on
+  screen at all times.
+- It reports the same states as the Terminal Line and is deliberately **not** a live
+  region. The Terminal already announces them, and two `role="status"` nodes reporting one
+  event announce it twice.
+- Filename and path are monospace by The Literal Rule; the state is not.
+
+### Sizing Borders
+
+Invisible 4px edges and 12px corners over the window's own boundary, on Windows only,
+where a frameless window is created without a native sizing border. They draw nothing —
+the cursor change is the entire affordance, and a grip glyph would be the one decorative
+mark in the interface. Corners are listed after edges so they win the hit test.
 
 ### Terminal Line
 

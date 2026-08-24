@@ -101,6 +101,17 @@ you have decided the output *should* change.
   Scaling it first applies the scale twice: a 1280x880 window opened at 2880x1980 physical
   with a 1920x1320 CSS viewport — a window half again too big whose content looked two
   thirds size.
+- **A `titleBarStyle: 'hidden'` window has no sizing border.** Measured by reading
+  `GWL_STYLE` off the running app: `0x94000000`, which is `WS_POPUP | WS_VISIBLE |
+  WS_CLIPSIBLINGS` with no `WS_THICKFRAME`. Electrobun's `Resizable: true` style mask does
+  not survive the frameless path on Windows, so there is no non-client area to drag and
+  resizing has to come from the view — see `WindowResize.tsx`.
+- **A pointer event's `screenX`/`screenY` are already in points.** Measured with the window
+  at `640,256 1280x880` points on a 2560x1440 display at 1.5x: the webview reported
+  `screenX=640`, `innerWidth=1280`, `devicePixelRatio=1.5`. WebView2 reports screen
+  coordinates in CSS pixels, and `BrowserWindow` wants points, so a resize drag needs no
+  scale conversion. Multiplying by `devicePixelRatio` makes the window resize half again
+  too fast.
 - **Electrobun 2 sets per-monitor DPI awareness itself**, before any app code runs —
   measured by removing the app's own `SetProcessDpiAwarenessContext` call and still
   reading 1.5x. The process needs no manifest and no FFI to be DPI aware.
