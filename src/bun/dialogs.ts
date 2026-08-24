@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { basename } from 'node:path'
 
-import { Utils } from 'electrobun/bun'
+import { Utils } from 'electrobun/main'
 
 import { failureDetail } from '../host/failures.ts'
 

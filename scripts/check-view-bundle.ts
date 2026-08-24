@@ -43,6 +43,16 @@ try {
   )
 }
 
+// JSX must resolve against Preact. Electrobun 2 takes `jsxImportSource` from the
+// project's tsconfig rather than the build config; if that ever stops reaching the view
+// build, JSX falls back to React and the bundle grows a dependency that is not installed.
+if (/["'`]react(?:\/jsx-(?:dev-)?runtime)?["'`]/u.test(source)) {
+  problems.push(
+    `references React — JSX has stopped resolving against Preact, so ` +
+      `\`jsxImportSource\` is no longer reaching the view build`,
+  )
+}
+
 // A webview cannot resolve Node builtins.
 const builtins = new Set([...source.matchAll(NODE_BUILTIN)].map((m) => `node:${m[1] ?? ''}`))
 if (builtins.size > 0) {

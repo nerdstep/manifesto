@@ -72,6 +72,11 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # `bun run check` typechecks against the Electrobun SDK, which Hutch projects into
+      # `.hutch/devkit` rather than `node_modules`. A fresh checkout has neither.
+      - name: Prepare Electrobun devkit
+        run: bun run devkit
+
       - name: Check project
         run: bun run check
 

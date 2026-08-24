@@ -75,34 +75,48 @@ describe('saveState', () => {
 })
 
 describe('windowFrame', () => {
-  test('scales the intended CSS size to physical pixels', () => {
-    // Use a large display so the clamp does not hide the DPI scaling result.
-    const frame = windowFrame({ scale: 1.5, width: 3840, height: 2160 })
+  /** A 2560x1440-point display with a 48-point taskbar along the bottom. */
+  const WORK_AREA = { x: 0, y: 0, width: 2560, height: 1392 }
 
-    expect(frame.width).toBe(DEFAULT_WINDOW_CSS.width * 1.5)
-    expect(frame.height).toBe(DEFAULT_WINDOW_CSS.height * 1.5)
+  test('passes the intended size through unscaled', () => {
+    // Electrobun applies the display scale itself. Multiplying here too opened the
+    // window at 2880x1980 physical with a 1920x1320 CSS viewport — the content
+    // rendered at two thirds size in a window half again too big.
+    const frame = windowFrame(WORK_AREA)
+
+    expect(frame.width).toBe(DEFAULT_WINDOW_CSS.width)
+    expect(frame.height).toBe(DEFAULT_WINDOW_CSS.height)
   })
 
-  test('never opens larger than the display', () => {
-    // 1080p at 150% has less room than the intended CSS size implies, and a window taller
-    // than the screen loses its bottom edge behind the taskbar with no way to reach it.
-    const frame = windowFrame({ scale: 1.5, width: 1920, height: 1080 })
+  test('centres in the work area', () => {
+    const frame = windowFrame(WORK_AREA)
 
-    expect(frame.width).toBeLessThanOrEqual(1920)
-    expect(frame.height).toBeLessThanOrEqual(1080)
-    expect(frame.height).toBeLessThan(DEFAULT_WINDOW_CSS.height * 1.5)
+    expect(frame.x).toBe((2560 - DEFAULT_WINDOW_CSS.width) / 2)
+    expect(frame.y).toBe((1392 - DEFAULT_WINDOW_CSS.height) / 2)
   })
 
-  test('centres on the display', () => {
-    const frame = windowFrame({ scale: 1, width: 2000, height: 1000 })
+  test('never opens larger than the work area', () => {
+    // 1080p at 150% is 1280x720 in points, less the taskbar. A window taller than the
+    // work area loses its bottom edge behind the taskbar with no way to reach it.
+    const frame = windowFrame({ x: 0, y: 0, width: 1280, height: 672 })
 
-    expect(frame.x).toBe((2000 - frame.width) / 2)
-    expect(frame.y).toBe((1000 - frame.height) / 2)
+    expect(frame.width).toBeLessThanOrEqual(1280)
+    expect(frame.height).toBeLessThanOrEqual(672)
+    expect(frame.height).toBeLessThan(DEFAULT_WINDOW_CSS.height)
+  })
+
+  test('respects a work area that does not start at the origin', () => {
+    // A taskbar docked left, or a primary display placed right of another one. Ignoring
+    // the offset puts the window over the taskbar or on the wrong monitor.
+    const frame = windowFrame({ x: 120, y: 40, width: 2000, height: 1200 })
+
+    expect(frame.x).toBe(120 + (2000 - DEFAULT_WINDOW_CSS.width) / 2)
+    expect(frame.y).toBe(40 + (1200 - DEFAULT_WINDOW_CSS.height) / 2)
   })
 
   test('falls back to something openable when the display cannot be measured', () => {
-    // Off Windows, or if the FFI call fails. A window in a known-good place beats none.
-    const frame = windowFrame({ scale: 1, width: 0, height: 0 })
+    // Screen reports zeroes when it has no native binding to ask.
+    const frame = windowFrame({ x: 0, y: 0, width: 0, height: 0 })
 
     expect(frame).toEqual({ x: 120, y: 90, ...DEFAULT_WINDOW_CSS })
   })

@@ -49,7 +49,27 @@ guards with it. If you need a constant in the view, move it to `src/shared/`; if
 host code, it belongs in `src/host/`.
 
 **The webview is served as a classic script**, not a module. Top-level await is a syntax
-error there. Use an async IIFE.
+error there. Use an async IIFE. `format: 'iife'` in `electrobun.config.ts` is what pins
+this, and `bun run check:bundle` parses the built view to prove it.
+
+**The Electrobun SDK is not in `node_modules`.** Electrobun 2 ships a bootstrap package;
+Hutch projects the real SDK into `.hutch/devkit` (gitignored) and `tsconfig.json` maps the
+`electrobun/*` specifiers onto it by hand — the devkit's own generated tsconfig maps with
+`baseUrl`, which TypeScript 7 removed. After a fresh clone or an `electrobun` version bump,
+run `bunx electrobun prepare`; every build does it implicitly. `test/devkit-paths.test.ts`
+holds those hand-written paths to the devkit's export map.
+
+**The shipped main process is Cottontail, not Bun.** `build.mainProcess` selects it, and
+the `src/bun/` directory name is historical. Cottontail is Bun-compatible enough to have
+run this app unchanged — `bun:ffi` included — but it is a different JSC-based runtime, so
+anything reaching for a Bun-only API in `src/bun/` needs checking there. `bun run cli` and
+the test suite still run on Bun, so a green `bun test` is not by itself evidence about the
+shipped runtime; `bun run app` builds what actually ships.
+
+**Ask Electrobun for the display, never Windows.** `Screen.getPrimaryDisplay()` reports
+`bounds` and `workArea` in points and a separate `scaleFactor`. The app used to read
+user32 through `bun:ffi` instead, which returned physical pixels and knew nothing about the
+taskbar. Points are what `BrowserWindow` wants, so nothing needs converting.
 
 **`src/pipeline/` must stay pure** — no `node:fs`, no `node:path`, no Electrobun, and
 nothing from `src/bun/`. The caller supplies the WASM bytes. `test/pipeline-purity.test.ts`
@@ -58,8 +78,12 @@ the only thing standing between a 4px Safe Zone error and someone's clipped logo
 
 `node:crypto` is allowed and used, for `hashSource`. `Bun.CryptoHasher` is ~18% faster and
 would also pass the test, but it pins the pipeline to one runtime to save 0.06 ms once per
-generate. Prefer `node:` builtins here; prefer `Bun.*` freely in `src/bun/`, `src/cli/`,
-`scripts/`, and tests.
+generate. That trade paid off: the main process moved to Cottontail and all 126 golden
+hashes were byte-identical, because nothing in the render path was Bun-specific.
+
+Prefer `node:` builtins in `src/pipeline/`, `src/host/`, and `src/bun/` — **`src/bun/` runs
+on Cottontail, not Bun**, whatever the directory is called. `src/cli/`, `scripts/`, and
+tests do run on Bun and may use `Bun.*` freely.
 
 **Never regenerate golden hashes to make a red suite green.** `bun run goldens` is for when
 you have decided the output *should* change.
@@ -89,13 +113,20 @@ the right thing.
   Persist on change instead.
 - **`BrowserWindow` has no resize or move event.** That is why the window frame is computed
   at startup rather than remembered.
-- **The process must declare DPI awareness itself.** `launcher.exe` ships with no manifest,
-  so without `src/bun/windows-dpi.ts` — which must run *first*, before any window exists —
-  Windows bitmap-stretches the whole UI on any scaled display.
+- **`BrowserWindow`'s frame is in points, not physical pixels.** Electrobun applies the
+  display scale itself, so `windowFrame` passes the intended size straight through.
+  Scaling it first applies the scale twice: a 1280x880 window opened at 2880x1980 physical
+  with a 1920x1320 CSS viewport — a window half again too big whose content looked two
+  thirds size.
+- **Electrobun 2 sets per-monitor DPI awareness itself**, before any app code runs —
+  measured by removing the app's own `SetProcessDpiAwarenessContext` call and still
+  reading 1.5x. The process needs no manifest and no FFI to be DPI aware.
 - **WebView2 ships overlay scrollbars.** A page with plenty to scroll looks like it has
   none until `::-webkit-scrollbar` is styled.
-- **`electrobun/bun` re-exports `three` and `@babylonjs/core`.** A build plugin stubs them
-  out; without it the main bundle is 9.7 MB instead of 1.2 MB.
+- **`bun run dist` needs Windows' `tar`, not Git Bash's.** Hutch shells out to `tar`, and
+  GNU tar reads the `C:\...` it is handed as a remote host: *"Cannot connect to C: resolve
+  failed"*. Run `dist` from PowerShell, where `tar` is `System32	ar.exe`. The same trap is
+  why `scripts/check-package.ts` extracts with relative paths.
 
 ## Verify, don't assume
 
