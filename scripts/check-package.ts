@@ -27,7 +27,7 @@ const REQUIRED: [path: string, minBytes: number][] = [
 ]
 
 /** A ceiling on bulk arriving from dependencies. The bundle is ~1.3 MB. */
-const BUN_BUNDLE_LIMIT_MB = 3
+const MAIN_BUNDLE_LIMIT_MB = 3
 
 const problems: string[] = []
 
@@ -92,9 +92,9 @@ try {
   const bundlePath = join(work, 'Manifesto', 'Resources', 'app', 'bun', 'index.js')
   if (existsSync(bundlePath)) {
     const sizeMb = statSync(bundlePath).size / 1024 / 1024
-    if (sizeMb > BUN_BUNDLE_LIMIT_MB) {
+    if (sizeMb > MAIN_BUNDLE_LIMIT_MB) {
       problems.push(
-        `bun/index.js is ${sizeMb.toFixed(1)} MB, over the ${BUN_BUNDLE_LIMIT_MB} MB limit — ` +
+        `the main bundle is ${sizeMb.toFixed(1)} MB, over the ${MAIN_BUNDLE_LIMIT_MB} MB limit — ` +
           `a dependency has pulled bulk into the main process`,
       )
     }
@@ -112,7 +112,7 @@ try {
   const bundleMb = statSync(bundlePath).size / 1024 / 1024
   console.log(
     `Packaged app OK — payload ${total.toFixed(1)} MB, ` +
-      `bun bundle ${bundleMb.toFixed(1)} MB, flat files, resvg.wasm in place.`,
+      `main bundle ${bundleMb.toFixed(1)} MB, flat files, resvg.wasm in place.`,
   )
 } finally {
   rmSync(work, { recursive: true, force: true })

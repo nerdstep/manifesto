@@ -13,12 +13,12 @@ const config: ElectrobunConfig = {
     mac: { icons: 'assets/app-icon.iconset' },
     linux: { icon: 'assets/app-icon.png' },
     win: { icon: 'assets/app-icon.ico' },
-    // Electrobun 2 defaults the main process to Cottontail. This app stays on Bun:
-    // `src/bun/windows-dpi.ts` calls user32 through `bun:ffi`, and its failure mode is
-    // silent — the try/catch returns an unscaled display and Windows bitmap-stretches
-    // the UI. Moving to Cottontail is a separate change with its own DPI check.
-    mainProcess: 'bun',
-    bun: { entrypoint: 'src/bun/index.ts' },
+    // Cottontail is Electrobun 2's default main process and ships ~31 MB smaller than
+    // Bun. Nothing here needs the Bun runtime: the last `bun:ffi` call went with
+    // `windows-dpi.ts`, and the pipeline is `node:` builtins and WASM. The directory
+    // name `src/bun` is historical — it does not select the runtime.
+    mainProcess: 'cottontail',
+    cottontail: { entrypoint: 'src/bun/index.ts' },
     views: {
       mainview: {
         entrypoint: 'src/webview/index.tsx',

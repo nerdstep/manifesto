@@ -59,6 +59,13 @@ Hutch projects the real SDK into `.hutch/devkit` (gitignored) and `tsconfig.json
 run `bunx electrobun prepare`; every build does it implicitly. `test/devkit-paths.test.ts`
 holds those hand-written paths to the devkit's export map.
 
+**The shipped main process is Cottontail, not Bun.** `build.mainProcess` selects it, and
+the `src/bun/` directory name is historical. Cottontail is Bun-compatible enough to have
+run this app unchanged — `bun:ffi` included — but it is a different JSC-based runtime, so
+anything reaching for a Bun-only API in `src/bun/` needs checking there. `bun run cli` and
+the test suite still run on Bun, so a green `bun test` is not by itself evidence about the
+shipped runtime; `bun run app` builds what actually ships.
+
 **Ask Electrobun for the display, never Windows.** `Screen.getPrimaryDisplay()` reports
 `bounds` and `workArea` in points and a separate `scaleFactor`. The app used to read
 user32 through `bun:ffi` instead, which returned physical pixels and knew nothing about the
@@ -71,8 +78,12 @@ the only thing standing between a 4px Safe Zone error and someone's clipped logo
 
 `node:crypto` is allowed and used, for `hashSource`. `Bun.CryptoHasher` is ~18% faster and
 would also pass the test, but it pins the pipeline to one runtime to save 0.06 ms once per
-generate. Prefer `node:` builtins here; prefer `Bun.*` freely in `src/bun/`, `src/cli/`,
-`scripts/`, and tests.
+generate. That trade paid off: the main process moved to Cottontail and all 126 golden
+hashes were byte-identical, because nothing in the render path was Bun-specific.
+
+Prefer `node:` builtins in `src/pipeline/`, `src/host/`, and `src/bun/` — **`src/bun/` runs
+on Cottontail, not Bun**, whatever the directory is called. `src/cli/`, `scripts/`, and
+tests do run on Bun and may use `Bun.*` freely.
 
 **Never regenerate golden hashes to make a red suite green.** `bun run goldens` is for when
 you have decided the output *should* change.
