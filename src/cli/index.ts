@@ -8,8 +8,14 @@ import {
   describeFailure,
   failureDetail,
 } from '../host/failures.ts'
-import { BUNDLE_FILENAMES, createPipeline, hashSource, HEAD_SNIPPET } from '../pipeline/index.ts'
-import type { Hex, Settings } from '../pipeline/index.ts'
+import {
+  BUNDLE_FILENAMES,
+  createPipeline,
+  hashSource,
+  HEAD_SNIPPET,
+  SINGLE_SCHEME_FILENAMES,
+} from '../pipeline/index.ts'
+import type { ColorPair, Hex, Scheme, Settings } from '../pipeline/index.ts'
 import { describeAdvisory } from '../shared/advisories.ts'
 
 const USAGE = `
@@ -19,15 +25,18 @@ Generate website icons from one SVG.
   bun run cli <mark.svg> [outDir] [options]
 
 Options
-  --dark <file.svg>     Dark Mark, used on dark backgrounds and in favicon.svg
-  --name <string>       Manifest name              (inferred by default)
-  --short <string>      Manifest short_name        (inferred or uses --name)
-  --theme <#rrggbb>     theme_color                (inferred by default)
-  --bg <#rrggbb>        Icon Background            (inferred by default)
-  --splash <#rrggbb>    Manifest background_color  (uses --bg by default)
-  --no-optimize         Skip SVGO
-  --force               Replace existing Bundle files in the output directory
-  --snippet             Print the <head> snippet and exit
+  --dark <file.svg>       Dark Mark, used on dark backgrounds and in favicon.svg
+  --name <string>         Manifest name              (inferred by default)
+  --short <string>        Manifest short_name        (inferred or uses --name)
+  --theme <#rrggbb>       theme_color                (inferred by default)
+  --bg <#rrggbb>          Icon Background            (inferred by default)
+  --splash <#rrggbb>      Manifest background_color  (uses --bg by default)
+  --recolor <#rrggbb>     Dark-mode color for a one-color mark
+  --recolor-bg <#rrggbb>  Dark-mode background       (light mode swaps the two)
+  --primary <light|dark>  Scheme the PNG and ICO files use   (light by default)
+  --no-optimize           Skip SVGO
+  --force                 Replace existing Bundle files in the output directory
+  --snippet               Print the <head> snippet and exit
   -h, --help
 
 The CLI uses the same defaults as the app and produces the same files.
@@ -36,7 +45,17 @@ The CLI uses the same defaults as the app and produces the same files.
 function parseArgs(argv: string[]) {
   const positional: string[] = []
   const flags = new Map<string, string | true>()
-  const valueFlags = new Set(['dark', 'name', 'short', 'theme', 'bg', 'splash'])
+  const valueFlags = new Set([
+    'dark',
+    'name',
+    'short',
+    'theme',
+    'bg',
+    'splash',
+    'recolor',
+    'recolor-bg',
+    'primary',
+  ])
   const booleanFlags = new Set(['help', 'h', 'no-optimize', 'force', 'snippet'])
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -81,7 +100,32 @@ function hexFlag(flags: Map<string, string | true>, key: string, fallback: Hex):
     return fallback
   }
   if (!isHex(value)) {
-    throw new Error(`--${key} must be a hex colour like #2E5BFF, got "${value}"`)
+    throw new Error(`--${key} must be a hex color like #2E5BFF, got "${value}"`)
+  }
+  return value
+}
+
+/** `--recolor` names the dark-mode logo color; the surface defaults to the seed. */
+function recolorPair(flags: Map<string, string | true>, seed: ColorPair | null): ColorPair | null {
+  if (!flags.has('recolor') && !flags.has('recolor-bg')) {
+    return null
+  }
+  if (seed === null) {
+    throw new Error('--recolor needs a logo that uses a single color')
+  }
+  return {
+    mark: hexFlag(flags, 'recolor', seed.mark),
+    surface: hexFlag(flags, 'recolor-bg', seed.surface),
+  }
+}
+
+function schemeFlag(flags: Map<string, string | true>): Scheme {
+  const value = stringFlag(flags, 'primary')
+  if (value === undefined) {
+    return 'light'
+  }
+  if (value !== 'light' && value !== 'dark') {
+    throw new Error(`--primary must be light or dark, got "${value}"`)
   }
   return value
 }
@@ -118,11 +162,14 @@ export async function main(argv: string[]): Promise<number> {
   const pipeline = await createPipeline(resvgWasmBytes())
   const sourceSvg = readFileSync(input, 'utf8')
 
+  const darkSvg = darkPath === undefined ? null : readFileSync(darkPath, 'utf8')
   const inferred = pipeline.inferSettings(sourceSvg, input)
   const explicitName = stringFlag(flags, 'name')
   const iconBackground = hexFlag(flags, 'bg', inferred.iconBackground)
 
-  const settings: Settings = {
+  const colorPair = recolorPair(flags, pipeline.colorPairSeed(sourceSvg, darkSvg))
+
+  const requested: Settings = {
     name: explicitName ?? inferred.name,
     // An explicit name also becomes the short name unless `--short` is set.
     shortName: stringFlag(flags, 'short') ?? explicitName ?? inferred.shortName,
@@ -130,16 +177,18 @@ export async function main(argv: string[]): Promise<number> {
     iconBackground,
     splashBackground: hexFlag(flags, 'splash', iconBackground),
     optimizeSvg: !flags.has('no-optimize'),
+    colorPair,
+    primaryScheme: schemeFlag(flags),
   }
 
-  const result = pipeline.buildBundle(
-    sourceSvg,
-    darkPath === undefined ? null : readFileSync(darkPath, 'utf8'),
-    settings,
-  )
+  const settings = pipeline.resolveSettings(sourceSvg, darkSvg, requested)
+  const result = pipeline.buildBundle(sourceSvg, darkSvg, settings)
 
   const force = flags.has('force')
-  const authoredFiles = [...BUNDLE_FILENAMES, SIDECAR_FILENAME]
+  const bundleFiles = [...BUNDLE_FILENAMES, ...SINGLE_SCHEME_FILENAMES].filter((filename) =>
+    result.files.has(filename),
+  )
+  const authoredFiles = [...bundleFiles, SIDECAR_FILENAME]
   const existing = authoredFiles.filter((filename) => existsSync(join(outDir, filename)))
   if (existing.length > 0 && !force) {
     throw new BundleCollisionError(existing)
@@ -157,8 +206,7 @@ export async function main(argv: string[]): Promise<number> {
     throw new BundleWriteError(error)
   }
 
-  const ordered = [...BUNDLE_FILENAMES].filter((f) => result.files.has(f))
-  for (const filename of ordered) {
+  for (const filename of bundleFiles) {
     const bytes = result.files.get(filename)
     if (bytes === undefined) {
       continue

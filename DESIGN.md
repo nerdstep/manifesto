@@ -113,6 +113,11 @@ components:
     typography: "{typography.code}"
     rounded: "{rounded.card}"
     padding: "13px 16px"
+  status-bar:
+    backgroundColor: "{colors.bg}"
+    textColor: "{colors.muted}"
+    typography: "{typography.body}"
+    padding: "0 12px"
 ---
 
 <!-- markdownlint-disable MD024 MD025 MD026 MD036 -->
@@ -142,7 +147,7 @@ optimize, export — and fans out to every platform that needed it. That is the 
 one sentence, and it is the shape of the interface: source on the left, transformation
 across the middle, artefacts on the right.
 
-Direction is the organising idea, so **colour encodes direction**. Cyan is upstream: the
+Direction is the organising idea, so **color encodes direction**. Cyan is upstream: the
 source mark, the running stage, focus, anything you are still deciding. Amber is
 downstream: what has landed on disk, and where. A glance at which accent dominates a region
 tells you which side of the render seam you are looking at, before you have read a word.
@@ -150,7 +155,7 @@ tells you which side of the render seam you are looking at, before you have read
 The surface is near-black with a blue cast, lifted just off true black. It is not "dark
 mode" as a preference — it is the ground the signal reads against. Cyan and amber only
 behave as signal because almost nothing else on screen is saturated; on a light ground the
-same two colours become decoration, which is why this system is specified dark-first and
+same two colors become decoration, which is why this system is specified dark-first and
 why the near-black is load-bearing rather than a taste.
 
 What this rejects: the tool that performs competence. No hero metric, no gradient text, no
@@ -160,7 +165,7 @@ the byte delta, the path the files went to — never from tone.
 
 **Key Characteristics:**
 
-- **Directional colour.** Cyan upstream, amber downstream. No third meaning.
+- **Directional color.** Cyan upstream, amber downstream. No third meaning.
 - **Near-black ground**, blue-cast, lifted off `#000000` so white text does not halate.
 - **Bordered planes, no shadows.** Depth is three surfaces and a hairline.
 - **True size by default.** Nothing is scaled up to look impressive.
@@ -174,7 +179,7 @@ surface that gets stared at instead of glanced at.
 
 ### Primary
 
-- **Signal Cyan** (`#1bd6fd`): the dominant saturated colour in the brand asset, and the
+- **Signal Cyan** (`#1bd6fd`): the dominant saturated color in the brand asset, and the
   upstream half of the system. The source pane's active border, the running pipeline stage,
   every focus ring, the Safe Zone ring, a selected mask. If it is cyan, it is either the
   input or the thing currently happening to it.
@@ -217,10 +222,10 @@ the poster exactly, and never neutralise the blue out of it.
 
 **The 4.87 Rule.** Every text token clears WCAG AA against all three planes. The tightest
 pair is Dim on Raised at **4.87:1**, and Dim is used at 10px. Measured, not assumed: Ink
-13.76, Muted 5.90, Cyan 8.56, Amber 9.52 at their worst. Any new colour must be measured
+13.76, Muted 5.90, Cyan 8.56, Amber 9.52 at their worst. Any new color must be measured
 against `--raised` before it ships, because that is always the worst case.
 
-**The Signal Scarcity Rule.** Saturated colour covers well under a tenth of the screen. The
+**The Signal Scarcity Rule.** Saturated color covers well under a tenth of the screen. The
 moment cyan or amber is used to make a panel look interesting, every other cyan and amber on
 screen stops meaning anything.
 
@@ -324,7 +329,7 @@ a 2px progress line that runs cyan → amber left to right.
 
 ### Output Tiles
 
-A Surface card holding a Ground-coloured **well**, the platform mock at true size, and a
+A Surface card holding a Ground-colored **well**, the platform mock at true size, and a
 specimen caption. The maskable tile adds pill toggles under the well.
 
 - **Corner style:** 12px card, 8px well.
@@ -336,7 +341,7 @@ specimen caption. The maskable tile adds pill toggles under the well.
   the tile's width, so the icon drifts off centre at every column count.
 
 **The Two-Ring Rule.** The Safe Zone overlay is a solid near-black ring under a dashed
-Signal Cyan one, 2px each. It is drawn over artwork of unknown colour, on an Icon
+Signal Cyan one, 2px each. It is drawn over artwork of unknown color, on an Icon
 Background inference sets to either `#FFFFFF` or `#111111`, and no single accent survives
 both — cyan measures 1.74:1 on white, amber 1.56. The dashes let the backing through, so
 the near-black carries it on a light icon (8.5:1) and the cyan on a dark one (10.9:1). Any
@@ -346,13 +351,36 @@ future overlay drawn on top of user artwork needs the same treatment.
 
 - Raised background, 1px Line, 8px radius, `7px 10px`, Ink at 13px.
 - **Focus:** border → Signal Cyan. No glow, no size change.
-- Colour fields pair a native swatch with a monospace hex input; either edits the other.
+- Color fields pair a native swatch with a monospace hex input; either edits the other.
 - Labels are Caption type, above the field, never a placeholder standing in for a label.
 
 ### Pill Toggles
 
 Used for the launcher-mask picker. Transparent, 1px Line, pill radius, 10px text.
 Unselected is Dim; selected is Signal Cyan text and border. `aria-pressed` carries the state.
+
+### Status Bar
+
+The one line that survives scrolling: a 32px bar pinned under the scroll region, Ground
+background, 1px top border, no radius. A state dot, the state as Body in Muted sentence
+case, the Source Mark's filename and the destination as Code in Dim. It adds no type role
+— the bar is Body beside Code, which is what the Terminal Line already pairs.
+
+- **The dot is the only colour**: Line Strong waiting, Signal Cyan running, Confirmed Green
+  written, Refusal Red failed. The label stays Muted at every state, which keeps the bar
+  inside the Signal Scarcity Rule — four states would otherwise put a saturated word on
+  screen at all times.
+- It reports the same states as the Terminal Line and is deliberately **not** a live
+  region. The Terminal already announces them, and two `role="status"` nodes reporting one
+  event announce it twice.
+- Filename and path are monospace by The Literal Rule; the state is not.
+
+### Sizing Borders
+
+Invisible 4px edges and 12px corners over the window's own boundary, on Windows only,
+where a frameless window is created without a native sizing border. They draw nothing —
+the cursor change is the entire affordance, and a grip glyph would be the one decorative
+mark in the interface. Corners are listed after edges so they win the hit test.
 
 ### Terminal Line
 
@@ -369,7 +397,7 @@ a moment later.
 ### Do:
 
 - **Do** use cyan for upstream and amber for downstream. Those are the only two meanings.
-- **Do** measure any new colour against `--raised` (`#1b2740`), which is always the worst
+- **Do** measure any new color against `--raised` (`#1b2740`), which is always the worst
   case, and keep it at or above 4.5:1.
 - **Do** keep every border 1px, except the source pane's 2px dashed.
 - **Do** render previews from the bytes on disk, at or below the size the platform uses.
@@ -381,7 +409,7 @@ a moment later.
 
 ### Don't:
 
-- **Don't** add a third accent role. Cyan and amber mean direction; a third colour deletes
+- **Don't** add a third accent role. Cyan and amber mean direction; a third color deletes
   the meaning of the first two.
 - **Don't** use glow, blur, or `backdrop-filter` decoratively. Glow is focus or a running
   stage, and nothing else.
@@ -390,7 +418,7 @@ a moment later.
 - **Don't** introduce a type role between 13px and the 30px wordmark.
 - **Don't** use `background-clip: text` with a gradient. The poster's wordmark has a
   gradient; at UI sizes it becomes mud. Solid Ink.
-- **Don't** use a `border-left` or `border-right` above 1px as a coloured accent.
+- **Don't** use a `border-left` or `border-right` above 1px as a colored accent.
 - **Don't** put a decorative grid behind a surface. The grid under the source mark is
   depicting a vector-editor canvas, which is the only justification available.
 - **Don't** write **marketing-speak** into the interface — "Effortlessly generate stunning

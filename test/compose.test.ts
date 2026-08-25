@@ -37,7 +37,7 @@ function mark(name: FixtureName) {
 }
 
 describe('luminance', () => {
-  test('ranks colours the way eyes do', () => {
+  test('ranks colors the way eyes do', () => {
     expect(relativeLuminance('#FFFFFF')).toBeCloseTo(1, 5)
     expect(relativeLuminance('#000000')).toBeCloseTo(0, 5)
     // Green reads far brighter than blue at the same channel value.

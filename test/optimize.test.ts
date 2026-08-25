@@ -56,7 +56,7 @@ describe('optimize — guards against icon-hostile plugins', () => {
 
   test('referenced ids are preserved', () => {
     // `cleanupIds` renames and prunes ids. Its classic failure is two gradients that
-    // shared an id after export being collapsed into one, silently recolouring part of
+    // shared an id after export being collapsed into one, silently recoloring part of
     // the mark without raising an error.
     const svg =
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">' +
@@ -75,8 +75,8 @@ describe('optimize — output stays usable', () => {
     const result = optimize(fixture('square-tight'), true).svg
     expect(result).toContain('<svg')
     expect(result.trimEnd().endsWith('</svg>')).toBe(true)
-    // SVGO lower-cases hex colours and may rewrite them to shorthand or a keyword, so
-    // compare case-insensitively. This is also why colour inference reads rendered
+    // SVGO lower-cases hex colors and may rewrite them to shorthand or a keyword, so
+    // compare case-insensitively. This is also why color inference reads rendered
     // pixels rather than markup.
     expect(result.toLowerCase()).toContain('#2e5bff')
   })

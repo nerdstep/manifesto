@@ -8,6 +8,9 @@ A Windows desktop app for generating website icons. Drop in an SVG and Manifesto
 six icon files, a web app manifest, and the four `<head>` tags that reference them. It also
 previews each icon at the size used by the target platform.
 
+If your logo uses a single color, Manifesto can paint it for both color schemes from two
+colors you pick.
+
 ## Why
 
 Website icons have a few easy-to-miss requirements.
@@ -24,7 +27,7 @@ bytes written to disk, so they match the final output.
 ```text
 acme-logo/
 ├── favicon.ico            16 · 32 · 48, PNG-embedded
-├── favicon.svg            vector; swaps on prefers-color-scheme if you supply a dark logo
+├── favicon.svg            vector; swaps on prefers-color-scheme with a second logo
 ├── apple-touch-icon.png   180², always opaque
 ├── icon-192.png           transparent, purpose "any"
 ├── icon-512.png           transparent, purpose "any"
@@ -33,10 +36,27 @@ acme-logo/
 └── manifesto.json         the settings used, so re-dropping restores them
 ```
 
+With two logos, one supplied or two recolored from one, you also get `favicon-light.svg`
+and `favicon-dark.svg`. Nothing references them. They are there for the places that do no
+scheme switching, such as a README badge or a social profile.
+
 Manifesto also provides the snippet to paste into your `<head>`. It never reads or changes
 your HTML.
 
 ![screenshot](./assets/screenshot.jpg)
+
+## Two-color icons
+
+A logo painted in one color can be recolored instead of needing a second file. You pick a
+dark-mode logo color and a dark-mode background, and light mode swaps the two.
+
+No PNG format and no manifest field selects an icon by color scheme, so you also pick which
+mode the PNG and ICO files use. Those files then become opaque, because a logo painted for
+one background is illegible on the other. `favicon.svg` still carries both.
+
+Recoloring stays off until you turn it on, and it is offered only for a logo that uses one
+color. A multicolor logo would be flattened to a silhouette, and a logo with a dark-mode
+file already has its second version.
 
 ## Install and run
 
@@ -75,23 +95,27 @@ desktop interface, so both produce identical output from the same file.
 ```sh
 bun run cli acme-logo.svg ./public
 bun run cli acme-logo.svg --dark acme-dark.svg --bg '#111111'
+bun run cli acme-logo.svg --recolor '#F4F6F8' --recolor-bg '#101418' --primary dark
 bun run cli --snippet
 ```
 
-The CLI writes the same seven Bundle files and `manifesto.json` Sidecar as the app. It does
-not replace existing Bundle files unless you pass `--force`. Other files in the output
-directory are left alone.
+The CLI writes the same seven Bundle files and `manifesto.json` Sidecar as the app, plus
+the two single-scheme SVGs when a second logo exists. It does not replace existing Bundle
+files unless you pass `--force`. Other files in the output directory are left alone.
 
 ```text
---dark <file.svg>     dark-mode logo, used on dark backgrounds and in favicon.svg
---name <string>       manifest name              (default is inferred from the filename)
---short <string>      manifest short_name        (default is inferred or uses --name)
---theme <#rrggbb>     theme_color                (default is inferred from the artwork)
---bg <#rrggbb>        icon background            (default is inferred by contrast)
---splash <#rrggbb>    manifest background_color  (default is the same as --bg)
---no-optimize         skip SVGO
---force               replace existing Bundle files in the output directory
---snippet             print the <head> snippet and exit
+--dark <file.svg>       dark-mode logo, used on dark backgrounds and in favicon.svg
+--name <string>         manifest name              (default is inferred from the filename)
+--short <string>        manifest short_name        (default is inferred or uses --name)
+--theme <#rrggbb>       theme_color                (default is inferred from the artwork)
+--bg <#rrggbb>          icon background            (default is inferred by contrast)
+--splash <#rrggbb>      manifest background_color  (default is the same as --bg)
+--recolor <#rrggbb>     dark-mode color for a logo that uses one color
+--recolor-bg <#rrggbb>  dark-mode background       (light mode swaps the two)
+--primary <light|dark>  mode the PNG and ICO files use   (default is light)
+--no-optimize           skip SVGO
+--force                 replace existing Bundle files in the output directory
+--snippet               print the <head> snippet and exit
 ```
 
 Defaults are inferred from rendered pixels rather than SVG markup. This works with
@@ -104,6 +128,7 @@ Defaults are inferred from rendered pixels rather than SVG markup. This works wi
 | [CONTEXT.md](./CONTEXT.md) | Domain vocabulary used in code and commits |
 | [PRODUCT.md](./PRODUCT.md) | Audience, product voice, references, and accessibility |
 | [DESIGN.md](./DESIGN.md) | Visual tokens, type scale, and design rules |
+| [docs/adr/](./docs/adr/) | Decisions and the options weighed against them |
 
 ## Status
 

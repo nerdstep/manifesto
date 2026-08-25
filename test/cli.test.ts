@@ -5,7 +5,7 @@ import { join } from 'node:path'
 
 import { main } from '../src/cli/index.ts'
 import { inspectTarget, recallSettings, SIDECAR_FILENAME } from '../src/host/bundle-writer.ts'
-import { BUNDLE_FILENAMES } from '../src/pipeline/index.ts'
+import { BUNDLE_FILENAMES, SINGLE_SCHEME_FILENAMES } from '../src/pipeline/index.ts'
 import { fixture } from './helpers.ts'
 
 const roots: string[] = []
@@ -72,6 +72,41 @@ describe('CLI Bundle writing', () => {
 
     expect(await main([source, output, '--force'])).toBe(0)
     expect(readFileSync(join(output, 'favicon.ico'))).not.toEqual(Buffer.from('hand-edited'))
+  })
+
+  test('--recolor writes the single-scheme SVGs and records the pair', async () => {
+    const { source, output } = scenario()
+    writeFileSync(source, fixture('monochrome'))
+
+    await main([
+      source,
+      output,
+      '--recolor',
+      '#F4F6F8',
+      '--recolor-bg',
+      '#101418',
+      '--primary',
+      'dark',
+    ])
+
+    for (const filename of SINGLE_SCHEME_FILENAMES) {
+      expect(readFileSync(join(output, filename), 'utf8')).toContain('<svg')
+    }
+    const recalled = recallSettings(output)
+    expect(recalled?.colorPair).toEqual({ mark: '#F4F6F8', surface: '#101418' })
+    expect(recalled?.primaryScheme).toBe('dark')
+    // The Primary Scheme's surface owns Icon Background.
+    expect(recalled?.iconBackground).toBe('#101418')
+  })
+
+  test('--recolor refuses a mark that uses more than one color', async () => {
+    const { source, output } = scenario()
+    writeFileSync(source, fixture('multicolor'))
+
+    await expectFailure(
+      () => main([source, output, '--recolor', '#F4F6F8']),
+      'needs a logo that uses a single color',
+    )
   })
 
   test('rejects unknown options and missing option values', async () => {

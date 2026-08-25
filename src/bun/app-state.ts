@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 
 import { isPlainObject } from 'es-toolkit'
 
-export type WindowFrame = { x: number; y: number; width: number; height: number }
+import type { WindowFrame } from '../shared/window-frame.ts'
 
 export type AppState = {
   outputRoot: string

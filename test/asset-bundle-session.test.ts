@@ -107,6 +107,41 @@ describe('Asset Bundle Session', () => {
     expect(settled.matchesDesired).toBe(true)
   })
 
+  test('the offered Color Pair appears with a monochrome mark and clears when a dark logo arrives', () => {
+    const root = tempRoot()
+    const snapshots: AssetBundleSessionSnapshot[] = []
+    const session = createAssetBundleSession({
+      pipeline,
+      render: createRenderCache((sourceSvg, darkSvg, settings) =>
+        pipeline.render(sourceSvg, darkSvg, settings),
+      ),
+      outputRoot: root,
+      publish(snapshot) {
+        snapshots.push(snapshot)
+      },
+    })
+
+    session.accept({
+      kind: 'open-source',
+      sourceSvg: fixture('monochrome'),
+      filename: 'acme-logo.svg',
+    })
+    expect(snapshots.at(-1)?.desired?.colorPairSeed).toEqual({
+      mark: '#FFFFFF',
+      surface: '#111111',
+    })
+
+    session.accept({
+      kind: 'set-dark-mark',
+      darkSvg: fixture('light-mark'),
+      darkFilename: 'acme-logo-dark.svg',
+    })
+    expect(snapshots.at(-1)?.desired?.colorPairSeed).toBeNull()
+
+    session.accept({ kind: 'clear-dark-mark' })
+    expect(snapshots.at(-1)?.desired?.colorPairSeed).not.toBeNull()
+  })
+
   test('a Bundle Name owned by another Source Mark recovers without replacing it', async () => {
     const root = tempRoot()
     const occupied = join(root, 'acme-logo')

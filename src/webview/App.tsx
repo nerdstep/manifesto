@@ -9,8 +9,10 @@ import {
   SessionRecoveryNotice,
   SettingsPanel,
   SourceRow,
+  StatusBar,
   Terminal,
   WindowChrome,
+  WindowResizeHandles,
 } from './components/index.ts'
 import { bun } from './rpc.ts'
 import { useAssetBundleSession } from './use-asset-bundle-session-runtime.ts'
@@ -128,6 +130,7 @@ export function App() {
               settings={session.settings}
               bundleName={session.bundleName}
               darkFilename={session.darkFilename}
+              colorPairSeed={session.colorPairSeed}
               onPatch={patch}
               onRename={(name) => void rename(name)}
               onDarkMark={(file) => void attachDarkMark(file)}
@@ -146,6 +149,9 @@ export function App() {
           {bundle !== null && <HeadSnippet />}
         </main>
       </div>
+
+      <StatusBar snapshot={snapshot} outputRoot={shownOutputRoot} />
+      <WindowResizeHandles />
     </div>
   )
 }

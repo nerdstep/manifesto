@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-preact'
 import { Fragment } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 
-import { ICON_FILENAMES } from '../../shared/bundle.ts'
+import { MANIFEST_FILENAME } from '../../shared/bundle.ts'
 import type { BundleWire } from '../../shared/rpc.ts'
 import { Caption } from './ui.tsx'
 
@@ -51,7 +51,8 @@ function report(bundle: BundleWire): Record<StageName, string> {
   return {
     Parse: scripts === undefined ? '✓' : `−${count(scripts.elements, 'script')}`,
     Normalize: wordmark === undefined ? '✓' : `${wordmark.aspectRatio.toFixed(1)}:1`,
-    Resize: `${ICON_FILENAMES.length}×`,
+    // Count what this Bundle actually holds: recolor adds two more icon files.
+    Resize: `${Object.keys(bundle.files).filter((name) => name !== MANIFEST_FILENAME).length}×`,
     Optimize: bundle.settings.optimizeSvg ? `−${Math.round(saved * 100)}%` : 'off',
     Export: `${Object.keys(bundle.files).length} files`,
   }

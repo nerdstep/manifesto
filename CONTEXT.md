@@ -11,9 +11,9 @@ derived from it.
 _Avoid_: logo, image, input file, source image
 
 **Dark Mark**:
-An optional second SVG for dark surfaces. Supplied by the user, or derived by
-recoloring when the Source Mark is monochrome. Used in two places: the dark half of
-`favicon.svg`, and as the composed mark in any Rendition whose Icon Background is dark.
+An optional second SVG for dark surfaces, supplied by the user. Used in two places:
+the dark half of `favicon.svg`, and as the composed mark in any Rendition whose Icon
+Background is dark.
 _Avoid_: dark logo, inverted mark, dark variant
 
 **Asset Bundle**:
@@ -80,6 +80,23 @@ The background and padding rule applied to a Normalized mark for one specific
 Rendition. Some Treatments are forced by platform behavior (apple-touch must be
 opaque; maskable must respect the Safe Zone); others are the app's choice.
 
+**Color Pair**:
+The two colors a monochrome Source Mark is recolored with. Each scheme paints the
+mark in one and the surface in the other, so the pair is a swap, not two independent
+choices.
+_Avoid_: palette, theme, colors
+
+**Derived Mark**:
+A Source Mark recolored to one half of a Color Pair. Two exist whenever recolor is
+active, and the Source Mark's own paint then appears in no Rendition — it is the
+geometry donor.
+_Avoid_: recolored mark, tinted mark, variant
+
+**Primary Scheme**:
+Which half of the Color Pair every raster and `favicon.ico` uses. No PNG and no Web
+App Manifest field selects by color scheme, so one answer serves all of them.
+_Avoid_: default mode, main theme
+
 **Safe Zone**:
 The centered circle, 80% of the icon's width in diameter, that a maskable icon is
 guaranteed to show. Everything outside it may be masked away by the OS.
@@ -117,7 +134,8 @@ The chosen contents of an Asset Bundle: `favicon.ico`, `favicon.svg`,
 `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`,
 `site.webmanifest`, and the Head Snippet. Deliberately excludes platform-legacy files
 (`mstile-*`, `browserconfig.xml`, the pre-iOS-8 apple-touch ladder, the android-chrome
-density ladder).
+density ladder). Plus `favicon-light.svg` and `favicon-dark.svg` when the Bundle
+has two marks; see ADR 0004.
 
 **Share Card**:
 A per-page Open Graph image. Explicitly out of scope — a Share Card is authored per

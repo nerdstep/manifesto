@@ -94,22 +94,25 @@ you have decided the output *should* change.
 - **`process.cwd()` is `bin/`.** Resolve bundled assets from `import.meta.dir`.
 - **`process.on('beforeExit')` never fires** — Electrobun's quit path calls `forceExit`.
   Persist on change instead.
-- **`BrowserWindow` has no resize or move event.** That is why the window frame is computed
-  at startup rather than remembered.
-- **`BrowserWindow`'s frame is in points, not physical pixels.** Electrobun applies the
-  display scale itself, so `windowFrame` passes the intended size straight through.
-  Scaling it first applies the scale twice: a 1280x880 window opened at 2880x1980 physical
-  with a 1920x1320 CSS viewport — a window half again too big whose content looked two
-  thirds size.
-- **Electrobun 2 sets per-monitor DPI awareness itself**, before any app code runs —
-  measured by removing the app's own `SetProcessDpiAwarenessContext` call and still
-  reading 1.5x. The process needs no manifest and no FFI to be DPI aware.
-- **WebView2 ships overlay scrollbars.** A page with plenty to scroll looks like it has
-  none until `::-webkit-scrollbar` is styled.
-- **`bun run dist` needs Windows' `tar`, not Git Bash's.** Hutch shells out to `tar`, and
-  GNU tar reads the `C:\...` it is handed as a remote host: *"Cannot connect to C: resolve
-  failed"*. Run `dist` from PowerShell, where `tar` is `System32	ar.exe`. The same trap is
-  why `scripts/check-package.ts` extracts with relative paths.
+- **`BrowserWindow` has no resize or move event** — hence the frame is computed at startup,
+  not remembered.
+- **`BrowserWindow`'s frame is in points.** Electrobun applies the display scale itself;
+  scaling first applies it twice (a 1280x880 window opened at 2880x1980 physical).
+- **A `titleBarStyle: 'hidden'` window has no sizing border.** `GWL_STYLE` on the running app
+  reads `0x94000000` — `WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS`, no `WS_THICKFRAME`.
+  Electrobun's `Resizable: true` does not survive the frameless path on Windows, so resizing
+  comes from the view — see `WindowResize.tsx`.
+- **A pointer event's `screenX`/`screenY` are already in points.** WebView2 reports screen
+  coordinates in CSS pixels and `BrowserWindow` wants points; measured at 1.5x, `screenX=640`
+  matched the window's 640. Multiplying by `devicePixelRatio` resizes half again too fast.
+- **Electrobun 2 sets per-monitor DPI awareness itself**, before app code runs — measured by
+  deleting the app's `SetProcessDpiAwarenessContext` call and still reading 1.5x. No manifest,
+  no FFI needed.
+- **WebView2 ships overlay scrollbars.** A scrollable page looks like it has none until
+  `::-webkit-scrollbar` is styled.
+- **`bun run dist` needs Windows' `tar`, not Git Bash's.** GNU tar reads the `C:\...` path as
+  a remote host (*"Cannot connect to C: resolve failed"*). Run `dist` from PowerShell. Same
+  trap is why `scripts/check-package.ts` extracts with relative paths.
 
 ## Verify, don't assume
 

@@ -9,6 +9,11 @@ export type WindowChromeProps = {
   platform?: DesktopPlatform
 }
 
+/** The one place the view decides which platform it is drawing chrome for. */
+export function chromePlatform(): DesktopPlatform {
+  return desktopPlatform(globalThis.navigator?.userAgent ?? '')
+}
+
 function WindowsWindowChrome() {
   return (
     <div
@@ -73,9 +78,7 @@ const CHROME_BY_PLATFORM: Record<CustomChromePlatform, ComponentType> = {
   windows: WindowsWindowChrome,
 }
 
-export function WindowChrome({
-  platform = desktopPlatform(globalThis.navigator?.userAgent ?? ''),
-}: WindowChromeProps) {
+export function WindowChrome({ platform = chromePlatform() }: WindowChromeProps) {
   if (!supportsCustomWindowChrome(platform)) {
     return null
   }

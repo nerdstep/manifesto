@@ -10,10 +10,23 @@ export const BUNDLE_FILENAMES = [
   'site.webmanifest',
 ] as const
 
+/**
+ * Written only when a Bundle has two marks, and referenced by nothing (ADR 0004).
+ */
+export const SINGLE_SCHEME_FILENAMES = ['favicon-light.svg', 'favicon-dark.svg'] as const
+
 export const MANIFEST_FILENAME = 'site.webmanifest'
 
 /** Derive the displayed icon count from the canonical file list. */
 export const ICON_FILENAMES = BUNDLE_FILENAMES.filter((name) => name !== MANIFEST_FILENAME)
+
+/** Every file a Bundle can contain, in the order they are listed. */
+export const ALL_BUNDLE_FILENAMES = [...BUNDLE_FILENAMES, ...SINGLE_SCHEME_FILENAMES]
+
+/** The icon files a Bundle holds: two marks add the single-scheme SVGs. */
+export function iconFilenames(twoMarks: boolean): readonly string[] {
+  return twoMarks ? [...ICON_FILENAMES, ...SINGLE_SCHEME_FILENAMES] : ICON_FILENAMES
+}
 
 export const SIDECAR_FILENAME = 'manifesto.json'
 

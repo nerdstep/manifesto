@@ -1,4 +1,4 @@
-import type { RenditionSpec } from './types.ts'
+import type { Hex, RenditionSpec, Treatment } from './types.ts'
 
 export const CANONICAL_SIZE = 1000
 
@@ -47,10 +47,28 @@ export const PNG_RENDITIONS: RenditionSpec[] = [
   },
 ]
 
+/**
+ * The surface a Rendition composes against. Recolored marks assume their own
+ * surface, so `opaque` makes every Rendition opaque, not just the two that
+ * platform behavior already forces (ADR 0003).
+ */
+export function renditionBackground(
+  treatment: Treatment,
+  iconBackground: Hex,
+  opaque: boolean,
+): Hex | null {
+  return opaque || treatment.background !== null ? iconBackground : null
+}
+
 export const FAVICON_SVG_TREATMENT: RenditionSpec['treatment'] = {
   size: CANONICAL_SIZE,
   background: null,
   fit: { mode: 'box', inset: 0 },
 }
 
-export { BUNDLE_FILENAMES, FAVICON_DARK_CLASS, FAVICON_LIGHT_CLASS } from '../shared/bundle.ts'
+export {
+  BUNDLE_FILENAMES,
+  FAVICON_DARK_CLASS,
+  FAVICON_LIGHT_CLASS,
+  SINGLE_SCHEME_FILENAMES,
+} from '../shared/bundle.ts'
