@@ -18,8 +18,8 @@ a circle or square would do.
 | `invisible-frame-opacity.svg` | `square-padded` + full-canvas `<rect opacity="0">` |
 | `invisible-frame-transparent.svg` | `square-padded` + full-canvas `<rect fill="transparent">` |
 | `wordmark.svg` | 1000×300 painted extents → **Wordmark Warning** |
-| `monochrome.svg` | Two shapes, one paint colour → Dark Mark auto-derive eligible |
-| `multicolor.svg` | Two shapes, different colours → **not** eligible |
+| `monochrome.svg` | Two shapes, one paint color → Dark Mark auto-derive eligible |
+| `multicolor.svg` | Two shapes, different colors → **not** eligible |
 | `no-viewbox.svg` | `width`/`height` only, no viewBox |
 | `light-mark.svg` | Near-white paint → must select a **dark** Icon Background |
 | `with-text.svg` | Only `<text>` — paints nothing without fonts → `EmptyMarkError` |

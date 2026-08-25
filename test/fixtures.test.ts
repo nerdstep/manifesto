@@ -6,7 +6,7 @@ import { EMPTY_FIXTURES, EQUIVALENT_FIXTURES, FIXTURE_DIR, FIXTURES, fixture } f
 
 const PAINTED_ELEMENT = /<(path|circle|rect|polygon|ellipse|line|polyline)\b/u
 
-const colours = (svg: string) => new Set(svg.match(/#[0-9A-Fa-f]{6}/gu) ?? [])
+const colors = (svg: string) => new Set(svg.match(/#[0-9A-Fa-f]{6}/gu) ?? [])
 
 describe('fixtures', () => {
   for (const name of FIXTURES) {
@@ -74,8 +74,8 @@ describe('fixtures', () => {
     expect(markup).toContain('width="60"')
   })
 
-  test('monochrome uses one colour, multicolor uses more than one', () => {
-    expect(colours(fixture('monochrome')).size).toBe(1)
-    expect(colours(fixture('multicolor')).size).toBeGreaterThan(1)
+  test('monochrome uses one color, multicolor uses more than one', () => {
+    expect(colors(fixture('monochrome')).size).toBe(1)
+    expect(colors(fixture('multicolor')).size).toBeGreaterThan(1)
   })
 })

@@ -179,7 +179,7 @@ describe('buildWebManifest', () => {
   })
 
   test('background_color is the Splash Background, never the Icon Background', () => {
-    // Two different concepts that both hold a colour. Conflating them is what RFG does.
+    // Two different concepts that both hold a color. Conflating them is what RFG does.
     const distinct = { ...defaultSettings, iconBackground: '#111111' as const }
     const parsed = parseJsonObject(buildWebManifest(distinct))
     expect(parsed.background_color).toBe(distinct.splashBackground)

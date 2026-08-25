@@ -42,7 +42,7 @@
         "role": "neutral",
         "displayName": "Raised",
         "canonical": "#1b2740",
-        "note": "Inputs and buttons — the things you can put a cursor in. The worst-case background for contrast; measure every new colour against this.",
+        "note": "Inputs and buttons — the things you can put a cursor in. The worst-case background for contrast; measure every new color against this.",
         "tonalRamp": [
           "#04070e",
           "#0a1122",
@@ -139,7 +139,7 @@
         "role": "primary",
         "displayName": "Signal Cyan",
         "canonical": "#1bd6fd",
-        "sampledFrom": "hero.png dominant saturated colour (#1bd6fd, #17c8fd, #25dafc)",
+        "sampledFrom": "hero.png dominant saturated color (#1bd6fd, #17c8fd, #25dafc)",
         "note": "Upstream. The source pane, the running stage, every focus ring, the Safe Zone ring, a selected mask. Never emphasis.",
         "tonalRamp": [
           "#04222b",
@@ -234,7 +234,7 @@
       },
       "label": {
         "displayName": "Section Label",
-        "purpose": "Section headings. Cyan upstream, amber downstream — the label's colour is how you know which half of the app you are in."
+        "purpose": "Section headings. Cyan upstream, amber downstream — the label's color is how you know which half of the app you are in."
       },
       "caption": {
         "displayName": "Specimen Caption",
@@ -266,7 +266,7 @@
       {
         "name": "fast",
         "value": "140ms",
-        "purpose": "Border and background colour changes on hover, focus, drag-over."
+        "purpose": "Border and background color changes on hover, focus, drag-over."
       },
       {
         "name": "slow",
@@ -313,7 +313,7 @@
       "name": "Output Tile",
       "kind": "card",
       "refersTo": "tile",
-      "description": "A Surface card holding a Ground-coloured well, the platform mock at true size, and a specimen caption naming the file and its exact dimensions.",
+      "description": "A Surface card holding a Ground-colored well, the platform mock at true size, and a specimen caption naming the file and its exact dimensions.",
       "html": "<figure class=\"ds-tile\"><div class=\"ds-well\"><div class=\"ds-tab\"><span class=\"ds-fav\"></span><span>Northwind Trading</span></div></div><figcaption><span class=\"ds-name\">Browser tab</span><span class=\"ds-dim\">16×16</span></figcaption></figure>",
       "css": ".ds-tile { margin: 0; display: flex; flex-direction: column; gap: 12px; padding: 14px; border: 1px solid #243350; border-radius: 12px; background: #111c30; transition: border-color 140ms cubic-bezier(0.22,1,0.36,1); } .ds-tile:hover { border-color: #33456a; } .ds-well { display: grid; place-items: center; min-height: 132px; padding: 14px; border-radius: 8px; background: #04070e; } .ds-tile figcaption { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; } .ds-name { font: 700 10px/1.4 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: #93a4c2; } .ds-dim { font: 400 10px/1.4 ui-monospace, Consolas, monospace; color: #8494b4; } .ds-tab { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 10px; border: 1px solid #3c4043; border-bottom: none; border-radius: 8px 8px 0 0; background: #292a2d; color: #e8eaed; font-size: 11px; } .ds-fav { width: 16px; height: 16px; flex: none; background: #1bd6fd; border-radius: 3px; }"
     },
@@ -337,7 +337,7 @@
       "name": "Mask Pill",
       "kind": "chip",
       "refersTo": "mask-pill",
-      "description": "The launcher-mask picker. Selection is carried by aria-pressed, not by colour alone.",
+      "description": "The launcher-mask picker. Selection is carried by aria-pressed, not by color alone.",
       "html": "<div class=\"ds-pills\" role=\"group\" aria-label=\"Launcher mask shape\"><button aria-pressed=\"true\">circle</button><button aria-pressed=\"false\">squircle</button><button aria-pressed=\"false\">rounded</button></div>",
       "css": ".ds-pills { display: flex; gap: 4px; } .ds-pills button { flex: 1 1 auto; padding: 4px 8px; border: 1px solid #243350; border-radius: 999px; background: transparent; color: #8494b4; font: 400 10px/1.4 ui-sans-serif, system-ui, sans-serif; text-transform: capitalize; cursor: pointer; transition: color 140ms cubic-bezier(0.22,1,0.36,1), border-color 140ms cubic-bezier(0.22,1,0.36,1); } .ds-pills button:hover { color: #93a4c2; border-color: #33456a; } .ds-pills button[aria-pressed='true'] { color: #1bd6fd; border-color: #1bd6fd; } .ds-pills button:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, #1bd6fd 30%, transparent); }"
     },
@@ -352,9 +352,9 @@
   ],
   "narrative": {
     "northStar": "The Signal Path",
-    "overview": "One file enters at the left. It passes through named stages — parse, normalize, resize, optimize, export — and fans out to every platform that needed it. That is the product in one sentence, and it is the shape of the interface: source on the left, transformation across the middle, artefacts on the right.\n\nDirection is the organising idea, so colour encodes direction. Cyan is upstream: the source mark, the running stage, focus, anything you are still deciding. Amber is downstream: what has landed on disk, and where. A glance at which accent dominates a region tells you which side of the render seam you are looking at, before you have read a word.\n\nThe surface is near-black with a blue cast, lifted just off true black. It is not \"dark mode\" as a preference — it is the ground the signal reads against. Cyan and amber only behave as signal because almost nothing else on screen is saturated; on a light ground the same two colours become decoration, which is why this system is specified dark-first and why the near-black is load-bearing rather than a taste.\n\nWhat this rejects: the tool that performs competence. No hero metric, no gradient text, no oversized headline announcing what the app does. The app is opened, used for ninety seconds and closed. Confidence comes from accuracy — the ring drawn at the true Safe Zone diameter, the byte delta, the path the files went to — never from tone.",
+    "overview": "One file enters at the left. It passes through named stages — parse, normalize, resize, optimize, export — and fans out to every platform that needed it. That is the product in one sentence, and it is the shape of the interface: source on the left, transformation across the middle, artefacts on the right.\n\nDirection is the organising idea, so color encodes direction. Cyan is upstream: the source mark, the running stage, focus, anything you are still deciding. Amber is downstream: what has landed on disk, and where. A glance at which accent dominates a region tells you which side of the render seam you are looking at, before you have read a word.\n\nThe surface is near-black with a blue cast, lifted just off true black. It is not \"dark mode\" as a preference — it is the ground the signal reads against. Cyan and amber only behave as signal because almost nothing else on screen is saturated; on a light ground the same two colors become decoration, which is why this system is specified dark-first and why the near-black is load-bearing rather than a taste.\n\nWhat this rejects: the tool that performs competence. No hero metric, no gradient text, no oversized headline announcing what the app does. The app is opened, used for ninety seconds and closed. Confidence comes from accuracy — the ring drawn at the true Safe Zone diameter, the byte delta, the path the files went to — never from tone.",
     "keyCharacteristics": [
-      "Directional colour. Cyan upstream, amber downstream. No third meaning.",
+      "Directional color. Cyan upstream, amber downstream. No third meaning.",
       "Near-black ground, blue-cast, lifted off #000000 so white text does not halate.",
       "Bordered planes, no shadows. Depth is three surfaces and a hairline.",
       "True size by default. Nothing is scaled up to look impressive.",
@@ -374,12 +374,12 @@
       },
       {
         "name": "The 4.87 Rule",
-        "body": "Every text token clears WCAG AA against all three planes. The tightest pair is Dim on Raised at 4.87:1, and Dim is used at 10px. Measured, not assumed: Ink 13.76, Muted 5.90, Cyan 8.56, Amber 9.52 at their worst. Any new colour must be measured against --raised before it ships, because that is always the worst case.",
+        "body": "Every text token clears WCAG AA against all three planes. The tightest pair is Dim on Raised at 4.87:1, and Dim is used at 10px. Measured, not assumed: Ink 13.76, Muted 5.90, Cyan 8.56, Amber 9.52 at their worst. Any new color must be measured against --raised before it ships, because that is always the worst case.",
         "section": "colors"
       },
       {
         "name": "The Signal Scarcity Rule",
-        "body": "Saturated colour covers well under a tenth of the screen. The moment cyan or amber is used to make a panel look interesting, every other cyan and amber on screen stops meaning anything.",
+        "body": "Saturated color covers well under a tenth of the screen. The moment cyan or amber is used to make a panel look interesting, every other cyan and amber on screen stops meaning anything.",
         "section": "colors"
       },
       {
@@ -415,7 +415,7 @@
     ],
     "dos": [
       "Do use cyan for upstream and amber for downstream. Those are the only two meanings.",
-      "Do measure any new colour against --raised (#1b2740), which is always the worst case, and keep it at or above 4.5:1.",
+      "Do measure any new color against --raised (#1b2740), which is always the worst case, and keep it at or above 4.5:1.",
       "Do keep every border 1px, except the source pane's 2px dashed.",
       "Do render previews from the bytes on disk, at or below the size the platform uses.",
       "Do caption every output tile with its name and exact dimensions.",
@@ -423,13 +423,13 @@
       "Do give every animation a prefers-reduced-motion path that keeps the outcome and drops the choreography. The pipeline still has to report that it finished."
     ],
     "donts": [
-      "Don't add a third accent role. Cyan and amber mean direction; a third colour deletes the meaning of the first two.",
+      "Don't add a third accent role. Cyan and amber mean direction; a third color deletes the meaning of the first two.",
       "Don't use glow, blur, or backdrop-filter decoratively. Glow is focus or a running stage, and nothing else.",
       "Don't drop the ground to #000000 to match the poster. See The Ground Rule.",
       "Don't add a shadow to any surface, or a fourth plane, or a card inside a card.",
       "Don't introduce a type role between 13px and the 30px wordmark.",
       "Don't use background-clip: text with a gradient. The poster's wordmark has a gradient; at UI sizes it becomes mud. Solid Ink.",
-      "Don't use a border-left or border-right above 1px as a coloured accent.",
+      "Don't use a border-left or border-right above 1px as a colored accent.",
       "Don't put a decorative grid behind a surface. The grid under the source mark is depicting a vector-editor canvas, which is the only justification available.",
       "Don't write marketing-speak into the interface — \"Effortlessly generate stunning icons!\" No exclamation marks, no adjectives doing work that facts should do.",
       "Don't write enterprise / compliance tone — \"The operation could not be completed.\" Passive voice with no cause, no next step, nobody accountable.",

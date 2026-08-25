@@ -58,13 +58,13 @@ describe('inferNames', () => {
 })
 
 describe('inferColors', () => {
-  test('takes the dominant saturated colour as the Theme Color', () => {
+  test('takes the dominant saturated color as the Theme Color', () => {
     // A solid color should survive bucketing without shifting.
     expect(colorsOf('multicolor').themeColor).toBe('#2E5BFF')
   })
 
   test('refuses to tint the address bar from a monochrome mark', () => {
-    // #111111 is ink, not brand colour. Reporting it would paint someone's Chrome
+    // #111111 is ink, not brand color. Reporting it would paint someone's Chrome
     // address bar black because their logo happens to be a black glyph.
     expect(colorsOf('monochrome').themeColor).toBe('#FFFFFF')
     // Near-white is the same mistake in the other direction.
