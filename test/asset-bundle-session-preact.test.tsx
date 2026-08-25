@@ -101,6 +101,7 @@ describe('Asset Bundle Session Preact adapter', () => {
         settings: null,
         bundleName: 'logo',
         outputRoot: 'C:\\icons',
+        colorPairSeed: null,
       },
     }
     await act(() => {

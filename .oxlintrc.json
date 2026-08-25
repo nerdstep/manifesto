@@ -103,6 +103,14 @@
 
   "overrides": [
     {
+      // The pipeline facade re-exports every module it is made of, so its
+      // dependency count is the module count, not a design smell.
+      "files": ["src/pipeline/index.ts"],
+      "rules": {
+        "import/max-dependencies": "off"
+      }
+    },
+    {
       "files": ["test/**"],
       "rules": {
         "eslint/max-lines": "off",

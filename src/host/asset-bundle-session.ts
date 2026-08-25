@@ -10,6 +10,7 @@ import type {
 } from '../shared/rpc.ts'
 import { resolveTarget } from './bundle-target.ts'
 import { bundleNameProblem, recallSettings, slugify, writeBundle } from './bundle-writer.ts'
+import { withColorPairSeed } from './color-pair-seed.ts'
 import { BundleWriteError, describeFailure, failureDetail } from './failures.ts'
 
 type Render = (
@@ -89,8 +90,11 @@ export function createAssetBundleSession(deps: AssetBundleSessionDeps) {
         shouldRestoreSettings && resolved.found.kind === 'same-mark'
           ? recallSettings(join(resolved.desired.outputRoot, resolved.desired.bundleName))
           : null
-      const settings =
-        recalled ?? next.settings ?? pipeline.inferSettings(next.sourceSvg, next.filename)
+      const settings = pipeline.resolveSettings(
+        next.sourceSvg,
+        next.darkSvg,
+        recalled ?? next.settings ?? pipeline.inferSettings(next.sourceSvg, next.filename),
+      )
       if (attemptRevision !== revision || desired === null) {
         return
       }
@@ -184,7 +188,7 @@ export function createAssetBundleSession(deps: AssetBundleSessionDeps) {
     restoreSettings = false,
   ): void {
     revision += 1
-    desired = next
+    desired = withColorPairSeed(pipeline, desired, next)
     restoreSettingsRevision = restoreSettings ? revision : null
     update({ attempt: workingAttempt(), matchesDesired: false })
     requestGeneration(delayMs)
@@ -271,6 +275,7 @@ export function createAssetBundleSession(deps: AssetBundleSessionDeps) {
       settings: null,
       bundleName: slugify(intent.filename),
       outputRoot: currentOutputRoot(),
+      colorPairSeed: pipeline.colorPairSeed(intent.sourceSvg, null),
     }
     snapshot = {
       desired,

@@ -10,17 +10,20 @@ import { isWordmark, measureMark, normalize } from './normalize.ts'
 import { optimize, PIXEL_DRIFT_THRESHOLD, pixelDriftPercent } from './optimize.ts'
 import type { PixelBuffer } from './rasterize.ts'
 import { initializeOnce, rasterize, rasterizeToPixels } from './rasterize.ts'
-import { ICO_MEMBERS, PNG_RENDITIONS } from './renditions.ts'
+import { ICO_MEMBERS, PNG_RENDITIONS, renditionBackground } from './renditions.ts'
+import { canRecolor, inferColorPair, resolveScheme } from './scheme.ts'
 import type {
   Advisory,
   AdvisoryOrigin,
   BundleResult,
+  ColorPair,
   Hex,
   ManifestSettings,
   MarkGeometry,
   RenderedMark,
   RenderSettings,
   Settings,
+  Treatment,
 } from './types.ts'
 import { validate } from './validate.ts'
 
@@ -41,6 +44,8 @@ export type { NormalizedMark } from './normalize.ts'
 export { isWordmark } from './normalize.ts'
 // Rasterizing functions are exposed only through `createPipeline()`.
 export { optimize } from './optimize.ts'
+export type { ResolvedScheme } from './scheme.ts'
+export { canRecolor, inferColorPair, monochromePaint, recolor, resolveScheme } from './scheme.ts'
 export type { PixelBuffer } from './rasterize.ts'
 export {
   BUNDLE_FILENAMES,
@@ -50,7 +55,9 @@ export {
   ICO_MEMBER_SIZES,
   ICO_MEMBERS,
   PNG_RENDITIONS,
+  renditionBackground,
   SAFE_ZONE_DIAMETER,
+  SINGLE_SCHEME_FILENAMES,
   WORDMARK_ASPECT_THRESHOLD,
 } from './renditions.ts'
 export * from './types.ts'
@@ -96,20 +103,23 @@ function renderRenditions(
   source: NormalizedMark,
   dark: NormalizedMark | null,
   iconBackground: Hex,
+  opaque: boolean,
 ): { files: Map<string, Uint8Array>; icoMembers: Uint8Array[] } {
   const files = new Map<string, Uint8Array>()
+  const surfaceFor = (treatment: Treatment): Hex | null =>
+    renditionBackground(treatment, iconBackground, opaque)
 
   for (const { filename, treatment } of PNG_RENDITIONS) {
     if (filename === null) {
       continue
     }
-    const background = treatment.background === null ? null : iconBackground
+    const background = surfaceFor(treatment)
     const mark = markFor(source, dark, background)
     files.set(filename, rasterize(compose(mark, treatment, background), treatment.size))
   }
 
   const icoMembers = ICO_MEMBERS.map(({ treatment }) =>
-    rasterize(compose(source, treatment, null), treatment.size),
+    rasterize(compose(source, treatment, surfaceFor(treatment)), treatment.size),
   )
 
   return { files, icoMembers }
@@ -117,21 +127,40 @@ function renderRenditions(
 
 /** Render all image files without the web app manifest. */
 function render(sourceSvg: string, darkSvg: string | null, settings: RenderSettings): RenderedMark {
-  const source = prepare(sourceSvg, settings.optimizeSvg)
+  const scheme = resolveScheme(sourceSvg, darkSvg, settings)
+  const source = prepare(scheme.light, settings.optimizeSvg)
   const advisories: Advisory[] = markAdvisories(source, settings.optimizeSvg)
 
   // Validate and optimize both source files with the same settings.
   let dark: NormalizedMark | null = null
-  if (darkSvg !== null) {
-    const preparedDark = prepare(darkSvg, settings.optimizeSvg)
-    advisories.push(...markAdvisories(preparedDark, settings.optimizeSvg, 'dark'))
+  if (scheme.dark !== null) {
+    const preparedDark = prepare(scheme.dark, settings.optimizeSvg)
+    // A Derived Mark shares the Source Mark's geometry, so its advisories
+    // would only repeat what the Source Mark already reported.
+    if (!scheme.derived) {
+      advisories.push(...markAdvisories(preparedDark, settings.optimizeSvg, 'dark'))
+    }
     dark = preparedDark.mark
   }
 
-  const { files, icoMembers } = renderRenditions(source.mark, dark, settings.iconBackground)
+  // The Primary Scheme picks one mark for every raster, since no PNG format
+  // selects by color scheme.
+  const rasterMark =
+    scheme.opaque && scheme.primary === 'dark' ? (dark ?? source.mark) : source.mark
+  const { files, icoMembers } = renderRenditions(
+    rasterMark,
+    scheme.opaque ? null : dark,
+    scheme.iconBackground,
+    scheme.opaque,
+  )
 
   files.set('favicon.ico', packIco(icoMembers))
   files.set('favicon.svg', encoder.encode(buildFaviconSvg(source.mark, dark)))
+  if (dark !== null) {
+    // Single-scheme hand-off files; referenced by nothing (ADR 0004).
+    files.set('favicon-light.svg', encoder.encode(buildFaviconSvg(source.mark, null)))
+    files.set('favicon-dark.svg', encoder.encode(buildFaviconSvg(dark, null)))
+  }
 
   return {
     files,
@@ -159,6 +188,20 @@ function inferSettings(sourceSvg: string, filename: string): Settings {
   }
 }
 
+/**
+ * Settings as they will actually render. An active Color Pair owns Icon
+ * Background, so the stored value never disagrees with the pixels (ADR 0003).
+ */
+function resolveSettings(sourceSvg: string, darkSvg: string | null, settings: Settings): Settings {
+  const { iconBackground } = resolveScheme(sourceSvg, darkSvg, settings)
+  return iconBackground === settings.iconBackground ? settings : { ...settings, iconBackground }
+}
+
+/** The Color Pair to offer for this pair of marks, or null when ineligible. */
+function colorPairSeed(sourceSvg: string, darkSvg: string | null): ColorPair | null {
+  return canRecolor(sourceSvg, darkSvg) ? inferColorPair(sourceSvg) : null
+}
+
 function buildBundle(sourceSvg: string, darkSvg: string | null, settings: Settings): BundleResult {
   return withManifest(render(sourceSvg, darkSvg, settings), settings)
 }
@@ -171,6 +214,10 @@ export type Pipeline = {
   withManifest(rendered: RenderedMark, settings: ManifestSettings): BundleResult
 
   inferSettings(sourceSvg: string, filename: string): Settings
+
+  colorPairSeed(sourceSvg: string, darkSvg: string | null): ColorPair | null
+
+  resolveSettings(sourceSvg: string, darkSvg: string | null, settings: Settings): Settings
 
   /** @internal */ normalize(svg: string): NormalizedMark
   /** @internal */ measureMark(svg: string): MarkGeometry | null
@@ -188,6 +235,8 @@ export async function createPipeline(wasm: ArrayBuffer | Uint8Array): Promise<Pi
     render,
     withManifest,
     inferSettings,
+    colorPairSeed,
+    resolveSettings,
     normalize,
     measureMark,
     rasterize,

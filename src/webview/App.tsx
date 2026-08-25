@@ -128,6 +128,7 @@ export function App() {
               settings={session.settings}
               bundleName={session.bundleName}
               darkFilename={session.darkFilename}
+              colorPairSeed={session.colorPairSeed}
               onPatch={patch}
               onRename={(name) => void rename(name)}
               onDarkMark={(file) => void attachDarkMark(file)}

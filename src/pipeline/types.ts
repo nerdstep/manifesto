@@ -1,9 +1,21 @@
 export type Hex = `#${string}`
 
+/** Which half of a Color Pair the rasters and `favicon.ico` use (ADR 0003). */
+export type Scheme = 'light' | 'dark'
+
+/**
+ * The two colors a monochrome Source Mark is recolored with, named for the
+ * dark scheme: `mark` on `surface`. The light scheme is the swap.
+ */
+export type ColorPair = { mark: Hex; surface: Hex }
+
 /** Settings that require rasterization. */
 export type RenderSettings = {
   iconBackground: Hex
   optimizeSvg: boolean
+  /** Recolor is off when absent or null (ADR 0003). */
+  colorPair?: ColorPair | null
+  primaryScheme?: Scheme
 }
 
 /** Settings written only to `site.webmanifest`. */

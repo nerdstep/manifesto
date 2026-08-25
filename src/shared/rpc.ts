@@ -2,7 +2,7 @@
 
 import type { RPCSchema } from 'electrobun/main'
 
-import type { Advisory, Settings } from '../pipeline/index.ts'
+import type { Advisory, ColorPair, Settings } from '../pipeline/index.ts'
 
 export type BundleWire = {
   /** Maps filenames to base64 bytes. */
@@ -24,6 +24,11 @@ export type AssetBundleSessionDesired = {
   settings: Settings | null
   bundleName: string
   outputRoot: string
+  /**
+   * The Color Pair to offer, or null when this mark cannot be recolored —
+   * it is not monochrome, or a Dark Mark is supplied (ADR 0003).
+   */
+  colorPairSeed: ColorPair | null
 }
 
 export type AssetBundleSessionAttempt =

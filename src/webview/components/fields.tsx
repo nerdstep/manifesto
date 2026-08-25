@@ -23,10 +23,14 @@ export function ColorField({
   label,
   value,
   onChange,
+  disabled = false,
+  note,
 }: {
   label: string
   value: Hex
   onChange: (next: Hex) => void
+  disabled?: boolean
+  note?: string
 }) {
   const [draft, setDraft] = useState<string>(value)
 
@@ -38,11 +42,11 @@ export function ColorField({
   const shown = isHex(draft) ? draft : value
 
   return (
-    <fieldset class="min-w-0">
+    <fieldset class="min-w-0" disabled={disabled}>
       <legend class="mb-1.5">
         <Caption>{label}</Caption>
       </legend>
-      <div class="flex items-center gap-2">
+      <div class={cn('flex items-center gap-2', disabled && 'opacity-50')}>
         <input
           type="color"
           aria-label={`${label} color picker`}
@@ -80,6 +84,7 @@ export function ColorField({
           }}
         />
       </div>
+      {note !== undefined && <Note class="mt-1">{note}</Note>}
     </fieldset>
   )
 }

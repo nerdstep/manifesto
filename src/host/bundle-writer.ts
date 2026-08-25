@@ -10,7 +10,7 @@ import {
 } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 
-import { isPlainObject } from 'es-toolkit'
+import { isBoolean, isNil, isPlainObject, isString } from 'es-toolkit'
 
 import type { BundleResult, Settings } from '../pipeline/index.ts'
 import { bundleNameProblem } from '../shared/bundle-name.ts'
@@ -101,13 +101,28 @@ function readSidecar(dir: string): ReadSidecar | null {
   }
 }
 
+/** Recolor settings are optional, so absent is valid and malformed is not. */
+function isColorPair(value: unknown): boolean {
+  if (isNil(value)) {
+    return true
+  }
+  return isPlainObject(value) && isString(value.mark) && isString(value.surface)
+}
+
+function isScheme(value: unknown): boolean {
+  return isNil(value) || value === 'light' || value === 'dark'
+}
+
 function isSettings(value: unknown): value is Settings {
   if (!isPlainObject(value)) {
     return false
   }
   const strings = ['name', 'shortName', 'themeColor', 'iconBackground', 'splashBackground']
   return (
-    strings.every((key) => typeof value[key] === 'string') && typeof value.optimizeSvg === 'boolean'
+    strings.every((key) => isString(value[key])) &&
+    isBoolean(value.optimizeSvg) &&
+    isColorPair(value.colorPair) &&
+    isScheme(value.primaryScheme)
   )
 }
 

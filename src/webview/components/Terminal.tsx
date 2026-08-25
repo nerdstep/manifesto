@@ -1,4 +1,4 @@
-import { BUNDLE_FILENAMES, SIDECAR_FILENAME } from '../../shared/bundle.ts'
+import { ALL_BUNDLE_FILENAMES, SIDECAR_FILENAME } from '../../shared/bundle.ts'
 import type { AssetBundleSessionSnapshot, BundleWire } from '../../shared/rpc.ts'
 
 function decodedBytes(base64: string): number {
@@ -18,8 +18,7 @@ export function Terminal({
 }) {
   const bundle = snapshot.committed
 
-  const written =
-    bundle === null ? [] : [...BUNDLE_FILENAMES].filter((name) => name in bundle.files)
+  const written = bundle === null ? [] : ALL_BUNDLE_FILENAMES.filter((name) => name in bundle.files)
 
   return (
     <section

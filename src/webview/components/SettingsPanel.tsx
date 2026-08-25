@@ -1,9 +1,11 @@
+import { isNil } from 'es-toolkit'
 import type { ComponentChildren } from 'preact'
 
-import type { Settings } from '../../pipeline/index.ts'
+import type { ColorPair, Scheme, Settings } from '../../pipeline/index.ts'
 import { bundleNameProblem } from '../../shared/bundle-name.ts'
-import { ICON_FILENAMES } from '../../shared/bundle.ts'
+import { iconFilenames } from '../../shared/bundle.ts'
 import { ColorField, CommittedField, DarkMarkField, Field } from './fields.tsx'
+import { RecolorField } from './RecolorField.tsx'
 import { Button, Caption, Input, SectionHeading } from './ui.tsx'
 import type { Tone } from './ui.tsx'
 
@@ -11,6 +13,7 @@ type Props = {
   settings: Settings
   bundleName: string
   darkFilename: string | null
+  colorPairSeed: ColorPair | null
   onPatch: (change: Partial<Settings>) => void
   onRename: (bundleName: string) => void
   onDarkMark: (file: File) => void
@@ -50,6 +53,7 @@ export function SettingsPanel({
   settings,
   bundleName,
   darkFilename,
+  colorPairSeed,
   onPatch,
   onRename,
   onDarkMark,
@@ -61,12 +65,20 @@ export function SettingsPanel({
   outputRoot,
   recoveryNotice,
 }: Props) {
+  const recoloring = !isNil(settings.colorPair)
+  const twoMarks = recoloring || !isNil(darkFilename)
+
   return (
     <>
-      <Group title="Icon files" note={`These settings redraw all ${ICON_FILENAMES.length} icons.`}>
+      <Group
+        title="Icon files"
+        note={`These settings redraw all ${iconFilenames(twoMarks).length} icons.`}
+      >
         <ColorField
           label="Icon background"
           value={settings.iconBackground}
+          disabled={recoloring}
+          note={recoloring ? 'Set by the two-color icons below.' : undefined}
           onChange={(iconBackground) => {
             onPatch({ iconBackground })
           }}
@@ -77,6 +89,16 @@ export function SettingsPanel({
           onChoose={onChooseDarkMark}
           onClear={onClearDarkMark}
         />
+        {!isNil(colorPairSeed) && (
+          <RecolorField
+            seed={colorPairSeed}
+            pair={settings.colorPair ?? null}
+            primary={settings.primaryScheme ?? 'light'}
+            onChange={(colorPair: ColorPair | null, primaryScheme: Scheme) => {
+              onPatch({ colorPair, primaryScheme })
+            }}
+          />
+        )}
       </Group>
 
       <Group

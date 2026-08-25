@@ -13,6 +13,7 @@ import {
   GOLDEN_SCENARIOS,
   readGoldens,
   renderGoldens,
+  scenarioFilenames,
 } from './golden-helpers.ts'
 import type { FixtureName } from './helpers.ts'
 import { EQUIVALENT_FIXTURES, fixture, pixelDiff, testPipeline } from './helpers.ts'
@@ -101,7 +102,7 @@ describe('golden renditions', () => {
     // comparison above. This pins the shape.
     const goldens = renderGoldens(pipeline)
     const expectedCount = GOLDEN_SCENARIOS.reduce(
-      (total, s) => total + s.fixtures.length * BUNDLE_FILENAMES.length,
+      (total, s) => total + s.fixtures.length * scenarioFilenames(s).length,
       0,
     )
 
