@@ -16,7 +16,9 @@ function testHost(placement: WindowPlacement = PLACEMENT) {
 
   const host: WindowResizeHost = {
     getPlacement: () => Promise.resolve(placement),
-    setFrame: (frame) => frames.push(frame),
+    setFrame: (frame) => {
+      frames.push(frame)
+    },
     requestFrame: (run) => {
       clock.push(run)
       handle += 1
