@@ -1,10 +1,6 @@
-# Manifesto — working notes
+# Manifesto
 
-Drop an SVG, get every icon asset a website needs. Electrobun desktop app: a Bun process
-owning the window and every filesystem touch, a Preact + Tailwind webview with none.
-
-Read [README.md](./README.md) for what it does and how to run it. This file is the part
-that is not obvious from the code.
+Read [README.md](./README.md) for what it does and how to run it.
 
 ## Agent skills
 
@@ -30,85 +26,72 @@ This is a single-context repository with `CONTEXT.md` and `docs/adr/` at the roo
 | [PRODUCT.md](./PRODUCT.md) | writing user-facing copy, or adding a dependency to the view |
 | [DESIGN.md](./DESIGN.md) | changing anything visual |
 
-The short version of PRODUCT.md: the audience is developers who already know what a
-maskable icon is but not this app's internals. Voice is **precise, quiet, trustworthy** —
-plain and instructive, consequence before mechanism, every warning names an action. Four
-anti-references: marketing-speak, enterprise/compliance tone, cutesy, and raw developer
-output. Never let a library name or an internal type name reach the screen.
+## General rules
 
-The short version of DESIGN.md: **"The Contact Sheet."** No type above 13px, no shadows,
-1px borders, colour only ever reports a state. Dark mode is a nine-variable swap.
+Run `bun run check` to execute format, lint, typecheck, and test. Run it before calling
+anything done.
 
-## Rules that cost real time when broken
+Run `bun run app` to check the built view bundle.
 
-**The view boundary is enforced by lint, not convention.** `src/webview/` and
-`src/shared/` may not value-import from `src/pipeline/`, `src/bun/`, `src/cli/`,
-`src/host/`, or `node:*`. Type-only imports are fine. This has broken twice, and both times
-the symptom was *"drag and drop doesn't work"* — the module died on load and took the drop
-guards with it. If you need a constant in the view, move it to `src/shared/`; if it needs
-host code, it belongs in `src/host/`.
+## Language rules
 
-**The webview is served as a classic script**, not a module. Top-level await is a syntax
-error there. Use an async IIFE. `format: 'iife'` in `electrobun.config.ts` is what pins
-this, and `bun run check:bundle` parses the built view to prove it.
+- When writing something intended for human consumption, (comment, commit message, reply to prompt) use as few words as possible. Pick every word meticulously to reduce the volume to a strict minimum. Be down to the point. Less is more.
 
-**The Electrobun SDK is not in `node_modules`.** Electrobun 2 ships a bootstrap package;
-Hutch projects the real SDK into `.hutch/devkit` (gitignored) and `tsconfig.json` maps the
-`electrobun/*` specifiers onto it by hand — the devkit's own generated tsconfig maps with
-`baseUrl`, which TypeScript 7 removed. After a fresh clone or an `electrobun` version bump,
-run `bunx electrobun prepare`; every build does it implicitly. `test/devkit-paths.test.ts`
-holds those hand-written paths to the devkit's export map.
+- Avoid superlatives and praise. Stop telling me I am absolutely right. Give me the cold hard truth.
 
-**The shipped main process is Cottontail, not Bun.** `build.mainProcess` selects it, and
-the `src/bun/` directory name is historical. Cottontail is Bun-compatible enough to have
-run this app unchanged — `bun:ffi` included — but it is a different JSC-based runtime, so
-anything reaching for a Bun-only API in `src/bun/` needs checking there. `bun run cli` and
-the test suite still run on Bun, so a green `bun test` is not by itself evidence about the
-shipped runtime; `bun run app` builds what actually ships.
+## Code rules
 
-**Ask Electrobun for the display, never Windows.** `Screen.getPrimaryDisplay()` reports
-`bounds` and `workArea` in points and a separate `scaleFactor`. The app used to read
-user32 through `bun:ffi` instead, which returned physical pixels and knew nothing about the
-taskbar. Points are what `BrowserWindow` wants, so nothing needs converting.
+- Avoid magic numbers and strings by extracting recurring or meaningful values into descriptive constants (const) or enums. Keep self-explanatory, one-off values inline to avoid clutter. If a value comes from a spec (e.g. HTTP 200 OK), use a constant regardless.
 
-**`src/pipeline/` must stay pure** — no `node:fs`, no `node:path`, no Electrobun, and
-nothing from `src/bun/`. The caller supplies the WASM bytes. `test/pipeline-purity.test.ts`
-enforces exactly that list. This is what lets the golden hashes run headless, and they are
-the only thing standing between a 4px Safe Zone error and someone's clipped logo.
+- Add a small, to the point, comment to explain *what* the block does and *why*. Use examples when possible. Propose ASCII drawings to explain complete systems.
 
-`node:crypto` is allowed and used, for `hashSource`. `Bun.CryptoHasher` is ~18% faster and
-would also pass the test, but it pins the pipeline to one runtime to save 0.06 ms once per
-generate. That trade paid off: the main process moved to Cottontail and all 126 golden
-hashes were byte-identical, because nothing in the render path was Bun-specific.
+- Treat member visibility changes as a breaking design shift. Keep all fields and functions private unless external access is strictly required by the design. Prompt the user for explicit approval before changing any access modifier from private to internal or public.
 
-Prefer `node:` builtins in `src/pipeline/`, `src/host/`, and `src/bun/` — **`src/bun/` runs
-on Cottontail, not Bun**, whatever the directory is called. `src/cli/`, `scripts/`, and
-tests do run on Bun and may use `Bun.*` freely.
+- Program to levels of abstraction. Lower-level mechanics must be encapsulated in a dedicated abstraction layer. Expose clean, high-level APIs to the rest of the application so calling code works with domain concepts, not raw implementation details.
+
+- Don't touch blocks of code unrelated to the feature you implement. e.g. Don't add comments to a block of code if you did not create it or modify it. As much as possible try to minimize the number of changed lines when implementing a feature.
+
+- Strictly adhere to the layered boundary hierarchy: each layer may only communicate with its immediate neighbor directly below it. Never "punch holes" through layers (e.g., controllers or UI components must never directly call database queries, or low-level network clients; always route through the intermediate service/abstraction layer).
+
+## Commit rules
+
+When you write a commit message, follow these 7 rules:
+Rule 1: Follow conventional commit syntax for Release Please:
+        - `fix:` creates a patch release, `feat:` a minor release
+        - `docs:`, `chore:`, or `ci:` for non-releasable changes
+Rule 2: Limit the subject line to 50 characters (72 is the absolute hard limit).
+Rule 3: Capitalize the first letter of the subject line.
+Rule 4: Do not end the subject line with a period.
+Rule 5: Use the imperative mood in the subject line (e.g., "Fix bug," "Add feature,"
+        not "Fixed" or "Adds"). Test formula: It must complete the sentence: "If applied,
+        this commit will [your subject line here]".
+Rule 6: Wrap the body text manually at 72 characters to prevent Git formatting issues.
+Rule 7: Use the body to explain what and why vs. how. Assume the code explains the how;
+        the message must explain the context and reasoning.
+
+## Project rules
+
+**The Electrobun SDK is not in `node_modules`.** Hutch projects it into `.hutch/devkit`
+(gitignored) and `tsconfig.json` maps `electrobun/*` by hand, because the devkit's own
+tsconfig uses `baseUrl`, which TypeScript 7 removed. After a fresh clone or version bump run
+`bunx electrobun prepare` (builds do it implicitly). `test/devkit-paths.test.ts` holds those
+paths.
+
+**`src/pipeline/` must stay pure** — no `node:fs`, no `node:path`, no Electrobun, nothing
+from `src/bun/`; the caller supplies the WASM bytes. `test/pipeline-purity.test.ts` enforces
+that list. Purity is what lets the golden hashes run headless, and they are the only thing
+standing between a 4px Safe Zone error and someone's clipped logo. `node:crypto` is allowed
+(`hashSource`); `Bun.CryptoHasher` is ~18% faster but would pin the pipeline to one runtime
+to save 0.06 ms per generate — the trade paid off when the main process moved to Cottontail
+and all 126 golden hashes stayed byte-identical. Prefer `node:` builtins in `src/pipeline/`,
+`src/host/`, and `src/bun/`; `src/cli/`, `scripts/`, and tests run on Bun and may use `Bun.*`.
 
 **Never regenerate golden hashes to make a red suite green.** `bun run goldens` is for when
 you have decided the output *should* change.
 
-**`bun run check` is the gate**: format, lint (incl. type-aware), typecheck, test. Run it
-before saying anything is done. `bun run app` additionally checks the built view bundle,
-which catches what lint cannot — bulk arriving from dependencies.
-
-**Release plumbing is `chore:` or `ci:`, never `fix:` or `feat:`.** Release Please reads
-these commits, so `fix:` cuts a patch and `feat:` a minor. A workflow, `release-please-config.json`,
-or `.oxfmtrc.json` change that ships no application code still produced a spurious 0.2.1
-this way. Ask whether the change alters what users run: if it only alters how the project is
-built, checked, or released, it is not a `fix`. `docs:` is safe — non-releasable, no
-changelog entry. There is no correcting this after the fact; `main` sets `non_fast_forward`
-and `required_linear_history`, so the version is cut and stays cut.
-
-**No non-null assertions.** `noUncheckedIndexedAccess` is on and `!` cancels it out. For
-indexed reads into pixel buffers write `buf[i] ?? 0` — the fallback is unreachable when the
-index is in range by construction, and for an alpha probe it also happens to mean exactly
-the right thing.
-
 ## Things that look like bugs and are not
 
-- **`process.cwd()` is `bin/`**, not the app root. Resolve bundled assets from
-  `import.meta.dir`.
+- **`process.cwd()` is `bin/`.** Resolve bundled assets from `import.meta.dir`.
 - **`process.on('beforeExit')` never fires** — Electrobun's quit path calls `forceExit`.
   Persist on change instead.
 - **`BrowserWindow` has no resize or move event.** That is why the window frame is computed
@@ -130,9 +113,7 @@ the right thing.
 
 ## Verify, don't assume
 
-This codebase was built by measuring: the alpha scan replaced `getBBox()` because
-`getBBox()` was measured reporting a mark at 13.4% instead of 80.6%; the Safe Zone became a
-circle because a fixture was measured escaping the box; `react-aria-components` was rejected
-because it was measured at +170 kB. When a number matters, get it rather than estimate it —
-and prefer deriving counts in code over typing them into prose, because a number in a
-sentence has no test behind it.
+This codebase was built by measuring: the alpha scan replaced `getBBox()` (measured reporting
+a mark at 13.4% instead of 80.6%); the Safe Zone became a circle after a fixture was measured
+escaping the box; `react-aria-components` was rejected at +170 kB. Get the number rather than
+estimate it, and prefer deriving counts in code — a number in a sentence has no test behind it.

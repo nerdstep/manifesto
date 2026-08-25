@@ -19,6 +19,19 @@
   "rules": {
     "curly": ["error", "all"],
 
+    "id-length": ["error", { "min": 1, "max": 36 }],
+
+    "no-magic-numbers": [
+      "off",
+      {
+        "enforceConst": true,
+        "ignoreArrayIndexes": true,
+        "ignoreEnums": true,
+        "ignoreNumericLiteralTypes": true,
+        "ignoreTypeIndexes": true
+      }
+    ],
+
     // ON, deliberately. `!` asserts something the compiler cannot check, which
     // is the exact thing `noUncheckedIndexedAccess` exists to prevent — using
     // one to silence the other cancels out the setting.
@@ -93,7 +106,8 @@
       "files": ["test/**"],
       "rules": {
         "eslint/max-lines": "off",
-        "import/max-dependencies": "off"
+        "import/max-dependencies": "off",
+        "no-magic-numbers": "off"
       }
     },
     {
@@ -167,6 +181,39 @@
               {
                 "group": ["node:*"],
                 "message": "src/shared is imported by the webview, where Node builtins cannot resolve."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // The shipped main process is Cottontail, not Bun — `src/bun/` is a historical
+      // directory name. Cottontail is Bun-compatible enough to have run this app
+      // unchanged, but it is a different JSC-based runtime, and `bun test` runs on Bun,
+      // so a green suite is no evidence at all about the code that actually ships.
+      // `src/cli/`, `scripts/` and `test/` do run on Bun and are not covered here.
+      "files": ["src/pipeline/**", "src/host/**", "src/bun/**"],
+      "rules": {
+        "no-restricted-globals": [
+          "error",
+          {
+            "name": "Bun",
+            "message": "This code runs on Cottontail, not Bun, whatever `src/bun/` is called. Use a `node:` builtin instead — `bun test` passes either way, so nothing else will catch this."
+          }
+        ],
+
+        // The app used to read the display out of user32 through `bun:ffi`, which
+        // returns physical pixels and knows nothing about the taskbar. Electrobun's
+        // `Screen.getPrimaryDisplay()` reports points, which is what `BrowserWindow`
+        // wants, so nothing needs converting.
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "bun:ffi",
+                "message": "Ask Electrobun for the display, never Windows: `Screen.getPrimaryDisplay()` gives bounds and workArea in points plus a scaleFactor. user32 through FFI returns physical pixels and ignores the taskbar."
               }
             ]
           }
