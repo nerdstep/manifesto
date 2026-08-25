@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/nerdstep/manifesto/compare/v0.3.0...v0.4.0) (2026-08-25)
+
+
+### Features
+
+* Recolor a one-color logo for light and dark ([#13](https://github.com/nerdstep/manifesto/issues/13)) ([0c5458a](https://github.com/nerdstep/manifesto/commit/0c5458a2da7b74714ad6d9e274510b075e8c8096))
+
 ## [0.3.0](https://github.com/nerdstep/manifesto/compare/v0.2.1...v0.3.0) (2026-08-24)
 
 
