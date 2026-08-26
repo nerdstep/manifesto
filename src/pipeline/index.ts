@@ -2,7 +2,7 @@
 
 import { createHash } from 'node:crypto'
 
-import { buildFaviconSvg, buildWebManifest, packIco } from './assemble.ts'
+import { buildFaviconSvg, buildSchemeFaviconSvg, buildWebManifest, packIco } from './assemble.ts'
 import { compose, markFor } from './compose.ts'
 import { inferColors, INFERENCE_PROBE_SIZE, inferNames } from './infer.ts'
 import type { NormalizedMark } from './normalize.ts'
@@ -10,7 +10,7 @@ import { isWordmark, measureMark, normalize } from './normalize.ts'
 import { optimize, PIXEL_DRIFT_THRESHOLD, pixelDriftPercent } from './optimize.ts'
 import type { PixelBuffer } from './rasterize.ts'
 import { initializeOnce, rasterize, rasterizeToPixels } from './rasterize.ts'
-import { ICO_MEMBERS, PNG_RENDITIONS, renditionBackground } from './renditions.ts'
+import { ICO_MEMBERS, PNG_RENDITIONS, renditionBackground, renditionFit } from './renditions.ts'
 import { canRecolor, inferColorPair, resolveScheme } from './scheme.ts'
 import type {
   Advisory,
@@ -27,8 +27,16 @@ import type {
 } from './types.ts'
 import { validate } from './validate.ts'
 
-export { buildFaviconSvg, buildWebManifest, HEAD_SNIPPET, packIco } from './assemble.ts'
+export type { FaviconSurfaces } from './assemble.ts'
 export {
+  buildFaviconSvg,
+  buildSchemeFaviconSvg,
+  buildWebManifest,
+  HEAD_SNIPPET,
+  packIco,
+} from './assemble.ts'
+export {
+  backdrop,
   canvas,
   compose,
   composeInner,
@@ -54,8 +62,10 @@ export {
   FAVICON_SVG_TREATMENT,
   ICO_MEMBER_SIZES,
   ICO_MEMBERS,
+  OPAQUE_INSET,
   PNG_RENDITIONS,
   renditionBackground,
+  renditionFit,
   SAFE_ZONE_DIAMETER,
   SINGLE_SCHEME_FILENAMES,
   WORDMARK_ASPECT_THRESHOLD,
@@ -108,6 +118,11 @@ function renderRenditions(
   const files = new Map<string, Uint8Array>()
   const surfaceFor = (treatment: Treatment): Hex | null =>
     renditionBackground(treatment, iconBackground, opaque)
+  // An opaque Rendition keeps a margin, so the fit follows the background.
+  const fitted = (treatment: Treatment): Treatment => ({
+    ...treatment,
+    fit: renditionFit(treatment, opaque),
+  })
 
   for (const { filename, treatment } of PNG_RENDITIONS) {
     if (filename === null) {
@@ -115,11 +130,11 @@ function renderRenditions(
     }
     const background = surfaceFor(treatment)
     const mark = markFor(source, dark, background)
-    files.set(filename, rasterize(compose(mark, treatment, background), treatment.size))
+    files.set(filename, rasterize(compose(mark, fitted(treatment), background), treatment.size))
   }
 
   const icoMembers = ICO_MEMBERS.map(({ treatment }) =>
-    rasterize(compose(source, treatment, surfaceFor(treatment)), treatment.size),
+    rasterize(compose(source, fitted(treatment), surfaceFor(treatment)), treatment.size),
   )
 
   return { files, icoMembers }
@@ -155,11 +170,20 @@ function render(sourceSvg: string, darkSvg: string | null, settings: RenderSetti
   )
 
   files.set('favicon.ico', packIco(icoMembers))
-  files.set('favicon.svg', encoder.encode(buildFaviconSvg(source.mark, dark)))
+  const surfaces = scheme.surfaces
+  files.set('favicon.svg', encoder.encode(buildFaviconSvg(source.mark, dark, surfaces)))
   if (dark !== null) {
-    // Single-scheme hand-off files; referenced by nothing (ADR 0004).
-    files.set('favicon-light.svg', encoder.encode(buildFaviconSvg(source.mark, null)))
-    files.set('favicon-dark.svg', encoder.encode(buildFaviconSvg(dark, null)))
+    // Single-scheme hand-off files; referenced by nothing (ADR 0004). A recolored
+    // mark carries its own surface here too, since these go where nothing
+    // switches scheme — a README badge, a profile picture, print.
+    files.set(
+      'favicon-light.svg',
+      encoder.encode(buildSchemeFaviconSvg(source.mark, surfaces?.light ?? null)),
+    )
+    files.set(
+      'favicon-dark.svg',
+      encoder.encode(buildSchemeFaviconSvg(dark, surfaces?.dark ?? null)),
+    )
   }
 
   return {

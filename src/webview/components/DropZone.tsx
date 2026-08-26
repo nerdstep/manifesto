@@ -1,7 +1,14 @@
-import { useState } from 'preact/hooks'
+import { useEffect, useState } from 'preact/hooks'
 
 import { HEAD_SNIPPET_TAG_COUNT, ICON_FILENAMES } from '../../shared/bundle.ts'
-import { Caption } from './ui.tsx'
+import type { Backdrop } from '../source-backdrop.ts'
+import { BACKDROPS } from '../source-backdrop.ts'
+import { Caption, Pill } from './ui.tsx'
+
+const BACKDROP_CLASS: Record<Backdrop, string> = {
+  ground: 'signal-grid bg-bg',
+  light: 'bg-white',
+}
 
 type Props = {
   onFile: (file: File) => Promise<void>
@@ -9,6 +16,12 @@ type Props = {
   busy: boolean
   filename: string | null
   sourceSvg: string | null
+  /**
+   * The backdrop to open on, from the mark's own darkness. A black mark on
+   * transparency is invisible on the Ground, which is the whole reason this
+   * control exists.
+   */
+  suggestedBackdrop: Backdrop
 }
 
 /**
@@ -19,9 +32,22 @@ function sourceUri(svg: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
-export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props) {
+export function DropZone({
+  onFile,
+  onChoose,
+  busy,
+  filename,
+  sourceSvg,
+  suggestedBackdrop,
+}: Props) {
   const [over, setOver] = useState(false)
   const [rejected, setRejected] = useState(false)
+  const [picked, setPicked] = useState<Backdrop | null>(null)
+
+  // A new logo re-opens on the backdrop that suits it.
+  useEffect(() => {
+    setPicked(null)
+  }, [sourceSvg])
 
   function handleDrop(event: DragEvent) {
     event.preventDefault()
@@ -49,6 +75,10 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
   }
 
   const loaded = filename !== null
+  const showingSource = sourceSvg !== null && !busy && !rejected
+  // The empty and rejected states put Ink on the well, so only the source
+  // preview leaves the Ground.
+  const backdrop: Backdrop = showingSource ? (picked ?? suggestedBackdrop) : 'ground'
 
   return (
     <>
@@ -100,8 +130,10 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
           </span>
         </div>
 
-        <div class="signal-grid grid min-h-40 grow place-items-center rounded-lg bg-bg p-4">
-          {sourceSvg !== null && !busy && !rejected ? (
+        <div
+          class={`grid min-h-40 grow place-items-center rounded-lg p-4 ${BACKDROP_CLASS[backdrop]}`}
+        >
+          {showingSource ? (
             <img
               src={sourceUri(sourceSvg)}
               alt={`${filename ?? 'The logo'}, as supplied`}
@@ -126,9 +158,42 @@ export function DropZone({ onFile, onChoose, busy, filename, sourceSvg }: Props)
         </div>
 
         {loaded && (
-          <Caption class="mt-2.5 block text-dim">Drop another SVG or click to replace</Caption>
+          <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2">
+            <Caption class="text-dim">Drop another SVG or click to replace</Caption>
+
+            {/* Kept mounted while rendering: unmounting the pills shortens this
+                row by their height, and the whole pane jumps mid-render. */}
+            <div
+              class={`flex shrink-0 items-center gap-1.5 ${showingSource ? '' : 'invisible'}`}
+              role="group"
+              aria-label="Preview backdrop"
+              aria-hidden={!showingSource}
+              // The pane is itself a button, so a pill inside it must not also
+              // open the file picker.
+              onClick={(event) => {
+                event.stopPropagation()
+              }}
+              onKeyDown={(event) => {
+                event.stopPropagation()
+              }}
+            >
+              {BACKDROPS.map((option) => (
+                <Pill
+                  key={option}
+                  selected={backdrop === option}
+                  tabIndex={showingSource ? undefined : -1}
+                  onClick={() => {
+                    setPicked(option)
+                  }}
+                >
+                  {option}
+                </Pill>
+              ))}
+            </div>
+          </div>
         )}
       </div>
+
       <span id="source-file-status" class="sr-only" role="status" aria-live="polite">
         {rejected ? "That file isn't an SVG. Export your logo as SVG and try again." : ''}
       </span>

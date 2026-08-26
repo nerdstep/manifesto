@@ -6,8 +6,10 @@ import type { Pipeline, Settings } from '../src/pipeline/index.ts'
 import {
   canRecolor,
   ICO_MEMBERS,
+  OPAQUE_INSET,
   PNG_RENDITIONS,
   renditionBackground,
+  renditionFit,
   resolveScheme,
   SINGLE_SCHEME_FILENAMES,
 } from '../src/pipeline/index.ts'
@@ -17,6 +19,8 @@ import { defaultSettings, fixture, testPipeline } from './helpers.ts'
 const PAIR = { mark: '#F4F6F8', surface: '#101418' } as const
 
 const recolored: Settings = { ...defaultSettings, colorPair: PAIR, primaryScheme: 'dark' }
+
+const backdrop = (fill: string) => `<rect width="1000" height="1000" fill="${fill}"/>`
 
 let pipeline: Pipeline
 beforeAll(async () => {
@@ -132,6 +136,37 @@ describe('renditionBackground', () => {
   })
 })
 
+describe('renditionFit', () => {
+  const treatments = [...PNG_RENDITIONS, ...ICO_MEMBERS].map((spec) => spec.treatment)
+
+  test('leaves every fit alone while the Renditions stay transparent', () => {
+    for (const treatment of treatments) {
+      expect(renditionFit(treatment, false)).toEqual(treatment.fit)
+    }
+  })
+
+  test('gives a full-bleed Rendition a margin once it is opaque', () => {
+    const fullBleed = treatments.filter(
+      (treatment) => treatment.fit.mode === 'box' && treatment.fit.inset === 0,
+    )
+    expect(fullBleed.length).toBeGreaterThan(0)
+    for (const treatment of fullBleed) {
+      expect(renditionFit(treatment, true)).toEqual({ mode: 'box', inset: OPAQUE_INSET })
+    }
+  })
+
+  test('never shrinks a margin a Rendition already reserves', () => {
+    for (const treatment of treatments) {
+      const fit = renditionFit(treatment, true)
+      if (treatment.fit.mode === 'circle') {
+        expect(fit).toEqual(treatment.fit)
+      } else {
+        expect(fit.mode === 'box' && fit.inset).toBeGreaterThanOrEqual(treatment.fit.inset)
+      }
+    }
+  })
+})
+
 describe('the Asset Bundle', () => {
   test('is byte-identical when no Color Pair is set', () => {
     const before = build('monochrome', defaultSettings)
@@ -151,6 +186,41 @@ describe('the Asset Bundle', () => {
     const files = [...build('multicolor', recolored).files.keys()]
     for (const filename of SINGLE_SCHEME_FILENAMES) {
       expect(files).not.toContain(filename)
+    }
+  })
+
+  test('a recolored single-scheme SVG carries the surface it was painted for', () => {
+    // These go where nothing switches scheme, so each must stand on its own.
+    const files = build('monochrome', recolored).files
+    const read = (name: string) => new TextDecoder().decode(files.get(name))
+
+    expect(read('favicon-light.svg')).toContain(`fill="${PAIR.mark}"`)
+    expect(read('favicon-dark.svg')).toContain(`fill="${PAIR.surface}"`)
+  })
+
+  test('the dual favicon brings a surface into each half', () => {
+    // One surface per scheme group, so whichever half the visitor gets is a
+    // tile — the same tile `favicon.ico` already is.
+    const svg = new TextDecoder().decode(build('monochrome', recolored).files.get('favicon.svg'))
+
+    expect(svg).toContain(`class="mfo-light">${backdrop(PAIR.mark)}`)
+    expect(svg).toContain(`class="mfo-dark">${backdrop(PAIR.surface)}`)
+    // The scheme switch is what this file is for; it survives the surfaces.
+    expect(svg).toContain('prefers-color-scheme')
+  })
+
+  test('a supplied Dark Mark leaves the dual favicon transparent', () => {
+    const files = build('monochrome', defaultSettings, fixture('light-mark')).files
+    expect(new TextDecoder().decode(files.get('favicon.svg'))).not.toContain('<rect')
+  })
+
+  test('a supplied Dark Mark leaves the single-scheme SVGs transparent', () => {
+    // Recolor is off, so neither mark was painted for a surface of ours.
+    const files = build('monochrome', defaultSettings, fixture('light-mark')).files
+    const read = (name: string) => new TextDecoder().decode(files.get(name))
+
+    for (const filename of SINGLE_SCHEME_FILENAMES) {
+      expect(read(filename)).not.toContain('<rect')
     }
   })
 

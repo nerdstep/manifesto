@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'preact/hooks'
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 import {
   Button,
@@ -15,10 +15,12 @@ import {
   WindowResizeHandles,
 } from './components/index.ts'
 import { bun } from './rpc.ts'
+import { sourceBackdrop } from './source-backdrop.ts'
 import { useAssetBundleSession } from './use-asset-bundle-session-runtime.ts'
 
 export function App() {
   const [outputRoot, setOutputRoot] = useState('Loading...')
+  const viewport = useRef<HTMLDivElement | null>(null)
   const {
     snapshot,
     intentError,
@@ -57,11 +59,29 @@ export function App() {
         ? snapshot.attempt.previousError
         : null
 
+  // `refreshViewport` nudges the native window a point and back, which is
+  // visible. It exists for one thing — WebView2 not repainting its scrollbar —
+  // so it fires only when the scrollbar actually comes or goes, not on every
+  // commit. Every settings edit commits a Bundle.
+  const scrolls = useRef(false)
   useEffect(() => {
-    if (bundle !== null) {
+    const scroller = viewport.current
+    if (bundle === null || scroller === null) {
+      return
+    }
+    const overflows = scroller.scrollHeight > scroller.clientHeight
+    if (overflows !== scrolls.current) {
+      scrolls.current = overflows
       void bun().request.refreshViewport()
     }
   }, [bundle])
+
+  // The seed's `surface` is the Source Mark's own paint, and it is computed the
+  // moment the file lands — before the first render has inferred anything.
+  const backdrop = sourceBackdrop(
+    session?.colorPairSeed?.surface ?? null,
+    session?.settings?.iconBackground ?? null,
+  )
 
   const reveal = useCallback(async () => {
     if (written !== null) {
@@ -73,7 +93,7 @@ export function App() {
     <div class="flex h-screen min-h-0 flex-col overflow-hidden">
       <WindowChrome />
 
-      <div class="app-viewport min-h-0 flex-1 overflow-y-auto">
+      <div ref={viewport} class="app-viewport min-h-0 flex-1 overflow-y-auto">
         <main class="mx-auto max-w-6xl p-7">
           <header class="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-line pb-5">
             <h1 class="text-display text-ink lowercase">manifesto</h1>
@@ -89,6 +109,7 @@ export function App() {
               busy={snapshot.attempt.kind === 'working' && bundle === null}
               filename={session?.filename ?? null}
               sourceSvg={session?.sourceSvg ?? null}
+              suggestedBackdrop={backdrop}
             />
             <PipelineStrip
               state={
