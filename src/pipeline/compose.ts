@@ -41,15 +41,17 @@ export function composeInner(mark: NormalizedMark, treatment: Treatment): string
   return `<g transform="translate(${n(tx)} ${n(ty)}) scale(${n(scale)})">${mark.nestable}</g>`
 }
 
-export function canvas(body: string, background: Hex | null): string {
-  const backdrop =
-    background === null
-      ? ''
-      : `<rect width="${CANONICAL_SIZE}" height="${CANONICAL_SIZE}" fill="${background}"/>`
+/** The full-canvas fill a Rendition sits on, or nothing when it stays transparent. */
+export function backdrop(background: Hex | null): string {
+  return background === null
+    ? ''
+    : `<rect width="${CANONICAL_SIZE}" height="${CANONICAL_SIZE}" fill="${background}"/>`
+}
 
+export function canvas(body: string, background: Hex | null): string {
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${CANONICAL_SIZE} ${CANONICAL_SIZE}">` +
-    backdrop +
+    backdrop(background) +
     body +
     `</svg>`
   )

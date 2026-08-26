@@ -4,6 +4,7 @@ import icoEndec from 'ico-endec'
 
 import {
   buildFaviconSvg,
+  buildSchemeFaviconSvg,
   buildWebManifest,
   HEAD_SNIPPET,
   packIco,
@@ -14,6 +15,7 @@ import {
   BUNDLE_FILENAMES,
   ICO_MEMBER_SIZES,
   ICO_MEMBERS,
+  OPAQUE_INSET,
   PNG_RENDITIONS,
 } from '../src/pipeline/renditions.ts'
 import type { FixtureName } from './helpers.ts'
@@ -44,6 +46,10 @@ function icoOf(name: FixtureName) {
   )
 }
 
+function scaleOf(svg: string): number {
+  return Number(/scale\(([\d.]+)\)/u.exec(svg)?.[1])
+}
+
 function dualFavicon() {
   return buildFaviconSvg(
     pipeline.normalize(fixture('square-tight')),
@@ -69,6 +75,20 @@ describe('packIco', () => {
     const entries = icoEndec.decode(Buffer.from(icoOf('square-padded')))
     expect(entries.map((e) => e.width)).toEqual([...ICO_MEMBER_SIZES])
     expect(entries.map((e) => e.height)).toEqual([...ICO_MEMBER_SIZES])
+  })
+
+  test('declares its members truecolor, not 256-color', () => {
+    // `wBitCount` is bits per *pixel*: 8-bit RGBA is 32. Consumers that pick a
+    // member by declared depth misread an 8 there.
+    const ico = Buffer.from(icoOf('square-tight'))
+    const ICO_HEADER_BYTES = 6
+    const ICO_ENTRY_BYTES = 16
+    const ICO_BIT_COUNT_OFFSET = 6
+
+    for (let entry = 0; entry < ICO_MEMBER_SIZES.length; entry += 1) {
+      const offset = ICO_HEADER_BYTES + entry * ICO_ENTRY_BYTES + ICO_BIT_COUNT_OFFSET
+      expect(ico.readUInt16LE(offset)).toBe(32)
+    }
   })
 
   test('refuses to build an empty icon', () => {
@@ -106,6 +126,22 @@ describe('buildFaviconSvg — single mark', () => {
   test('has no opaque backdrop — it sits on browser tab chrome', () => {
     expect(buildFaviconSvg(pipeline.normalize(fixture('square-tight')), null)).not.toContain(
       '<rect',
+    )
+  })
+
+  test('takes a surface when one is supplied, for use outside a browser', () => {
+    const svg = buildSchemeFaviconSvg(pipeline.normalize(fixture('square-tight')), '#0000FF')
+    expect(svg).toContain('<rect width="1000" height="1000" fill="#0000FF"/>')
+  })
+
+  test('keeps the mark off the edge once it has a surface', () => {
+    // The same margin the opaque PNGs take, for the same reason.
+    const mark = pipeline.normalize(fixture('square-tight'))
+
+    expect(scaleOf(buildSchemeFaviconSvg(mark, '#0000FF'))).toBeCloseTo(
+      // The composed transform is rounded to four decimals before it is written.
+      scaleOf(buildSchemeFaviconSvg(mark, null)) * (1 - 2 * OPAQUE_INSET),
+      3,
     )
   })
 })

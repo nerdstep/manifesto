@@ -60,6 +60,26 @@ export function renditionBackground(
   return opaque || treatment.background !== null ? iconBackground : null
 }
 
+/**
+ * The margin an opaque Rendition keeps around the mark. A transparent PNG is
+ * placed by the platform, so it fills its box; an opaque one is the tile the
+ * user sees, and a full-bleed mark touching a colored edge reads as a crop.
+ * Matches the inset `apple-touch-icon.png` already carries.
+ */
+export const OPAQUE_INSET = 0.1
+
+/**
+ * Widen an insetless box fit once the Rendition becomes opaque. A `circle`
+ * fit already reserves its own margin, and an inset above the floor is a
+ * deliberate choice this must not shrink.
+ */
+export function renditionFit(treatment: Treatment, opaque: boolean): Treatment['fit'] {
+  if (!opaque || treatment.fit.mode !== 'box') {
+    return treatment.fit
+  }
+  return { mode: 'box', inset: Math.max(treatment.fit.inset, OPAQUE_INSET) }
+}
+
 export const FAVICON_SVG_TREATMENT: RenditionSpec['treatment'] = {
   size: CANONICAL_SIZE,
   background: null,

@@ -17,6 +17,11 @@ export type ResolvedScheme = {
   dark: string | null
   /** Set to the Primary Scheme's surface when recolor is active. */
   iconBackground: Hex
+  /**
+   * The surface each Derived Mark was painted for, or null when recolor is off.
+   * `iconBackground` is the Primary Scheme's half of this.
+   */
+  surfaces: { light: Hex; dark: Hex } | null
   /** Which mark the rasters and `favicon.ico` use. */
   primary: Scheme
   /**
@@ -58,6 +63,7 @@ export function resolveScheme(
     light: sourceSvg,
     dark: darkSvg,
     iconBackground: settings.iconBackground,
+    surfaces: null,
     primary: 'light',
     opaque: false,
     derived: false,
@@ -71,10 +77,13 @@ export function resolveScheme(
   const primary = settings.primaryScheme ?? 'light'
 
   // Dark paints the mark in `mark` on `surface`; light is the swap.
+  const surfaces = { light: pair.mark, dark: pair.surface }
+
   return {
     light: recolor(sourceSvg, pair.surface),
     dark: recolor(sourceSvg, pair.mark),
-    iconBackground: primary === 'dark' ? pair.surface : pair.mark,
+    iconBackground: surfaces[primary],
+    surfaces,
     primary,
     opaque: true,
     derived: true,
