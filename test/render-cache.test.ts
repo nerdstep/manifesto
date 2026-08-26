@@ -59,6 +59,24 @@ describe('createRenderCache', () => {
     expect(stub.calls()).toBe(2)
   })
 
+  test('re-renders a Color Pair edit that leaves Icon Background alone', () => {
+    // Light paints the mark in `surface` on `mark`, so editing the color the
+    // light Renditions actually use never moves Icon Background.
+    const stub = counting()
+    const cached = createRenderCache(stub.render)
+    const recolored: RenderSettings = {
+      ...RENDER,
+      colorPair: { mark: '#FFFFFF', surface: '#111111' },
+      primaryScheme: 'light',
+    }
+
+    cached('<svg/>', null, recolored)
+    cached('<svg/>', null, { ...recolored, colorPair: { mark: '#FFFFFF', surface: '#0000FF' } })
+    cached('<svg/>', null, { ...recolored, primaryScheme: 'dark' })
+
+    expect(stub.calls()).toBe(3)
+  })
+
   test('holds one entry, so alternating inputs always render', () => {
     // Retain only the active source's rendered bytes.
     const stub = counting()
