@@ -312,6 +312,12 @@ and an `SVG` pill above, a syntax-highlighted peek below.
 - **Resting:** Line Strong dashed border, Muted text.
 - **Hover / drag-over:** Signal Cyan border, 7% cyan fill.
 - **Focus:** cyan border plus the focus ring, `:focus-visible` only.
+- **Backdrop pills** sit inside the pane, on the caption row under the well, and switch it
+  between Ground and white. The mark arrives with unknown paint on transparency, and a
+  black one on the Ground is invisible; the well opens on the side the mark's own paint
+  calls for. They stop their own click and key events, because the pane around them is
+  itself a button. Empty and rejected states are always Ground — the copy in the well is
+  Ink.
 - It carries `role="button"` and `tabIndex={0}` and opens the native picker on Enter, Space
   or click. A drop needs a pointer, so this is the only keyboard route into the app.
 
