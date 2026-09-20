@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/nerdstep/manifesto/compare/v0.5.0...v0.6.0) (2026-09-20)
+
+
+### Features
+
+* add rounded corners toggle ([#17](https://github.com/nerdstep/manifesto/issues/17)) ([10c6474](https://github.com/nerdstep/manifesto/commit/10c64741c1a4b984ee3139d2a5c49b02db8d860e))
+
 ## [0.5.0](https://github.com/nerdstep/manifesto/compare/v0.4.0...v0.5.0) (2026-08-26)
 
 
