@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/nerdstep/manifesto/compare/v0.4.0...v0.5.0) (2026-08-26)
+
+
+### Features
+
+* Recolor polish ([#15](https://github.com/nerdstep/manifesto/issues/15)) ([cfec48f](https://github.com/nerdstep/manifesto/commit/cfec48f2716f7c79d28a917e58a7c13ea021d924))
+
 ## [0.4.0](https://github.com/nerdstep/manifesto/compare/v0.3.0...v0.4.0) (2026-08-25)
 
 
