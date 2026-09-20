@@ -76,15 +76,25 @@ regardless of how the SVG was exported.
 _Avoid_: cropping, fitting, trimming (on their own)
 
 **Treatment**:
-The background and padding rule applied to a Normalized mark for one specific
+The background, padding, and optional rounding applied to a Normalized mark for one specific
 Rendition. Some Treatments are forced by platform behavior (apple-touch must be
 opaque; maskable must respect the Safe Zone); others are the app's choice.
 
 **Color Pair**:
-The two colors a monochrome Source Mark is recolored with. Each scheme paints the
+The saved pair of colors used to recolor a monochrome Source Mark. Each scheme paints the
 mark in one and the surface in the other, so the pair is a swap, not two independent
 choices.
 _Avoid_: palette, theme, colors
+
+**Recolor**:
+The optional treatment that derives light and dark marks from a Color Pair.
+A saved Color Pair can remain available while Recolor is inactive.
+
+**Rounded Corners**:
+The optional, fixed squircle outline of a recolored Rendition's surface, with
+transparency outside the curve. Distinct from the platform mask applied to an
+Apple-touch or maskable Rendition.
+_Avoid_: corner radius, launcher mask (when describing the generated shape)
 
 **Derived Mark**:
 A Source Mark recolored to one half of a Color Pair. Two exist whenever recolor is

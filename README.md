@@ -47,16 +47,21 @@ your HTML.
 
 ## Two-color icons
 
-A logo painted in one color can be recolored instead of needing a second file. You pick a
-dark-mode logo color and a dark-mode background, and light mode swaps the two.
+If your logo uses a single color and you haven't supplied a separate dark-mode file,
+enable **Recolor this logo** to create both versions. Choose a logo color and a background
+for either mode; the other mode swaps them.
 
-No PNG format and no manifest field selects an icon by color scheme, so you also pick which
-mode the PNG and ICO files use. Those files then become opaque, because a logo painted for
-one background is illegible on the other. `favicon.svg` still carries both.
+`favicon.svg` switches with the visitor's light or dark mode. PNG and ICO files use the
+mode you select in Manifesto, with its background included to keep the logo readable.
 
-Recoloring stays off until you turn it on, and it is offered only for a logo that uses one
-color. A multicolor logo would be flattened to a silhouette, and a logo with a dark-mode
-file already has its second version.
+## Rounded corners
+
+While recoloring, enable **Rounded corners** for a fixed squircle background. The area
+outside the curve is transparent, and the logo stays intact at its existing size.
+This affects favicons, the two single-mode SVGs, and `icon-192.png` / `icon-512.png`.
+Apple-touch and maskable files stay square and opaque for the platform to shape.
+
+Rounding starts off, including when opening older Bundles.
 
 ## Install and run
 
@@ -96,6 +101,7 @@ desktop interface, so both produce identical output from the same file.
 bun run cli acme-logo.svg ./public
 bun run cli acme-logo.svg --dark acme-dark.svg --bg '#111111'
 bun run cli acme-logo.svg --recolor '#F4F6F8' --recolor-bg '#101418' --primary dark
+bun run cli acme-logo.svg --recolor '#F4F6F8' --recolor-bg '#101418' --rounded
 bun run cli --snippet
 ```
 
@@ -113,6 +119,7 @@ files unless you pass `--force`. Other files in the output directory are left al
 --recolor <#rrggbb>     dark-mode color for a logo that uses one color
 --recolor-bg <#rrggbb>  dark-mode background       (light mode swaps the two)
 --primary <light|dark>  mode the PNG and ICO files use   (default is light)
+--rounded               squircle corners (requires --recolor or --recolor-bg)
 --no-optimize           skip SVGO
 --force                 replace existing Bundle files in the output directory
 --snippet               print the <head> snippet and exit

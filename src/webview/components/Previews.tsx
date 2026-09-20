@@ -106,7 +106,7 @@ function PwaSplash({ png, background, name }: { png: string; background: string;
     <Tile
       title="PWA splash"
       dimensions="512×512"
-      note="Splash background shown while an installed web app starts. The transparent icon-512.png appears on top of it."
+      note="Splash background shown while an installed web app starts. The generated icon-512.png appears on top of it."
     >
       <div
         class="flex flex-col items-center justify-center gap-3 rounded-lg p-5"

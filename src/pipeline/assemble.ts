@@ -74,8 +74,12 @@ function faviconTreatment(opaque: boolean) {
 }
 
 /** One mark on one surface: the single-scheme hand-off files (ADR 0004). */
-export function buildSchemeFaviconSvg(mark: NormalizedMark, surface: Hex | null): string {
-  return canvas(composeInner(mark, faviconTreatment(surface !== null)), surface)
+export function buildSchemeFaviconSvg(
+  mark: NormalizedMark,
+  surface: Hex | null,
+  rounded = false,
+): string {
+  return canvas(composeInner(mark, faviconTreatment(surface !== null)), surface, rounded)
 }
 
 /**
@@ -90,9 +94,10 @@ export function buildFaviconSvg(
   source: NormalizedMark,
   dark: NormalizedMark | null,
   surfaces: FaviconSurfaces = null,
+  rounded = false,
 ): string {
   if (dark === null) {
-    return buildSchemeFaviconSvg(source, surfaces?.light ?? null)
+    return buildSchemeFaviconSvg(source, surfaces?.light ?? null, rounded)
   }
 
   const treatment = faviconTreatment(surfaces !== null)
@@ -107,8 +112,8 @@ export function buildFaviconSvg(
 
   return canvas(
     style +
-      `<g class="${LIGHT_CLASS}">${backdrop(surfaces?.light ?? null)}${light}</g>` +
-      `<g class="${DARK_CLASS}">${backdrop(surfaces?.dark ?? null)}${night}</g>`,
+      `<g class="${LIGHT_CLASS}">${backdrop(surfaces?.light ?? null, rounded)}${light}</g>` +
+      `<g class="${DARK_CLASS}">${backdrop(surfaces?.dark ?? null, rounded)}${night}</g>`,
     null,
   )
 }

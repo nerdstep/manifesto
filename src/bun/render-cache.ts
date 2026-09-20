@@ -23,6 +23,8 @@ function renderKey(sourceSvg: string, darkSvg: string | null, settings: RenderSe
     settings.optimizeSvg,
     isNil(pair) ? null : [pair.mark, pair.surface],
     settings.primaryScheme ?? null,
+    settings.recolorEnabled ?? !isNil(pair),
+    settings.roundedCorners ?? false,
   ])
 }
 

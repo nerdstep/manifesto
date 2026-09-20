@@ -34,6 +34,7 @@ Options
   --recolor <#rrggbb>     Dark-mode color for a one-color mark
   --recolor-bg <#rrggbb>  Dark-mode background       (light mode swaps the two)
   --primary <light|dark>  Scheme the PNG and ICO files use   (light by default)
+  --rounded              Squircle corners (requires --recolor or --recolor-bg)
   --no-optimize           Skip SVGO
   --force                 Replace existing Bundle files in the output directory
   --snippet               Print the <head> snippet and exit
@@ -56,7 +57,7 @@ function parseArgs(argv: string[]) {
     'recolor-bg',
     'primary',
   ])
-  const booleanFlags = new Set(['help', 'h', 'no-optimize', 'force', 'snippet'])
+  const booleanFlags = new Set(['help', 'h', 'no-optimize', 'force', 'snippet', 'rounded'])
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i] ?? ''
@@ -167,7 +168,16 @@ export async function main(argv: string[]): Promise<number> {
   const explicitName = stringFlag(flags, 'name')
   const iconBackground = hexFlag(flags, 'bg', inferred.iconBackground)
 
-  const colorPair = recolorPair(flags, pipeline.colorPairSeed(sourceSvg, darkSvg))
+  const seed = pipeline.colorPairSeed(sourceSvg, darkSvg)
+  if (
+    flags.has('rounded') &&
+    (seed === null || (!flags.has('recolor') && !flags.has('recolor-bg')))
+  ) {
+    throw new Error(
+      '--rounded requires --recolor or --recolor-bg with an eligible one-color logo and no --dark file.',
+    )
+  }
+  const colorPair = recolorPair(flags, seed)
 
   const requested: Settings = {
     name: explicitName ?? inferred.name,
@@ -178,6 +188,8 @@ export async function main(argv: string[]): Promise<number> {
     splashBackground: hexFlag(flags, 'splash', iconBackground),
     optimizeSvg: !flags.has('no-optimize'),
     colorPair,
+    recolorEnabled: colorPair !== null,
+    roundedCorners: flags.has('rounded'),
     primaryScheme: schemeFlag(flags),
   }
 

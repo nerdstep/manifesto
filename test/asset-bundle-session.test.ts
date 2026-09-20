@@ -142,6 +142,64 @@ describe('Asset Bundle Session', () => {
     expect(snapshots.at(-1)?.desired?.colorPairSeed).not.toBeNull()
   })
 
+  test('remembered recolor survives suspension, disabling, and reopening from the Sidecar', async () => {
+    const scheduler = fakeScheduler()
+    const snapshots: AssetBundleSessionSnapshot[] = []
+    const session = createAssetBundleSession({
+      pipeline,
+      render: createRenderCache((source, dark, settings) =>
+        pipeline.render(source, dark, settings),
+      ),
+      outputRoot: tempRoot(),
+      scheduler,
+      publish(snapshot) {
+        snapshots.push(snapshot)
+      },
+    })
+    const source = {
+      kind: 'open-source',
+      sourceSvg: fixture('monochrome'),
+      filename: 'remembered.svg',
+    } as const
+    session.accept(source)
+    await scheduler.flush()
+    const chosen = {
+      colorPair: { mark: '#FAEEDD', surface: '#142536' } as const,
+      primaryScheme: 'dark' as const,
+      recolorEnabled: true,
+      roundedCorners: true,
+    }
+    session.accept({ kind: 'patch-settings', change: chosen })
+    await scheduler.flush()
+    const rounded = snapshots.at(-1)?.committed?.files['favicon.svg']
+    expect(rounded).toBeDefined()
+    session.accept({
+      kind: 'set-dark-mark',
+      darkSvg: fixture('light-mark'),
+      darkFilename: 'dark.svg',
+    })
+    await scheduler.flush()
+    expect(snapshots.at(-1)?.desired?.settings).toMatchObject(chosen)
+    expect(snapshots.at(-1)?.committed?.files['favicon.svg']).not.toEqual(rounded)
+    session.accept({ kind: 'clear-dark-mark' })
+    await scheduler.flush()
+    expect(snapshots.at(-1)?.committed?.files['favicon.svg']).toEqual(rounded)
+    session.accept({ kind: 'patch-settings', change: { recolorEnabled: false } })
+    await scheduler.flush()
+    session.accept(source)
+    await scheduler.flush()
+    expect(snapshots.at(-1)?.desired?.settings).toMatchObject({ ...chosen, recolorEnabled: false })
+    expect(snapshots.at(-1)?.committed?.files['favicon-dark.svg']).toBeUndefined()
+    session.accept({ kind: 'patch-settings', change: { recolorEnabled: true } })
+    await scheduler.flush()
+    expect(snapshots.at(-1)?.committed?.files['favicon.svg']).toEqual(rounded)
+    expect(snapshots.at(-1)?.matchesDesired).toBe(true)
+    session.accept({ ...source, filename: 'unrelated.svg', sourceSvg: fixture('square-tight') })
+    await scheduler.flush()
+    expect(snapshots.at(-1)?.desired?.settings?.colorPair).toBeUndefined()
+    expect(snapshots.at(-1)?.desired?.settings?.roundedCorners).toBeUndefined()
+  })
+
   test('a Bundle Name owned by another Source Mark recovers without replacing it', async () => {
     const root = tempRoot()
     const occupied = join(root, 'acme-logo')

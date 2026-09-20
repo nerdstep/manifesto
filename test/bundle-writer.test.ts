@@ -288,6 +288,29 @@ describe('inspectTarget — the collision guard', () => {
 })
 
 describe('recallSettings', () => {
+  test('round-trips disabled recolor with remembered colors and rounding', () => {
+    const dir = join(root, 'remembered')
+    const settings = {
+      ...defaultSettings,
+      colorPair: { mark: '#FFFFFF', surface: '#112233' } as const,
+      recolorEnabled: false,
+      roundedCorners: true,
+      primaryScheme: 'dark' as const,
+    }
+    const bundle = pipeline.buildBundle(fixture('monochrome'), null, settings)
+    writeBundle(dir, bundle, { sourceHash: bundle.sourceHash, bundleName: 'remembered', settings })
+    expect(recallSettings(dir)).toEqual(settings)
+    for (const key of ['recolorEnabled', 'roundedCorners']) {
+      writeFileSync(
+        join(dir, SIDECAR_FILENAME),
+        JSON.stringify({
+          sourceHash: bundle.sourceHash,
+          settings: { ...settings, [key]: 'false' },
+        }),
+      )
+      expect(recallSettings(dir)).toBeNull()
+    }
+  })
   test('restores the choices a previous run made', () => {
     // Drop the same logo six months later and get back the Icon Background you chose,
     // not a fresh guess.

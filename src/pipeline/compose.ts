@@ -1,4 +1,5 @@
 import { isDarkColor } from '../shared/color.ts'
+import { ROUNDED_ICON_PATH } from '../shared/icon-shape.ts'
 import type { NormalizedMark } from './normalize.ts'
 import { CANONICAL_SIZE } from './renditions.ts'
 import type { Hex, Treatment } from './types.ts'
@@ -41,17 +42,20 @@ export function composeInner(mark: NormalizedMark, treatment: Treatment): string
   return `<g transform="translate(${n(tx)} ${n(ty)}) scale(${n(scale)})">${mark.nestable}</g>`
 }
 
-/** The full-canvas fill a Rendition sits on, or nothing when it stays transparent. */
-export function backdrop(background: Hex | null): string {
-  return background === null
-    ? ''
+/** Paint the surface without clipping the mark; platform canvases remain square. */
+export function backdrop(background: Hex | null, rounded = false): string {
+  if (background === null) {
+    return ''
+  }
+  return rounded
+    ? `<path d="${ROUNDED_ICON_PATH}" transform="scale(${CANONICAL_SIZE})" fill="${background}"/>`
     : `<rect width="${CANONICAL_SIZE}" height="${CANONICAL_SIZE}" fill="${background}"/>`
 }
 
-export function canvas(body: string, background: Hex | null): string {
+export function canvas(body: string, background: Hex | null, rounded = false): string {
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${CANONICAL_SIZE} ${CANONICAL_SIZE}">` +
-    backdrop(background) +
+    backdrop(background, rounded) +
     body +
     `</svg>`
   )
@@ -62,5 +66,5 @@ export function compose(
   treatment: Treatment,
   background: Hex | null,
 ): string {
-  return canvas(composeInner(mark, treatment), background)
+  return canvas(composeInner(mark, treatment), background, treatment.rounded)
 }
