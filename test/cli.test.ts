@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import { main } from '../src/cli/index.ts'
 import { inspectTarget, recallSettings, SIDECAR_FILENAME } from '../src/host/bundle-writer.ts'
 import { BUNDLE_FILENAMES, SINGLE_SCHEME_FILENAMES } from '../src/pipeline/index.ts'
-import { fixture } from './helpers.ts'
+import { fixture, testPipeline } from './helpers.ts'
 
 const roots: string[] = []
 
@@ -114,5 +114,35 @@ describe('CLI Bundle writing', () => {
 
     await expectFailure(() => main([source, output, '--wat']), 'Unknown option')
     await expectFailure(() => main([source, output, '--name']), '--name needs a value')
+  })
+
+  test('--rounded matches the desktop pipeline and persists both switches', async () => {
+    const { source, output } = scenario()
+    await main([source, output, '--recolor', '#FFFFFF', '--recolor-bg', '#112233', '--rounded'])
+    const settings = recallSettings(output)
+    expect(settings).toMatchObject({ recolorEnabled: true, roundedCorners: true })
+    if (settings === null) {
+      throw new Error('Missing Sidecar settings')
+    }
+    const pipeline = await testPipeline()
+    const expected = pipeline.buildBundle(readFileSync(source, 'utf8'), null, settings)
+    for (const [name, bytes] of expected.files) {
+      expect(readFileSync(join(output, name))).toEqual(Buffer.from(bytes))
+    }
+  })
+
+  test('--rounded rejects missing or ineligible recolor before writing', async () => {
+    const { source, output } = scenario()
+    await expectFailure(() => main([source, output, '--rounded']), '--rounded requires')
+    await expectFailure(
+      () => main([source, output, '--rounded', '--recolor', '#FFFFFF', '--dark', source]),
+      '--rounded requires',
+    )
+    writeFileSync(source, fixture('multicolor'))
+    await expectFailure(
+      () => main([source, output, '--rounded', '--recolor', '#FFFFFF']),
+      '--rounded requires',
+    )
+    expect(existsSync(output)).toBe(false)
   })
 })

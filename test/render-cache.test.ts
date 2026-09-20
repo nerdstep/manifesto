@@ -88,4 +88,21 @@ describe('createRenderCache', () => {
 
     expect(stub.calls()).toBe(3)
   })
+
+  test('invalidates when remembered recolor is toggled or corners change', () => {
+    const stub = counting()
+    const cached = createRenderCache(stub.render)
+    const settings: RenderSettings = {
+      ...RENDER,
+      colorPair: { mark: '#FFFFFF', surface: '#111111' },
+    }
+    const square = cached('<svg/>', null, settings)
+    expect(
+      cached('<svg/>', null, { ...settings, recolorEnabled: true, roundedCorners: false }),
+    ).toBe(square)
+    cached('<svg/>', null, { ...settings, roundedCorners: true })
+    cached('<svg/>', null, { ...settings, roundedCorners: true, recolorEnabled: false })
+    cached('<svg/>', null, { ...settings, roundedCorners: true, recolorEnabled: true })
+    expect(stub.calls()).toBe(4)
+  })
 })

@@ -13,8 +13,11 @@ export type ColorPair = { mark: Hex; surface: Hex }
 export type RenderSettings = {
   iconBackground: Hex
   optimizeSvg: boolean
-  /** Recolor is off when absent or null (ADR 0003). */
+  /** Remembered even while recolor is disabled (ADR 0005). */
   colorPair?: ColorPair | null
+  /** Older Sidecars enable recolor by Color Pair presence. */
+  recolorEnabled?: boolean
+  roundedCorners?: boolean
   primaryScheme?: Scheme
 }
 
@@ -53,6 +56,7 @@ export type Treatment = {
   size: number
   background: 'iconBackground' | null
   fit: Fit
+  rounded?: boolean
 }
 
 export type RenditionSpec = {

@@ -65,6 +65,8 @@ export function renditionBackground(
  * placed by the platform, so it fills its box; an opaque one is the tile the
  * user sees, and a full-bleed mark touching a colored edge reads as a crop.
  * Matches the inset `apple-touch-icon.png` already carries.
+ * The fixed squircle contains this inset square, including all four corners,
+ * so rounded Renditions preserve the entire mark without additional shrinking.
  */
 export const OPAQUE_INSET = 0.1
 

@@ -4,6 +4,7 @@ import { Window } from 'happy-dom'
 import { render } from 'preact'
 import { act } from 'preact/test-utils'
 
+import type { RenderSettings } from '../src/pipeline/index.ts'
 import { bundleNameProblem } from '../src/shared/bundle-name.ts'
 import type { AssetBundleIntent, AssetBundleSessionSnapshot } from '../src/shared/rpc.ts'
 import { createAssetBundleSessionClient } from '../src/webview/asset-bundle-session-client.ts'
@@ -11,9 +12,12 @@ import { DropZone } from '../src/webview/components/DropZone.tsx'
 import { CommittedField } from '../src/webview/components/fields.tsx'
 import { RecolorField } from '../src/webview/components/RecolorField.tsx'
 import { SessionRecoveryNotice } from '../src/webview/components/SessionRecoveryNotice.tsx'
+import { SettingsPanel } from '../src/webview/components/SettingsPanel.tsx'
 import { createUseAssetBundleSession } from '../src/webview/use-asset-bundle-session.ts'
+import { defaultSettings } from './helpers.ts'
 
 const browser = new Window({ url: 'https://manifesto.test/' })
+const noop = () => {}
 
 beforeAll(() => {
   Object.defineProperties(globalThis, {
@@ -229,9 +233,11 @@ describe('Recolor color fields', () => {
           seed={SEED}
           pair={SEED}
           primary={primary}
-          onChange={(pair) => {
-            if (pair !== null) {
-              changes.push(pair)
+          enabled={true}
+          rounded={false}
+          onChange={(change) => {
+            if (change.colorPair !== null && change.colorPair !== undefined) {
+              changes.push(change.colorPair)
             }
           }}
         />,
@@ -268,6 +274,118 @@ describe('Recolor color fields', () => {
     })
 
     expect(changes.at(-1)).toEqual({ mark: '#FFFFFF', surface: '#2200AA' })
+  })
+})
+
+test('recolor toggles retain edited colors, scheme, and rounding while hiding inactive controls', async () => {
+  const root = testRoot()
+  const pair = { mark: '#FAEEDD', surface: '#142536' } as const
+  let settings: RenderSettings = {
+    iconBackground: '#FFFFFF',
+    optimizeSvg: true,
+    colorPair: pair,
+    primaryScheme: 'dark',
+    recolorEnabled: true,
+    roundedCorners: false,
+  }
+  const mount = () => {
+    render(
+      <RecolorField
+        seed={{ mark: '#FFFFFF', surface: '#111111' }}
+        pair={settings.colorPair ?? null}
+        primary={settings.primaryScheme ?? 'light'}
+        enabled={settings.recolorEnabled === true}
+        rounded={settings.roundedCorners ?? false}
+        onChange={(change) => {
+          settings = { ...settings, ...change }
+          mount()
+        }}
+      />,
+      root,
+    )
+  }
+  await act(mount)
+  const rounded = root.querySelectorAll('input[type="checkbox"]')[1]
+  if (!(rounded instanceof browser.HTMLInputElement)) {
+    throw new Error('Missing rounding checkbox')
+  }
+  await act(() => {
+    rounded.click()
+  })
+  expect(settings.roundedCorners).toBe(true)
+  await act(() => {
+    inputIn(root).click()
+  })
+  expect(root.querySelectorAll('input[type="checkbox"]')).toHaveLength(1)
+  expect(root.querySelector('input[type="color"]')).toBeNull()
+  expect(settings).toMatchObject({
+    colorPair: pair,
+    recolorEnabled: false,
+    roundedCorners: true,
+    primaryScheme: 'dark',
+  })
+  await act(() => {
+    inputIn(root).click()
+  })
+  expect(settings).toMatchObject({
+    colorPair: pair,
+    recolorEnabled: true,
+    roundedCorners: true,
+    primaryScheme: 'dark',
+  })
+  const restored = root.querySelectorAll('input[type="checkbox"]')[1]
+  expect(restored instanceof browser.HTMLInputElement && restored.checked).toBe(true)
+  expect(
+    [...root.querySelectorAll('input[type="text"]')].map((input) =>
+      input instanceof browser.HTMLInputElement ? input.value : '',
+    ),
+  ).toEqual([pair.mark, pair.surface])
+  await act(() => {
+    render(null, root)
+  })
+})
+
+test('the settings panel uses active recolor for background editing and file counts', async () => {
+  const root = testRoot()
+  const pair = { mark: '#FFFFFF', surface: '#112233' } as const
+  for (const [enabled, dark, count] of [
+    [false, false, 6],
+    [true, true, 8],
+    [true, false, 8],
+  ] as const) {
+    await act(() => {
+      render(
+        <SettingsPanel
+          settings={{
+            ...defaultSettings,
+            colorPair: pair,
+            recolorEnabled: enabled,
+            roundedCorners: true,
+          }}
+          bundleName="acme"
+          darkFilename={dark ? 'dark.svg' : null}
+          colorPairSeed={dark ? null : pair}
+          onPatch={noop}
+          onRename={noop}
+          onDarkMark={noop}
+          onChooseDarkMark={noop}
+          onClearDarkMark={noop}
+          onChooseOutput={noop}
+          onOpenOutput={noop}
+          canOpenOutput={false}
+          outputRoot="icons"
+          recoveryNotice={null}
+        />,
+        root,
+      )
+    })
+    expect(root.textContent).toContain(`redraw all ${count} icons`)
+    const background = root.querySelector('input[type="color"]')
+    expect(background?.closest('fieldset')?.hasAttribute('disabled')).toBe(enabled && !dark)
+    expect(root.textContent?.includes('Rounded corners')).toBe(enabled && !dark)
+  }
+  await act(() => {
+    render(null, root)
   })
 })
 

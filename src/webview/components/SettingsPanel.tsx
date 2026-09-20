@@ -1,7 +1,7 @@
 import { isNil } from 'es-toolkit'
 import type { ComponentChildren } from 'preact'
 
-import type { ColorPair, Scheme, Settings } from '../../pipeline/index.ts'
+import type { ColorPair, Settings } from '../../pipeline/index.ts'
 import { bundleNameProblem } from '../../shared/bundle-name.ts'
 import { iconFilenames } from '../../shared/bundle.ts'
 import { ColorField, CommittedField, DarkMarkField, Field } from './fields.tsx'
@@ -65,7 +65,8 @@ export function SettingsPanel({
   outputRoot,
   recoveryNotice,
 }: Props) {
-  const recoloring = !isNil(settings.colorPair)
+  const recoloring =
+    !isNil(colorPairSeed) && !isNil(settings.colorPair) && settings.recolorEnabled !== false
   const twoMarks = recoloring || !isNil(darkFilename)
 
   return (
@@ -94,9 +95,9 @@ export function SettingsPanel({
             seed={colorPairSeed}
             pair={settings.colorPair ?? null}
             primary={settings.primaryScheme ?? 'light'}
-            onChange={(colorPair: ColorPair | null, primaryScheme: Scheme) => {
-              onPatch({ colorPair, primaryScheme })
-            }}
+            enabled={recoloring}
+            rounded={settings.roundedCorners ?? false}
+            onChange={onPatch}
           />
         )}
       </Group>

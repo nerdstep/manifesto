@@ -19,9 +19,8 @@ and the same mark is needed in contexts that do no scheme switching at all — R
 badges, social profiles, print, a design tool. Extracting one scheme from the dual
 file by hand is error-prone.
 
-A recolored mark takes its scheme's surface here, unlike `favicon.svg`, which stays
-transparent because the tab it sits on supplies a color that already matches the
-scheme. These files are for the contexts above, none of which supply one — a Derived
+A recolored mark takes its scheme's surface here, as it does in `favicon.svg`
+(ADR 0003). These files are for the contexts above, none of which supply one — a Derived
 Mark alone on transparency in a README is the illegibility the Color Pair exists to
 prevent. A supplied Dark Mark was painted for surfaces we do not know, so it keeps
 its transparency.

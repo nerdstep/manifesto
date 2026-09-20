@@ -122,6 +122,8 @@ function isSettings(value: unknown): value is Settings {
     strings.every((key) => isString(value[key])) &&
     isBoolean(value.optimizeSvg) &&
     isColorPair(value.colorPair) &&
+    (value.recolorEnabled === undefined || isBoolean(value.recolorEnabled)) &&
+    (value.roundedCorners === undefined || isBoolean(value.roundedCorners)) &&
     isScheme(value.primaryScheme)
   )
 }

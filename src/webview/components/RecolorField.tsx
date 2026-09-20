@@ -1,6 +1,6 @@
-import type { ColorPair, Hex, Scheme } from '../../pipeline/index.ts'
+import type { ColorPair, Hex, RenderSettings, Scheme } from '../../pipeline/index.ts'
 import { ColorField } from './fields.tsx'
-import { Caption, Note, Pill } from './ui.tsx'
+import { Caption, focusRing, Note, Pill } from './ui.tsx'
 
 const SCHEME_LABEL: Record<Scheme, string> = { light: 'Light', dark: 'Dark' }
 
@@ -17,14 +17,18 @@ export function RecolorField({
   seed,
   pair,
   primary,
+  enabled,
+  rounded,
   onChange,
 }: {
   seed: ColorPair
   pair: ColorPair | null
   primary: Scheme
-  onChange: (pair: ColorPair | null, primary: Scheme) => void
+  enabled: boolean
+  rounded: boolean
+  onChange: (change: Partial<RenderSettings>) => void
 }) {
-  const on = pair !== null
+  const on = enabled
   const current = pair ?? seed
   const other: Scheme = primary === 'dark' ? 'light' : 'dark'
 
@@ -46,9 +50,9 @@ export function RecolorField({
         <input
           type="checkbox"
           checked={on}
-          class="size-4 accent-cyan"
+          class={`size-4 accent-cyan ${focusRing}`}
           onChange={(event) => {
-            onChange(event.currentTarget.checked ? current : null, primary)
+            onChange({ colorPair: current, recolorEnabled: event.currentTarget.checked })
           }}
         />
         <span>Recolor this logo</span>
@@ -65,14 +69,14 @@ export function RecolorField({
             label={`${SCHEME_LABEL[primary]} mode logo color`}
             value={ink}
             onChange={(value) => {
-              onChange(withInk(value), primary)
+              onChange({ colorPair: withInk(value) })
             }}
           />
           <ColorField
             label={`${SCHEME_LABEL[primary]} mode background`}
             value={surface}
             onChange={(value) => {
-              onChange(withSurface(value), primary)
+              onChange({ colorPair: withSurface(value) })
             }}
           />
           <div class="sm:col-span-2">
@@ -83,7 +87,7 @@ export function RecolorField({
                   key={scheme}
                   selected={primary === scheme}
                   onClick={() => {
-                    onChange(current, scheme)
+                    onChange({ primaryScheme: scheme })
                   }}
                 >
                   {scheme}
@@ -91,8 +95,25 @@ export function RecolorField({
               ))}
             </div>
             <Note class="mt-1">
-              These files use one mode and lose their transparency. Only favicon.svg changes with
-              the visitor's dark mode.
+              These files use one mode with a solid background. Only favicon.svg changes with the
+              visitor's dark mode.
+            </Note>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={rounded}
+                class={`size-4 accent-cyan ${focusRing}`}
+                onChange={(event) => {
+                  onChange({ roundedCorners: event.currentTarget.checked })
+                }}
+              />
+              <span>Rounded corners</span>
+            </label>
+            <Note class="mt-1">
+              Gives favicons and ordinary PNGs a squircle shape with transparent corners. Apple and
+              Android apply their own shapes to home-screen icons.
             </Note>
           </div>
         </div>

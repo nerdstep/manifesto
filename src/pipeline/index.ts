@@ -114,6 +114,7 @@ function renderRenditions(
   dark: NormalizedMark | null,
   iconBackground: Hex,
   opaque: boolean,
+  rounded: boolean,
 ): { files: Map<string, Uint8Array>; icoMembers: Uint8Array[] } {
   const files = new Map<string, Uint8Array>()
   const surfaceFor = (treatment: Treatment): Hex | null =>
@@ -122,6 +123,7 @@ function renderRenditions(
   const fitted = (treatment: Treatment): Treatment => ({
     ...treatment,
     fit: renditionFit(treatment, opaque),
+    rounded: rounded && treatment.background === null,
   })
 
   for (const { filename, treatment } of PNG_RENDITIONS) {
@@ -143,6 +145,7 @@ function renderRenditions(
 /** Render all image files without the web app manifest. */
 function render(sourceSvg: string, darkSvg: string | null, settings: RenderSettings): RenderedMark {
   const scheme = resolveScheme(sourceSvg, darkSvg, settings)
+  const rounded = scheme.derived && settings.roundedCorners === true
   const source = prepare(scheme.light, settings.optimizeSvg)
   const advisories: Advisory[] = markAdvisories(source, settings.optimizeSvg)
 
@@ -167,22 +170,23 @@ function render(sourceSvg: string, darkSvg: string | null, settings: RenderSetti
     scheme.opaque ? null : dark,
     scheme.iconBackground,
     scheme.opaque,
+    rounded,
   )
 
   files.set('favicon.ico', packIco(icoMembers))
   const surfaces = scheme.surfaces
-  files.set('favicon.svg', encoder.encode(buildFaviconSvg(source.mark, dark, surfaces)))
+  files.set('favicon.svg', encoder.encode(buildFaviconSvg(source.mark, dark, surfaces, rounded)))
   if (dark !== null) {
     // Single-scheme hand-off files; referenced by nothing (ADR 0004). A recolored
     // mark carries its own surface here too, since these go where nothing
     // switches scheme — a README badge, a profile picture, print.
     files.set(
       'favicon-light.svg',
-      encoder.encode(buildSchemeFaviconSvg(source.mark, surfaces?.light ?? null)),
+      encoder.encode(buildSchemeFaviconSvg(source.mark, surfaces?.light ?? null, rounded)),
     )
     files.set(
       'favicon-dark.svg',
-      encoder.encode(buildSchemeFaviconSvg(dark, surfaces?.dark ?? null)),
+      encoder.encode(buildSchemeFaviconSvg(dark, surfaces?.dark ?? null, rounded)),
     )
   }
 

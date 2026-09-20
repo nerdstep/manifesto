@@ -26,7 +26,7 @@ export type ResolvedScheme = {
   primary: Scheme
   /**
    * Recolored marks are only legible against their own surface, so every
-   * raster and the ICO become opaque rather than transparent.
+   * raster and the ICO receive a surface, with transparent outer corners when rounded.
    */
   opaque: boolean
   /** Whether `dark` was recolored here rather than supplied by the user. */
@@ -70,7 +70,7 @@ export function resolveScheme(
   }
 
   const pair = settings.colorPair
-  if (isNil(pair) || !canRecolor(sourceSvg, darkSvg)) {
+  if (isNil(pair) || settings.recolorEnabled === false || !canRecolor(sourceSvg, darkSvg)) {
     return off
   }
 
