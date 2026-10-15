@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/nerdstep/manifesto/compare/v0.6.0...v0.7.0) (2026-10-15)
+
+
+### Features
+
+* Add OAuth icon and defer input commits ([#19](https://github.com/nerdstep/manifesto/issues/19)) ([b761103](https://github.com/nerdstep/manifesto/commit/b7611035d1c71bf45b4407b741c28611c1f197fa))
+
 ## [0.6.0](https://github.com/nerdstep/manifesto/compare/v0.5.0...v0.6.0) (2026-09-20)
 
 
