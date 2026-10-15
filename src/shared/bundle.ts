@@ -4,6 +4,7 @@ export const BUNDLE_FILENAMES = [
   'favicon.ico',
   'favicon.svg',
   'apple-touch-icon.png',
+  'icon-120.png',
   'icon-192.png',
   'icon-512.png',
   'icon-maskable-512.png',

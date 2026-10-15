@@ -144,6 +144,7 @@ export function Previews({
   const appleTouch = files['apple-touch-icon.png']
   const maskable = files['icon-maskable-512.png']
   const icon512 = files['icon-512.png']
+  const icon120 = files['icon-120.png']
   const tabSvg = faviconSvg === undefined ? null : decodeUtf8(faviconSvg)
 
   return (
@@ -157,6 +158,21 @@ export function Previews({
       {appleTouch !== undefined && <IosHome png={appleTouch} label={shortName} />}
       {icon512 !== undefined && (
         <PwaSplash png={icon512} background={splashBackground} name={name} />
+      )}
+      {icon120 !== undefined && (
+        <Tile
+          title="Google OAuth"
+          dimensions="120×120"
+          note="Upload icon-120.png as your app logo in Google OAuth branding."
+        >
+          <img
+            src={pngUrl(icon120)}
+            alt="icon-120.png for Google OAuth branding"
+            width={120}
+            height={120}
+            class="block size-30"
+          />
+        </Tile>
       )}
     </section>
   )

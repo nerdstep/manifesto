@@ -148,6 +148,7 @@ export function App() {
 
           {session?.settings !== null && session !== null && (
             <SettingsPanel
+              key={session.sourceSvg}
               settings={session.settings}
               bundleName={session.bundleName}
               darkFilename={session.darkFilename}

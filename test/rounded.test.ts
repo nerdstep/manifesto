@@ -72,7 +72,7 @@ describe('Rounded Corners', () => {
 
   test('PNG and every ICO size have transparent corners and an opaque center', () => {
     const { files } = pipeline.buildBundle(square, null, settings)
-    for (const size of [192, 512]) {
+    for (const size of [120, 192, 512]) {
       expectCorners(pngPixels(file(files, `icon-${size}.png`), size), size, 0)
     }
     const members = icoEndec.decode(Buffer.from(file(files, 'favicon.ico')))

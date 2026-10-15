@@ -5,7 +5,7 @@
 ![hero](./assets/hero.jpg)
 
 A Windows desktop app for generating website icons. Drop in an SVG and Manifesto creates
-six icon files, a web app manifest, and the four `<head>` tags that reference them. It also
+seven icon files, a web app manifest, and the four `<head>` tags for your website. It also
 previews each icon at the size used by the target platform.
 
 If your logo uses a single color, Manifesto can paint it for both color schemes from two
@@ -29,6 +29,7 @@ acme-logo/
 ├── favicon.ico            16 · 32 · 48, PNG-embedded
 ├── favicon.svg            vector; swaps on prefers-color-scheme with a second logo
 ├── apple-touch-icon.png   180², always opaque
+├── icon-120.png           120², for Google OAuth branding
 ├── icon-192.png           transparent, purpose "any"
 ├── icon-512.png           transparent, purpose "any"
 ├── icon-maskable-512.png  opaque, fitted to the circular Safe Zone
@@ -58,7 +59,7 @@ mode you select in Manifesto, with its background included to keep the logo read
 
 While recoloring, enable **Rounded corners** for a fixed squircle background. The area
 outside the curve is transparent, and the logo stays intact at its existing size.
-This affects favicons, the two single-mode SVGs, and `icon-192.png` / `icon-512.png`.
+This affects favicons, the two single-mode SVGs, and `icon-120.png` / `icon-192.png` / `icon-512.png`.
 Apple-touch and maskable files stay square and opaque for the platform to shape.
 
 Rounding starts off, including when opening older Bundles.
@@ -105,7 +106,7 @@ bun run cli acme-logo.svg --recolor '#F4F6F8' --recolor-bg '#101418' --rounded
 bun run cli --snippet
 ```
 
-The CLI writes the same seven Bundle files and `manifesto.json` Sidecar as the app, plus
+The CLI writes the same eight Bundle files and `manifesto.json` Sidecar as the app, plus
 the two single-scheme SVGs when a second logo exists. It does not replace existing Bundle
 files unless you pass `--force`. Other files in the output directory are left alone.
 
