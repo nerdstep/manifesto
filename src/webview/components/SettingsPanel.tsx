@@ -4,9 +4,9 @@ import type { ComponentChildren } from 'preact'
 import type { ColorPair, Settings } from '../../pipeline/index.ts'
 import { bundleNameProblem } from '../../shared/bundle-name.ts'
 import { iconFilenames } from '../../shared/bundle.ts'
-import { ColorField, CommittedField, DarkMarkField, Field } from './fields.tsx'
+import { ColorField, CommittedField, DarkMarkField } from './fields.tsx'
 import { RecolorField } from './RecolorField.tsx'
-import { Button, Caption, Input, SectionHeading } from './ui.tsx'
+import { Button, Caption, SectionHeading } from './ui.tsx'
 import type { Tone } from './ui.tsx'
 
 type Props = {
@@ -106,25 +106,21 @@ export function SettingsPanel({
         title="Web app manifest"
         note="Browsers use these values when your site is installed or pinned. They do not change the icon files."
       >
-        <Field label="Name">
-          <Input
-            type="text"
-            value={settings.name}
-            onInput={(event) => {
-              onPatch({ name: event.currentTarget.value })
-            }}
-          />
-        </Field>
+        <CommittedField
+          label="Name"
+          value={settings.name}
+          onCommit={(name) => {
+            onPatch({ name })
+          }}
+        />
 
-        <Field label="Short name">
-          <Input
-            type="text"
-            value={settings.shortName}
-            onInput={(event) => {
-              onPatch({ shortName: event.currentTarget.value })
-            }}
-          />
-        </Field>
+        <CommittedField
+          label="Short name"
+          value={settings.shortName}
+          onCommit={(shortName) => {
+            onPatch({ shortName })
+          }}
+        />
 
         <ColorField
           label="Theme color"
@@ -146,6 +142,7 @@ export function SettingsPanel({
       <Group title="Output" note="Where the files are written." tone="downstream">
         <CommittedField
           label="Folder"
+          class="font-mono"
           value={bundleName}
           hint="Name of the folder inside your output folder."
           validate={bundleNameProblem}

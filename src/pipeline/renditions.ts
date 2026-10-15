@@ -17,6 +17,11 @@ export const ICO_MEMBERS: RenditionSpec[] = ICO_MEMBER_SIZES.map((size) => ({
 
 export const PNG_RENDITIONS: RenditionSpec[] = [
   {
+    // Standalone logo for Google OAuth branding, outside the Web App Manifest.
+    filename: 'icon-120.png',
+    treatment: { size: 120, background: null, fit: { mode: 'box', inset: 0 } },
+  },
+  {
     filename: 'apple-touch-icon.png',
     // iOS supplies its own rounded-rectangle mask.
     treatment: {

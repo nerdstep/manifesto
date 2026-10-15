@@ -1,5 +1,5 @@
 import type { ComponentChildren } from 'preact'
-import { useEffect, useState } from 'preact/hooks'
+import { useEffect, useRef, useState } from 'preact/hooks'
 
 import type { Hex } from '../../pipeline/index.ts'
 import { cn } from '../utils/index.ts'
@@ -71,16 +71,25 @@ export function ColorField({
           value={draft}
           spellcheck={false}
           class="font-mono uppercase"
-          // Commit complete hex values without reformatting partial input.
+          // Keep typing local; only complete values reach generation on commit.
           onInput={(event) => {
+            setDraft(event.currentTarget.value)
+          }}
+          onBlur={(event) => {
             const next = event.currentTarget.value
-            setDraft(next)
             if (isHex(next)) {
               onChange(next)
+            } else {
+              setDraft(value)
             }
           }}
-          onBlur={() => {
-            setDraft(value)
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && !event.isComposing) {
+              event.currentTarget.blur()
+            }
+            if (event.key === 'Escape') {
+              setDraft(value)
+            }
           }}
         />
       </div>
@@ -94,30 +103,35 @@ export function CommittedField({
   label,
   value,
   hint,
+  class: klass,
   validate,
   notice,
   onCommit,
 }: {
   label: string
   value: string
-  hint: string
+  hint?: string
+  class?: string
   validate?: (next: string) => string | null
   notice?: string | null
   onCommit: (next: string) => void
 }) {
   const [draft, setDraft] = useState(value)
   const [problem, setProblem] = useState<string | null>(null)
+  const focused = useRef(false)
 
   useEffect(() => {
-    setDraft(value)
-    setProblem(null)
+    if (!focused.current) {
+      setDraft(value)
+      setProblem(null)
+    }
   }, [value])
 
-  const commit = () => {
-    const nextProblem = validate?.(draft) ?? null
+  const commit = (next: string) => {
+    const nextProblem = validate?.(next) ?? null
     setProblem(nextProblem)
-    if (nextProblem === null) {
-      onCommit(draft)
+    if (nextProblem === null && next !== value) {
+      onCommit(next)
     }
   }
 
@@ -127,15 +141,19 @@ export function CommittedField({
         type="text"
         value={draft}
         spellcheck={false}
-        class="font-mono"
+        class={klass}
+        onFocus={() => {
+          focused.current = true
+        }}
         onInput={(event) => {
           setDraft(event.currentTarget.value)
         }}
-        onBlur={() => {
-          commit()
+        onBlur={(event) => {
+          focused.current = false
+          commit(event.currentTarget.value)
         }}
         onKeyDown={(event) => {
-          if (event.key === 'Enter') {
+          if (event.key === 'Enter' && !event.isComposing) {
             event.currentTarget.blur()
           }
           if (event.key === 'Escape') {
@@ -145,7 +163,9 @@ export function CommittedField({
         }}
         aria-invalid={problem !== null}
       />
-      <Note class={`mt-1 ${problem === null ? '' : 'text-bad'}`}>{problem ?? hint}</Note>
+      {(problem !== null || hint !== undefined) && (
+        <Note class={`mt-1 ${problem === null ? '' : 'text-bad'}`}>{problem ?? hint}</Note>
+      )}
       {notice !== null && notice !== undefined && <Note class="mt-1 text-muted">{notice}</Note>}
     </Field>
   )

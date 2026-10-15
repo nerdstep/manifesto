@@ -38,6 +38,7 @@ describe('buildBundle', () => {
 
     for (const name of [
       'apple-touch-icon.png',
+      'icon-120.png',
       'icon-192.png',
       'icon-512.png',
       'icon-maskable-512.png',
@@ -45,6 +46,17 @@ describe('buildBundle', () => {
       expect(files.has(name), `missing ${name}`).toBe(true)
       expect(isPng(files.get(name)), `${name} is not a PNG`).toBe(true)
     }
+  })
+
+  test('Google OAuth logo is a 120 by 120 PNG outside the Web App Manifest', () => {
+    const { files } = pipeline.buildBundle(fixture('square-tight'), null, defaultSettings)
+    const png = Buffer.from(files.get('icon-120.png') ?? new Uint8Array())
+    // The PNG IHDR stores width and height immediately after its chunk type.
+    const widthOffset = 16
+    const heightOffset = 20
+    expect(png.readUInt32BE(widthOffset)).toBe(120)
+    expect(png.readUInt32BE(heightOffset)).toBe(120)
+    expect(new TextDecoder().decode(files.get('site.webmanifest'))).not.toContain('icon-120.png')
   })
 
   test('emits the complete Modern Minimal Set and nothing else', () => {

@@ -141,7 +141,7 @@ raster. Renditions are always rendered directly from vector at final dimensions.
 
 **Modern Minimal Set**:
 The chosen contents of an Asset Bundle: `favicon.ico`, `favicon.svg`,
-`apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`,
+`apple-touch-icon.png`, `icon-120.png` (Google OAuth branding), `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`,
 `site.webmanifest`, and the Head Snippet. Deliberately excludes platform-legacy files
 (`mstile-*`, `browserconfig.xml`, the pre-iOS-8 apple-touch ladder, the android-chrome
 density ladder). Plus `favicon-light.svg` and `favicon-dark.svg` when the Bundle

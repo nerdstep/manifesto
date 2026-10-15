@@ -8,11 +8,12 @@ import {
 } from '../src/pipeline/renditions.ts'
 
 describe('rendition table', () => {
-  test('the Asset Bundle is the seven-file Modern Minimal Set', () => {
+  test('the Asset Bundle includes the Modern Minimal Set and Google OAuth logo', () => {
     expect([...BUNDLE_FILENAMES]).toEqual([
       'favicon.ico',
       'favicon.svg',
       'apple-touch-icon.png',
+      'icon-120.png',
       'icon-192.png',
       'icon-512.png',
       'icon-maskable-512.png',
@@ -54,7 +55,7 @@ describe('rendition table', () => {
   })
 
   test('"any" icons stay transparent and full bleed', () => {
-    for (const name of ['icon-192.png', 'icon-512.png']) {
+    for (const name of ['icon-120.png', 'icon-192.png', 'icon-512.png']) {
       const r = PNG_RENDITIONS.find((x) => x.filename === name)
       expect(r?.treatment.background).toBeNull()
       expect(r?.treatment.fit).toEqual({ mode: 'box', inset: 0 })
