@@ -38,7 +38,7 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
     "@types/bun": "latest",
-    "electrobun": "^2.0.1",
+    "electrobun": "^2.0.4",
     "happy-dom": "^20.11.1",
     "oxfmt": "^0.61.0",
     "oxlint": "^1.76.0",
