@@ -16,7 +16,7 @@
       "devDependencies": {
         "@tailwindcss/cli": "^4.3.3",
         "@types/bun": "latest",
-        "electrobun": "^2.0.1",
+        "electrobun": "^2.0.4",
         "happy-dom": "^20.11.1",
         "oxfmt": "^0.61.0",
         "oxlint": "^1.76.0",
@@ -268,7 +268,7 @@
 
     "domutils": ["domutils@3.2.2", "", { "dependencies": { "dom-serializer": "^2.0.0", "domelementtype": "^2.3.0", "domhandler": "^5.0.3" } }, "sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw=="],
 
-    "electrobun": ["electrobun@2.0.1", "", { "bin": { "electrobun": "bin/electrobun.cjs" } }, "sha512-1+OjJ0tMemjVrUEsh/AhmxnqUNpyCfJslCbcWOvkogFJuNVMmTlWMzyZem/Ts/7lg8f7ULWu8uuQBsKeGQsu7A=="],
+    "electrobun": ["electrobun@2.0.4", "", { "bin": { "electrobun": "bin/electrobun.cjs" } }, "sha512-xuH4sE9A9eySgOjF+9mi9WuTv+Sa05cYY6eU5A4Rkkfek2zd59kzhWvwrb9xfJN4VPL+zM4FyTvFoH8j00DLMw=="],
 
     "enhanced-resolve": ["enhanced-resolve@5.24.5", "", { "dependencies": { "graceful-fs": "^4.2.4", "tapable": "^2.3.3" } }, "sha512-L1l8TNvomm6UVW5B253AGxQagSQr+vGwhMlrrfRS2qmhx46AMpMVJKQYLvWYbysTMY8VoicOvzHzoHMbyzB+4A=="],
 
