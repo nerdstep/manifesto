@@ -14,8 +14,8 @@ const config: ElectrobunConfig = {
     linux: { icon: 'assets/app-icon.png' },
     win: { icon: 'assets/app-icon.ico' },
     // Cottontail is Electrobun 2's default main process and ships ~31 MB smaller than
-    // Bun. Nothing here needs the Bun runtime: the last `bun:ffi` call went with
-    // `windows-dpi.ts`, and the pipeline is `node:` builtins and WASM. The directory
+    // Bun. Nothing here needs the Bun runtime: `bun:ffi` in `windows-taskbar.ts` selects
+    // Cottontail's `ffi` capability, and the pipeline is `node:` builtins and WASM. The directory
     // name `src/bun` is historical — it does not select the runtime.
     mainProcess: 'cottontail',
     cottontail: { entrypoint: 'src/bun/index.ts' },

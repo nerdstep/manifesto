@@ -227,6 +227,14 @@
           }
         ]
       }
+    },
+    {
+      // The one sanctioned `bun:ffi` caller: Electrobun has no API for a window's
+      // AppUserModelID (electrobun#514). Cottontail ships the `ffi` capability.
+      "files": ["src/bun/windows-taskbar.ts"],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
     }
   ],
 

@@ -1,12 +1,16 @@
 import { join } from 'node:path'
 
-import { BrowserView, BrowserWindow, Screen, Utils } from 'electrobun/main'
+import { BrowserView, BrowserWindow, Screen, Updater, Utils } from 'electrobun/main'
 
 import { firstExisting, readWasmBytes } from '../host/wasm.ts'
 import { createPipeline } from '../pipeline/index.ts'
 import type { Pipeline } from '../pipeline/index.ts'
-import { desktopPlatform, supportsCustomWindowChrome, type ManifestoRPC } from '../shared/index.ts'
-import type { WindowPlacement } from '../shared/window-frame.ts'
+import {
+  desktopPlatform,
+  supportsCustomWindowChrome,
+  type ManifestoRPC,
+  type WindowPlacement,
+} from '../shared/index.ts'
 import { loadState, saveState, stateFilePath, windowFrame } from './app-state.ts'
 import type { AppState } from './app-state.ts'
 import {
@@ -15,6 +19,7 @@ import {
 } from './asset-bundle-session.ts'
 import { chooseOutputRoot, chooseSvg } from './dialogs.ts'
 import { createRenderCache } from './render-cache.ts'
+import { setTaskbarIdentity } from './windows-taskbar.ts'
 
 // --- startup ---------------------------------------------------------------
 
@@ -135,6 +140,8 @@ const rpc = BrowserView.defineRPC<ManifestoRPC>({
       },
 
       closeWindow: () => {
+        // `close()` skips `will-close`.
+        releaseTaskbarIdentity()
         mainWindow.close()
       },
 
@@ -157,3 +164,27 @@ export const mainWindow = new BrowserWindow({
   rpc,
   titleBarStyle: supportsCustomWindowChrome(platform) ? 'hidden' : 'default',
 })
+
+// --- taskbar ---------------------------------------------------------------
+
+// Windows: share the pinned launcher's taskbar button (electrobun#514). The properties
+// must be cleared before the window closes.
+const releaseTaskbarIdentity = await windowsTaskbarIdentity()
+mainWindow.on('will-close', releaseTaskbarIdentity)
+
+async function windowsTaskbarIdentity(): Promise<() => void> {
+  if (platform !== 'windows') {
+    return () => {}
+  }
+  // A second taskbar button is not worth failing startup over.
+  try {
+    const app = await Updater.getLocalInfo()
+    return setTaskbarIdentity(mainWindow.ptr, {
+      applicationId: app.identifier,
+      displayName: app.displayName ?? app.name,
+    })
+  } catch (error) {
+    console.error('[manifesto] taskbar identity:', error)
+    return () => {}
+  }
+}
