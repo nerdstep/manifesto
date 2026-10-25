@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.1](https://github.com/nerdstep/manifesto/compare/v0.7.0...v0.7.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* Group window with pinned launcher on Windows ([e7ca886](https://github.com/nerdstep/manifesto/commit/e7ca88641daff5ee88348ddbfb1ecef3a90316e9))
+* Update Electrobun and group window with pinned launcher ([#21](https://github.com/nerdstep/manifesto/issues/21)) ([e7ca886](https://github.com/nerdstep/manifesto/commit/e7ca88641daff5ee88348ddbfb1ecef3a90316e9))
+* Update Electrobun to 2.0.4 ([e7ca886](https://github.com/nerdstep/manifesto/commit/e7ca88641daff5ee88348ddbfb1ecef3a90316e9))
+
 ## [0.7.0](https://github.com/nerdstep/manifesto/compare/v0.6.0...v0.7.0) (2026-10-15)
 
 
